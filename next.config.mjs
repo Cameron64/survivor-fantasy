@@ -77,6 +77,8 @@ const withPWA = withPWAInit({
 })
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
+const nextConfig = {
+  output: 'standalone',
+}
 
 export default withPWA(nextConfig)
