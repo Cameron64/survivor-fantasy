@@ -8,6 +8,8 @@
 
 # testing
 /coverage
+/playwright-report
+/test-results
 
 # next.js
 /.next/
@@ -26,7 +28,12 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # vercel
 .vercel
@@ -34,3 +41,29 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# PWA
+public/sw.js
+public/workbox-*.js
+public/sw.js.map
+public/workbox-*.js.map
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Claude
+.claude/
+CLAUDE.md
+
+# Prisma
+prisma/migrations/*.sql.bak
+
+# Simulation data (large, regenerable)
+data/survivor-raw/*.json
+data/survivor-seasons/*.json
+
+# Test output
+test-results.json

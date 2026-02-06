@@ -1,0 +1,218 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core entities
+model User {
+  id                       String      @id @default(cuid())
+  clerkId                  String      @unique
+  email                    String      @unique
+  name                     String
+  role                     Role        @default(USER)
+  isPaid                   Boolean     @default(false)
+  inviteCode               String?     @unique
+  invitedBy                User?       @relation("Invites", fields: [invitedById], references: [id])
+  invitedById              String?
+  invitees                 User[]      @relation("Invites")
+  team                     Team?
+  eventSubmissions         Event[]     @relation("SubmittedBy")
+  eventApprovals           Event[]     @relation("ApprovedBy")
+  gameEventSubmissions     GameEvent[] @relation("GameEventSubmittedBy")
+  gameEventApprovals       GameEvent[] @relation("GameEventApprovedBy")
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
+}
+
+enum Role {
+  ADMIN
+  MODERATOR
+  USER
+}
+
+model Contestant {
+  id               String            @id @default(cuid())
+  name             String
+  nickname         String?           // e.g. "Coach", "Ozzy"
+  tribe            String?
+  imageUrl         String?
+  originalSeasons  String?           // Comma-separated season numbers, e.g. "13,16,23,34"
+  isEliminated     Boolean           @default(false)
+  eliminatedWeek   Int?
+  teams            TeamContestant[]
+  events           Event[]
+  tribeMemberships TribeMembership[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model Team {
+  id          String           @id @default(cuid())
+  user        User             @relation(fields: [userId], references: [id])
+  userId      String           @unique
+  contestants TeamContestant[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model TeamContestant {
+  id           String     @id @default(cuid())
+  team         Team       @relation(fields: [teamId], references: [id])
+  teamId       String
+  contestant   Contestant @relation(fields: [contestantId], references: [id])
+  contestantId String
+  draftOrder   Int
+
+  @@unique([teamId, contestantId])
+  @@unique([teamId, draftOrder])
+}
+
+model Event {
+  id            String     @id @default(cuid())
+  type          EventType
+  contestant    Contestant @relation(fields: [contestantId], references: [id])
+  contestantId  String
+  week          Int
+  description   String?
+  points        Int // Calculated based on EventType
+  isApproved    Boolean    @default(false)
+  submittedBy   User       @relation("SubmittedBy", fields: [submittedById], references: [id])
+  submittedById String
+  approvedBy    User?      @relation("ApprovedBy", fields: [approvedById], references: [id])
+  approvedById  String?
+  gameEvent     GameEvent? @relation(fields: [gameEventId], references: [id], onDelete: Cascade)
+  gameEventId   String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  @@index([week, isApproved])
+  @@index([gameEventId])
+}
+
+model GameEvent {
+  id            String        @id @default(cuid())
+  type          GameEventType
+  week          Int
+  data          Json // Structured event-specific payload
+  isApproved    Boolean       @default(false)
+  submittedBy   User          @relation("GameEventSubmittedBy", fields: [submittedById], references: [id])
+  submittedById String
+  approvedBy    User?         @relation("GameEventApprovedBy", fields: [approvedById], references: [id])
+  approvedById  String?
+  events        Event[] // Derived scoring events
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([week, isApproved])
+}
+
+enum GameEventType {
+  TRIBAL_COUNCIL
+  IMMUNITY_CHALLENGE
+  REWARD_CHALLENGE
+  IDOL_FOUND
+  FIRE_MAKING
+  QUIT_MEDEVAC
+  ENDGAME
+}
+
+enum EventType {
+  // Challenge Performance
+  INDIVIDUAL_IMMUNITY_WIN // +5
+  REWARD_CHALLENGE_WIN // +3
+  TEAM_CHALLENGE_WIN // +1
+
+  // Tribal Council & Strategy
+  CORRECT_VOTE // +2
+  IDOL_PLAY_SUCCESS // +5
+  IDOL_FIND // +3
+  FIRE_MAKING_WIN // +5
+
+  // Social & Game
+  ZERO_VOTES_RECEIVED // +1
+  SURVIVED_WITH_VOTES // +2
+  CAUSED_BLINDSIDE // +2
+
+  // Endgame
+  MADE_JURY // +5
+  FINALIST // +10
+  WINNER // +20
+
+  // Deductions
+  VOTED_OUT_WITH_IDOL // -3
+  QUIT // -10
+}
+
+model League {
+  id             String    @id @default(cuid())
+  name           String    @default("Survivor 50 Fantasy League")
+  season         Int       @default(50)
+  draftStartDate DateTime?
+  draftEndDate   DateTime?
+  isActive       Boolean   @default(true)
+  paymentInfo    String? // Admin's preferred payment method
+  slackWebhook   String?
+  tribes         Tribe[]
+  episodes       Episode[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Tribe {
+  id        String            @id @default(cuid())
+  name      String
+  color     String // Hex color, e.g. "#FF6B35"
+  isMerge   Boolean           @default(false)
+  league    League            @relation(fields: [leagueId], references: [id])
+  leagueId  String
+  members   TribeMembership[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  @@unique([leagueId, name])
+}
+
+model TribeMembership {
+  id           String     @id @default(cuid())
+  contestant   Contestant @relation(fields: [contestantId], references: [id], onDelete: Cascade)
+  contestantId String
+  tribe        Tribe      @relation(fields: [tribeId], references: [id], onDelete: Cascade)
+  tribeId      String
+  fromWeek     Int        @default(1)
+  toWeek       Int? // null = currently on this tribe
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([contestantId])
+  @@index([tribeId])
+}
+
+model Episode {
+  id        String   @id @default(cuid())
+  number    Int
+  title     String?
+  airDate   DateTime
+  league    League   @relation(fields: [leagueId], references: [id])
+  leagueId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([leagueId, number])
+}
+
+model Draft {
+  id           String   @id @default(cuid())
+  currentPick  Int      @default(1)
+  currentRound Int      @default(1)
+  draftOrder   Json // Array of user IDs in snake draft order
+  isComplete   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
