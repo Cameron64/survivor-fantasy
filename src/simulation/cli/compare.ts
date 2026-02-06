@@ -1,6 +1,6 @@
 import { loadSeason } from '../engine/data-loader'
 import { runMonteCarlo } from '../engine/monte-carlo'
-import type { DraftConfig, MonteCarloResult, PointSchemeComparison } from '../engine/types'
+import type { DraftConfig, PointSchemeComparison } from '../engine/types'
 import { SIM_DEFAULTS } from '../config/defaults'
 import {
   parseArgs,

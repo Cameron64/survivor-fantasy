@@ -8,7 +8,6 @@ import {
   getNumArg,
   parseOverrides,
   formatTable,
-  padRight,
   outputResult,
 } from './helpers'
 
