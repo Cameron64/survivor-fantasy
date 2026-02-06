@@ -109,7 +109,6 @@ export default function ExplorePage() {
   const [error, setError] = useState('')
   const [sortColumn, setSortColumn] = useState<string>('totalPoints')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
-  const [bestSeasonOnly, setBestSeasonOnly] = useState(false)
   const [expandedSeasons, setExpandedSeasons] = useState<Set<number>>(new Set())
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('trends')
@@ -154,18 +153,7 @@ export default function ExplorePage() {
 
   function sortedLeaderboard(): LeaderboardEntry[] {
     if (!result) return []
-    let entries = result.leaderboard
-    if (bestSeasonOnly) {
-      const bestByName = new Map<string, LeaderboardEntry>()
-      for (const entry of entries) {
-        const existing = bestByName.get(entry.name)
-        if (!existing || entry.totalPoints > existing.totalPoints) {
-          bestByName.set(entry.name, entry)
-        }
-      }
-      entries = Array.from(bestByName.values())
-    }
-    return [...entries].sort((a, b) => {
+    return [...result.leaderboard].sort((a, b) => {
       let aVal: number, bVal: number
       if (sortColumn === 'totalPoints') {
         aVal = a.totalPoints
@@ -342,18 +330,7 @@ export default function ExplorePage() {
           <TabsContent value="leaderboard" className="space-y-4 mt-4">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Cross-Season Top Scorers</CardTitle>
-                  <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={bestSeasonOnly}
-                      onChange={(e) => setBestSeasonOnly(e.target.checked)}
-                      className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-                    />
-                    <span className="text-muted-foreground">Best season only</span>
-                  </label>
-                </div>
+                <CardTitle className="text-base">Cross-Season Top Scorers</CardTitle>
               </CardHeader>
               <CardContent className="overflow-x-auto">
                 <table className="w-full text-sm">
