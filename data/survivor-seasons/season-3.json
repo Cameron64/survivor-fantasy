@@ -1,0 +1,1876 @@
+{
+  "season": 3,
+  "name": "Survivor: Africa",
+  "numCastaways": 16,
+  "numEpisodes": 15,
+  "castaways": [
+    {
+      "id": "US0033",
+      "name": "Diane",
+      "tribe": "Boran",
+      "placement": 16,
+      "isJury": false,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0034",
+      "name": "Jessie",
+      "tribe": "Boran",
+      "placement": 15,
+      "isJury": false,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0035",
+      "name": "Carl",
+      "tribe": "Samburu",
+      "placement": 14,
+      "isJury": false,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0036",
+      "name": "Linda",
+      "tribe": "Samburu",
+      "placement": 13,
+      "isJury": false,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0037",
+      "name": "Silas",
+      "tribe": "Samburu",
+      "placement": 12,
+      "isJury": false,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0038",
+      "name": "Lindsey",
+      "tribe": "Samburu",
+      "placement": 11,
+      "isJury": false,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0039",
+      "name": "Clarence",
+      "tribe": "Boran",
+      "placement": 10,
+      "isJury": false,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0040",
+      "name": "Kelly",
+      "tribe": "Boran",
+      "placement": 9,
+      "isJury": true,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0041",
+      "name": "Brandon",
+      "tribe": "Samburu",
+      "placement": 8,
+      "isJury": true,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0042",
+      "name": "Frank",
+      "tribe": "Samburu",
+      "placement": 7,
+      "isJury": true,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0043",
+      "name": "Kim P.",
+      "tribe": "Samburu",
+      "placement": 6,
+      "isJury": true,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0044",
+      "name": "Teresa",
+      "tribe": "Samburu",
+      "placement": 5,
+      "isJury": true,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0045",
+      "name": "Tom",
+      "tribe": "Boran",
+      "placement": 4,
+      "isJury": true,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0046",
+      "name": "Lex",
+      "tribe": "Boran",
+      "placement": 3,
+      "isJury": true,
+      "isFinalist": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0047",
+      "name": "Kim J.",
+      "tribe": "Boran",
+      "placement": 2,
+      "isJury": false,
+      "isFinalist": true,
+      "isWinner": false
+    },
+    {
+      "id": "US0048",
+      "name": "Ethan",
+      "tribe": "Boran",
+      "placement": 1,
+      "isJury": false,
+      "isFinalist": true,
+      "isWinner": true
+    }
+  ],
+  "events": [
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0034",
+      "episode": 1,
+      "points": 2,
+      "description": "Voted correctly for Diane"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0039",
+      "episode": 1,
+      "points": 2,
+      "description": "Voted correctly for Diane"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0040",
+      "episode": 1,
+      "points": 2,
+      "description": "Voted correctly for Diane"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0046",
+      "episode": 1,
+      "points": 2,
+      "description": "Voted correctly for Diane"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0047",
+      "episode": 1,
+      "points": 2,
+      "description": "Voted correctly for Diane"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0048",
+      "episode": 1,
+      "points": 2,
+      "description": "Voted correctly for Diane"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0034",
+      "episode": 1,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0040",
+      "episode": 1,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0045",
+      "episode": 1,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0046",
+      "episode": 1,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0047",
+      "episode": 1,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0048",
+      "episode": 1,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0039",
+      "episode": 1,
+      "points": 2,
+      "description": "Survived tribal despite receiving 2 vote(s)"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0039",
+      "episode": 2,
+      "points": 2,
+      "description": "Voted correctly for Jessie"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0040",
+      "episode": 2,
+      "points": 2,
+      "description": "Voted correctly for Jessie"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0046",
+      "episode": 2,
+      "points": 2,
+      "description": "Voted correctly for Jessie"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0047",
+      "episode": 2,
+      "points": 2,
+      "description": "Voted correctly for Jessie"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0048",
+      "episode": 2,
+      "points": 2,
+      "description": "Voted correctly for Jessie"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0040",
+      "episode": 2,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0045",
+      "episode": 2,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0046",
+      "episode": 2,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0047",
+      "episode": 2,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0048",
+      "episode": 2,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0039",
+      "episode": 2,
+      "points": 2,
+      "description": "Survived tribal despite receiving 2 vote(s)"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0037",
+      "episode": 3,
+      "points": 2,
+      "description": "Voted correctly for Carl"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0038",
+      "episode": 3,
+      "points": 2,
+      "description": "Voted correctly for Carl"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0041",
+      "episode": 3,
+      "points": 2,
+      "description": "Voted correctly for Carl"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0043",
+      "episode": 3,
+      "points": 2,
+      "description": "Voted correctly for Carl"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0037",
+      "episode": 3,
+      "points": 2,
+      "description": "Voted correctly for Carl"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0041",
+      "episode": 3,
+      "points": 2,
+      "description": "Voted correctly for Carl"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0043",
+      "episode": 3,
+      "points": 2,
+      "description": "Voted correctly for Carl"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0036",
+      "episode": 3,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0037",
+      "episode": 3,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0041",
+      "episode": 3,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0042",
+      "episode": 3,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0043",
+      "episode": 3,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0044",
+      "episode": 3,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0038",
+      "episode": 3,
+      "points": 2,
+      "description": "Survived tribal despite receiving 7 vote(s)"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0038",
+      "episode": 3,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0038",
+      "episode": 3,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0037",
+      "episode": 4,
+      "points": 2,
+      "description": "Voted correctly for Linda"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0038",
+      "episode": 4,
+      "points": 2,
+      "description": "Voted correctly for Linda"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0041",
+      "episode": 4,
+      "points": 2,
+      "description": "Voted correctly for Linda"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0043",
+      "episode": 4,
+      "points": 2,
+      "description": "Voted correctly for Linda"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0038",
+      "episode": 4,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0041",
+      "episode": 4,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0042",
+      "episode": 4,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0043",
+      "episode": 4,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0044",
+      "episode": 4,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0037",
+      "episode": 4,
+      "points": 2,
+      "description": "Survived tribal despite receiving 3 vote(s)"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0039",
+      "episode": 5,
+      "points": 2,
+      "description": "Voted correctly for Silas"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0042",
+      "episode": 5,
+      "points": 2,
+      "description": "Voted correctly for Silas"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0044",
+      "episode": 5,
+      "points": 2,
+      "description": "Voted correctly for Silas"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0047",
+      "episode": 5,
+      "points": 2,
+      "description": "Voted correctly for Silas"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0048",
+      "episode": 5,
+      "points": 2,
+      "description": "Voted correctly for Silas"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0039",
+      "episode": 5,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0044",
+      "episode": 5,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0047",
+      "episode": 5,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0048",
+      "episode": 5,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0042",
+      "episode": 5,
+      "points": 2,
+      "description": "Survived tribal despite receiving 1 vote(s)"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0040",
+      "episode": 6,
+      "points": 2,
+      "description": "Voted correctly for Lindsey"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0045",
+      "episode": 6,
+      "points": 2,
+      "description": "Voted correctly for Lindsey"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0046",
+      "episode": 6,
+      "points": 2,
+      "description": "Voted correctly for Lindsey"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0040",
+      "episode": 6,
+      "points": 2,
+      "description": "Voted correctly for Lindsey"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0046",
+      "episode": 6,
+      "points": 2,
+      "description": "Voted correctly for Lindsey"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0040",
+      "episode": 6,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0041",
+      "episode": 6,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0043",
+      "episode": 6,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0046",
+      "episode": 6,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0045",
+      "episode": 6,
+      "points": 2,
+      "description": "Survived tribal despite receiving 5 vote(s)"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0045",
+      "episode": 6,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0045",
+      "episode": 6,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0040",
+      "episode": 7,
+      "points": 2,
+      "description": "Voted correctly for Clarence"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0041",
+      "episode": 7,
+      "points": 2,
+      "description": "Voted correctly for Clarence"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0042",
+      "episode": 7,
+      "points": 2,
+      "description": "Voted correctly for Clarence"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0043",
+      "episode": 7,
+      "points": 2,
+      "description": "Voted correctly for Clarence"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0045",
+      "episode": 7,
+      "points": 2,
+      "description": "Voted correctly for Clarence"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0046",
+      "episode": 7,
+      "points": 2,
+      "description": "Voted correctly for Clarence"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0047",
+      "episode": 7,
+      "points": 2,
+      "description": "Voted correctly for Clarence"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0048",
+      "episode": 7,
+      "points": 2,
+      "description": "Voted correctly for Clarence"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0040",
+      "episode": 7,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0041",
+      "episode": 7,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0042",
+      "episode": 7,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0043",
+      "episode": 7,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0044",
+      "episode": 7,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0045",
+      "episode": 7,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0047",
+      "episode": 7,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0048",
+      "episode": 7,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0046",
+      "episode": 7,
+      "points": 2,
+      "description": "Survived tribal despite receiving 2 vote(s)"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0041",
+      "episode": 9,
+      "points": 2,
+      "description": "Voted correctly for Kelly"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0045",
+      "episode": 9,
+      "points": 2,
+      "description": "Voted correctly for Kelly"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0046",
+      "episode": 9,
+      "points": 2,
+      "description": "Voted correctly for Kelly"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0047",
+      "episode": 9,
+      "points": 2,
+      "description": "Voted correctly for Kelly"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0048",
+      "episode": 9,
+      "points": 2,
+      "description": "Voted correctly for Kelly"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0041",
+      "episode": 9,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0042",
+      "episode": 9,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0043",
+      "episode": 9,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0044",
+      "episode": 9,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0045",
+      "episode": 9,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0047",
+      "episode": 9,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0048",
+      "episode": 9,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0046",
+      "episode": 9,
+      "points": 2,
+      "description": "Survived tribal despite receiving 4 vote(s)"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0042",
+      "episode": 10,
+      "points": 2,
+      "description": "Voted correctly for Brandon"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0043",
+      "episode": 10,
+      "points": 2,
+      "description": "Voted correctly for Brandon"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0044",
+      "episode": 10,
+      "points": 2,
+      "description": "Voted correctly for Brandon"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0045",
+      "episode": 10,
+      "points": 2,
+      "description": "Voted correctly for Brandon"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0047",
+      "episode": 10,
+      "points": 2,
+      "description": "Voted correctly for Brandon"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0048",
+      "episode": 10,
+      "points": 2,
+      "description": "Voted correctly for Brandon"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0043",
+      "episode": 10,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0044",
+      "episode": 10,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0045",
+      "episode": 10,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0046",
+      "episode": 10,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0047",
+      "episode": 10,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0048",
+      "episode": 10,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0042",
+      "episode": 10,
+      "points": 2,
+      "description": "Survived tribal despite receiving 2 vote(s)"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0043",
+      "episode": 11,
+      "points": 2,
+      "description": "Voted correctly for Frank"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0044",
+      "episode": 11,
+      "points": 2,
+      "description": "Voted correctly for Frank"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0045",
+      "episode": 11,
+      "points": 2,
+      "description": "Voted correctly for Frank"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0046",
+      "episode": 11,
+      "points": 2,
+      "description": "Voted correctly for Frank"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0047",
+      "episode": 11,
+      "points": 2,
+      "description": "Voted correctly for Frank"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0048",
+      "episode": 11,
+      "points": 2,
+      "description": "Voted correctly for Frank"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0043",
+      "episode": 11,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0044",
+      "episode": 11,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0045",
+      "episode": 11,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0046",
+      "episode": 11,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0048",
+      "episode": 11,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0047",
+      "episode": 11,
+      "points": 2,
+      "description": "Survived tribal despite receiving 1 vote(s)"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0045",
+      "episode": 12,
+      "points": 2,
+      "description": "Voted correctly for Kim P."
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0046",
+      "episode": 12,
+      "points": 2,
+      "description": "Voted correctly for Kim P."
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0047",
+      "episode": 12,
+      "points": 2,
+      "description": "Voted correctly for Kim P."
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0048",
+      "episode": 12,
+      "points": 2,
+      "description": "Voted correctly for Kim P."
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0044",
+      "episode": 12,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0045",
+      "episode": 12,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0047",
+      "episode": 12,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0048",
+      "episode": 12,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0046",
+      "episode": 12,
+      "points": 2,
+      "description": "Survived tribal despite receiving 2 vote(s)"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0045",
+      "episode": 13,
+      "points": 2,
+      "description": "Voted correctly for Teresa"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0046",
+      "episode": 13,
+      "points": 2,
+      "description": "Voted correctly for Teresa"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0047",
+      "episode": 13,
+      "points": 2,
+      "description": "Voted correctly for Teresa"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0048",
+      "episode": 13,
+      "points": 2,
+      "description": "Voted correctly for Teresa"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0046",
+      "episode": 13,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0047",
+      "episode": 13,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0048",
+      "episode": 13,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0045",
+      "episode": 13,
+      "points": 2,
+      "description": "Survived tribal despite receiving 1 vote(s)"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0046",
+      "episode": 14,
+      "points": 2,
+      "description": "Voted correctly for Tom"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0047",
+      "episode": 14,
+      "points": 2,
+      "description": "Voted correctly for Tom"
+    },
+    {
+      "type": "CORRECT_VOTE",
+      "castawayId": "US0048",
+      "episode": 14,
+      "points": 2,
+      "description": "Voted correctly for Tom"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0047",
+      "episode": 14,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0048",
+      "episode": 14,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "SURVIVED_WITH_VOTES",
+      "castawayId": "US0046",
+      "episode": 14,
+      "points": 2,
+      "description": "Survived tribal despite receiving 2 vote(s)"
+    },
+    {
+      "type": "ZERO_VOTES_RECEIVED",
+      "castawayId": "US0048",
+      "episode": 14,
+      "points": 1,
+      "description": "Received zero votes at tribal council"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0035",
+      "episode": 1,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0036",
+      "episode": 1,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0037",
+      "episode": 1,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0038",
+      "episode": 1,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0041",
+      "episode": 1,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0042",
+      "episode": 1,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0043",
+      "episode": 1,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0044",
+      "episode": 1,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0035",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0036",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0037",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0038",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0041",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0042",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0043",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0044",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0035",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0036",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0037",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0038",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0041",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0042",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0043",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0044",
+      "episode": 2,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0039",
+      "episode": 3,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0040",
+      "episode": 3,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0045",
+      "episode": 3,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0046",
+      "episode": 3,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0047",
+      "episode": 3,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0048",
+      "episode": 3,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0039",
+      "episode": 3,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0040",
+      "episode": 3,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0045",
+      "episode": 3,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0046",
+      "episode": 3,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0047",
+      "episode": 3,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0048",
+      "episode": 3,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0036",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0037",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0038",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0041",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0042",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0043",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0044",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0039",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0040",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0045",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0046",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0047",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0048",
+      "episode": 4,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0037",
+      "episode": 5,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0039",
+      "episode": 5,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0042",
+      "episode": 5,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0044",
+      "episode": 5,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0047",
+      "episode": 5,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0048",
+      "episode": 5,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0038",
+      "episode": 5,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0040",
+      "episode": 5,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0041",
+      "episode": 5,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0043",
+      "episode": 5,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0045",
+      "episode": 5,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0046",
+      "episode": 5,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0038",
+      "episode": 6,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0040",
+      "episode": 6,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0041",
+      "episode": 6,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0043",
+      "episode": 6,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0045",
+      "episode": 6,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0046",
+      "episode": 6,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0039",
+      "episode": 6,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0042",
+      "episode": 6,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0044",
+      "episode": 6,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0047",
+      "episode": 6,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0048",
+      "episode": 6,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "INDIVIDUAL_IMMUNITY_WIN",
+      "castawayId": "US0044",
+      "episode": 7,
+      "points": 5,
+      "description": "Won individual immunity"
+    },
+    {
+      "type": "REWARD_CHALLENGE_WIN",
+      "castawayId": "US0048",
+      "episode": 9,
+      "points": 3,
+      "description": "Won individual reward challenge"
+    },
+    {
+      "type": "INDIVIDUAL_IMMUNITY_WIN",
+      "castawayId": "US0048",
+      "episode": 9,
+      "points": 5,
+      "description": "Won individual immunity"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0041",
+      "episode": 10,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "TEAM_CHALLENGE_WIN",
+      "castawayId": "US0042",
+      "episode": 10,
+      "points": 1,
+      "description": "Won team/tribal challenge"
+    },
+    {
+      "type": "INDIVIDUAL_IMMUNITY_WIN",
+      "castawayId": "US0046",
+      "episode": 10,
+      "points": 5,
+      "description": "Won individual immunity"
+    },
+    {
+      "type": "INDIVIDUAL_IMMUNITY_WIN",
+      "castawayId": "US0046",
+      "episode": 11,
+      "points": 5,
+      "description": "Won individual immunity"
+    },
+    {
+      "type": "REWARD_CHALLENGE_WIN",
+      "castawayId": "US0046",
+      "episode": 12,
+      "points": 3,
+      "description": "Won individual reward challenge"
+    },
+    {
+      "type": "INDIVIDUAL_IMMUNITY_WIN",
+      "castawayId": "US0045",
+      "episode": 12,
+      "points": 5,
+      "description": "Won individual immunity"
+    },
+    {
+      "type": "REWARD_CHALLENGE_WIN",
+      "castawayId": "US0046",
+      "episode": 13,
+      "points": 3,
+      "description": "Won individual reward challenge"
+    },
+    {
+      "type": "INDIVIDUAL_IMMUNITY_WIN",
+      "castawayId": "US0046",
+      "episode": 13,
+      "points": 5,
+      "description": "Won individual immunity"
+    },
+    {
+      "type": "INDIVIDUAL_IMMUNITY_WIN",
+      "castawayId": "US0047",
+      "episode": 14,
+      "points": 5,
+      "description": "Won individual immunity"
+    },
+    {
+      "type": "INDIVIDUAL_IMMUNITY_WIN",
+      "castawayId": "US0047",
+      "episode": 14,
+      "points": 5,
+      "description": "Won individual immunity"
+    },
+    {
+      "type": "MADE_JURY",
+      "castawayId": "US0040",
+      "episode": 9,
+      "points": 5,
+      "description": "Made the jury"
+    },
+    {
+      "type": "MADE_JURY",
+      "castawayId": "US0041",
+      "episode": 10,
+      "points": 5,
+      "description": "Made the jury"
+    },
+    {
+      "type": "MADE_JURY",
+      "castawayId": "US0042",
+      "episode": 11,
+      "points": 5,
+      "description": "Made the jury"
+    },
+    {
+      "type": "MADE_JURY",
+      "castawayId": "US0043",
+      "episode": 12,
+      "points": 5,
+      "description": "Made the jury"
+    },
+    {
+      "type": "MADE_JURY",
+      "castawayId": "US0044",
+      "episode": 13,
+      "points": 5,
+      "description": "Made the jury"
+    },
+    {
+      "type": "MADE_JURY",
+      "castawayId": "US0045",
+      "episode": 14,
+      "points": 5,
+      "description": "Made the jury"
+    },
+    {
+      "type": "MADE_JURY",
+      "castawayId": "US0046",
+      "episode": 14,
+      "points": 5,
+      "description": "Made the jury"
+    },
+    {
+      "type": "FINALIST",
+      "castawayId": "US0047",
+      "episode": 14,
+      "points": 10,
+      "description": "Made it to Final Tribal Council"
+    },
+    {
+      "type": "WINNER",
+      "castawayId": "US0048",
+      "episode": 14,
+      "points": 20,
+      "description": "Won the game"
+    },
+    {
+      "type": "FINALIST",
+      "castawayId": "US0048",
+      "episode": 14,
+      "points": 10,
+      "description": "Made it to Final Tribal Council"
+    }
+  ]
+}

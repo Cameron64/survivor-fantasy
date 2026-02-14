@@ -1,0 +1,177 @@
+{
+  "season": 50,
+  "name": "Survivor: In the Hands of the Fans",
+  "numCastaways": 24,
+  "numEpisodes": 14,
+  "castaways": [
+    {
+      "id": "US0554",
+      "name": "Angelina",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0477",
+      "name": "Aubry",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0682",
+      "name": "Charlie",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0515",
+      "name": "Chrissy",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0550",
+      "name": "Christian",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0179",
+      "name": "Cirie",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0277",
+      "name": "Coach",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0031",
+      "name": "Colby",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0666",
+      "name": "Dee",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0668",
+      "name": "Emily",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0703",
+      "name": "Genevieve",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0009",
+      "name": "Jenna",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0722",
+      "name": "Joe",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0615",
+      "name": "Jonathan",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0724",
+      "name": "Kamilla",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0726",
+      "name": "Kyle",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0555",
+      "name": "Mike",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0201",
+      "name": "Ozzy",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0691",
+      "name": "Q",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0560",
+      "name": "Rick",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0745",
+      "name": "Rizo",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0747",
+      "name": "Savannah",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0144",
+      "name": "Stephenie",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    },
+    {
+      "id": "US0695",
+      "name": "Tiffany",
+      "tribe": "Unknown",
+      "isJury": false,
+      "isWinner": false
+    }
+  ],
+  "events": []
+}

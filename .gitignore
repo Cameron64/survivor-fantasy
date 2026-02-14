@@ -61,9 +61,8 @@ CLAUDE.md
 # Prisma
 prisma/migrations/*.sql.bak
 
-# Simulation data (large, regenerable)
+# Simulation data (raw exports are large, regenerable)
 data/survivor-raw/*.json
-data/survivor-seasons/*.json
 
 # Test output
 test-results.json
