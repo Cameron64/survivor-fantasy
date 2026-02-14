@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@clerk/nextjs/server'
 import Link from 'next/link'
-import { FlaskConical, Eye, Play, BarChart3, GitCompare, LayoutDashboard, ArrowLeft, DatabaseZap } from 'lucide-react'
+import { FlaskConical, Eye, Play, BarChart3, GitCompare, LayoutDashboard, ArrowLeft, DatabaseZap, Scale } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default async function SimulationLayout({
@@ -57,6 +57,9 @@ export default async function SimulationLayout({
             <SimNavLink href="/simulation/explore" icon={DatabaseZap}>
               Explorer
             </SimNavLink>
+            <SimNavLink href="/simulation/draft-compare" icon={Scale}>
+              Draft Compare
+            </SimNavLink>
           </nav>
         </aside>
 
@@ -69,6 +72,7 @@ export default async function SimulationLayout({
             <MobileSimNavLink href="/simulation/batch" icon={BarChart3} label="Batch" />
             <MobileSimNavLink href="/simulation/compare" icon={GitCompare} label="Compare" />
             <MobileSimNavLink href="/simulation/explore" icon={DatabaseZap} label="Explore" />
+            <MobileSimNavLink href="/simulation/draft-compare" icon={Scale} label="Draft" />
           </div>
         </div>
 
