@@ -151,8 +151,11 @@ export interface RawChallengeResult {
   castaway: string
   castaway_id: string
   challenge_type: string
+  outcome_type?: string
   result: string
   tribe: string
+  won_individual_immunity?: number
+  won_individual_reward?: number
 }
 
 export interface RawAdvantageMovement {

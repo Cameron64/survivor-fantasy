@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireSimAdmin } from '../auth'
+import { requireSimUser } from '../auth'
 import {
   loadSeason,
   loadAllSeasons,
@@ -12,7 +12,7 @@ import { SIM_DEFAULTS } from '@/simulation/config/defaults'
 
 export async function POST(req: NextRequest) {
   try {
-    await requireSimAdmin()
+    await requireSimUser()
     const body = await req.json()
     const {
       season: seasonInput,

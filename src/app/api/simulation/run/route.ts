@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireSimAdmin } from '../auth'
+import { requireSimUser } from '../auth'
 import { loadSeason, simulateDraft, calculateScores } from '@/simulation/engine'
 import type { DraftConfig } from '@/simulation/engine'
 import { SIM_DEFAULTS } from '@/simulation/config/defaults'
 
 export async function POST(req: NextRequest) {
   try {
-    await requireSimAdmin()
+    await requireSimUser()
     const body = await req.json()
     const {
       season: seasonNum,

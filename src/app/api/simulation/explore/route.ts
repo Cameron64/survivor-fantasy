@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireSimAdmin } from '../auth'
+import { requireSimUser } from '../auth'
 import { loadSeason, loadAllSeasons } from '@/simulation/engine'
 import {
   aggregateSeasonScoring,
@@ -10,7 +10,7 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
-    await requireSimAdmin()
+    await requireSimUser()
     const body = await req.json()
     const { seasons: seasonInput, overrides = {} } = body
 

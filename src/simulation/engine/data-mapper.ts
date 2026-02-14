@@ -167,12 +167,9 @@ export function mapSeasonEvents(input: MapperInput): MapperOutput {
   for (const c of challenges) {
     if (c.result !== 'Won') continue
 
-    const challengeType = (c.challenge_type || '').toLowerCase()
-    const isIndividual = challengeType.includes('individual')
-    const isImmunity = challengeType.includes('immunity')
-    const isReward = challengeType.includes('reward')
-
-    if (isIndividual && isImmunity) {
+    // Use the explicit boolean flags from survivoR data when available,
+    // falling back to string parsing for older data formats
+    if (c.won_individual_immunity) {
       events.push({
         type: 'INDIVIDUAL_IMMUNITY_WIN',
         castawayId: c.castaway_id,
@@ -180,7 +177,8 @@ export function mapSeasonEvents(input: MapperInput): MapperOutput {
         points: pts.INDIVIDUAL_IMMUNITY_WIN,
         description: `Won individual immunity`,
       })
-    } else if (isIndividual && isReward) {
+    }
+    if (c.won_individual_reward) {
       events.push({
         type: 'REWARD_CHALLENGE_WIN',
         castawayId: c.castaway_id,
@@ -188,7 +186,9 @@ export function mapSeasonEvents(input: MapperInput): MapperOutput {
         points: pts.REWARD_CHALLENGE_WIN,
         description: `Won individual reward challenge`,
       })
-    } else if (!isIndividual) {
+    }
+    // Team/tribal challenge: won but not an individual win
+    if (!c.won_individual_immunity && !c.won_individual_reward) {
       events.push({
         type: 'TEAM_CHALLENGE_WIN',
         castawayId: c.castaway_id,

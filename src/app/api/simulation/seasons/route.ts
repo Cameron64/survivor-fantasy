@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
-import { requireSimAdmin } from '../auth'
+import { requireSimUser } from '../auth'
 import { getAvailableSeasons } from '@/simulation/engine'
 
 export async function GET() {
   try {
-    await requireSimAdmin()
+    await requireSimUser()
     const seasons = getAvailableSeasons()
     return NextResponse.json({ seasons })
   } catch (error) {

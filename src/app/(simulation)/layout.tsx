@@ -1,25 +1,8 @@
 import { redirect } from 'next/navigation'
-import { auth, clerkClient } from '@clerk/nextjs/server'
+import { auth } from '@clerk/nextjs/server'
 import Link from 'next/link'
 import { FlaskConical, Eye, Play, BarChart3, GitCompare, LayoutDashboard, ArrowLeft, DatabaseZap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { db } from '@/lib/db'
-
-async function checkIsAdmin(userId: string): Promise<boolean> {
-  // Fast path: Clerk publicMetadata
-  const clerk = await clerkClient()
-  const clerkUser = await clerk.users.getUser(userId)
-  if (clerkUser.publicMetadata?.role === 'ADMIN') return true
-
-  // Slow path: check database
-  try {
-    const dbUser = await db.user.findUnique({ where: { clerkId: userId } })
-    return dbUser?.role === 'ADMIN'
-  } catch {
-    // DB unreachable, Clerk didn't have ADMIN either
-    return false
-  }
-}
 
 export default async function SimulationLayout({
   children,
@@ -30,11 +13,6 @@ export default async function SimulationLayout({
 
   if (!userId) {
     redirect('/sign-in')
-  }
-
-  const isAdmin = await checkIsAdmin(userId)
-  if (!isAdmin) {
-    redirect('/')
   }
 
   return (

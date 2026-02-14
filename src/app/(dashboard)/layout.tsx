@@ -155,11 +155,9 @@ export default async function DashboardLayout({
                   Admin
                 </NavLink>
               )}
-              {isAdmin && (
-                <NavLink href="/simulation" icon={FlaskConical}>
-                  Simulation
-                </NavLink>
-              )}
+              <NavLink href="/simulation" icon={FlaskConical}>
+                Simulation
+              </NavLink>
             </nav>
           </div>
           <div className="flex-shrink-0 flex border-t p-4">
@@ -190,6 +188,7 @@ export default async function DashboardLayout({
           <MobileNavLink href="/my-team" icon={Users} label="Team" />
           <MobileNavLink href="/events" icon={Calendar} label="Events" />
           <MobileNavLink href="/contestants" icon={Users} label="Players" />
+          <MobileNavLink href="/simulation" icon={FlaskConical} label="Sim" />
           <MobileNavLink href="/settings" icon={Settings} label="Settings" />
         </div>
       </nav>

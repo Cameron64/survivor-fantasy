@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireSimAdmin } from '../auth'
+import { requireSimUser } from '../auth'
 import { loadSeason, runMonteCarlo } from '@/simulation/engine'
 import type { DraftConfig, MonteCarloConfig } from '@/simulation/engine'
 import { SIM_DEFAULTS } from '@/simulation/config/defaults'
 
 export async function POST(req: NextRequest) {
   try {
-    await requireSimAdmin()
+    await requireSimUser()
     const body = await req.json()
     const {
       season: seasonNum,
