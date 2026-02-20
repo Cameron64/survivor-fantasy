@@ -391,7 +391,7 @@ function MetricsTable({ metrics }: { metrics: CompareMetrics[] }) {
           return (
             <tr key={row.label} className="border-b last:border-0 hover:bg-teal-50/50 dark:hover:bg-teal-950/20">
               <td className="py-1.5 px-2 text-muted-foreground">{row.label}</td>
-              {metrics.map((m, i) => {
+              {metrics.map((m, _i) => {
                 const display = row.getValue(m)
                 const numVal = display === 'N/A' ? null : parseFloat(display.replace('%', ''))
                 const isBest = numVal !== null && numVal === bestVal && validValues.length > 1
@@ -531,7 +531,7 @@ function HeadToHeadTable({
         {Array.from({ length: maxSeasons }, (_, si) => (
           <tr key={si} className="border-b last:border-0 hover:bg-teal-50/50 dark:hover:bg-teal-950/20">
             <td className="py-1.5 px-2 text-muted-foreground">Season {si + 1}</td>
-            {players.map((p, pi) => {
+            {players.map((p, _pi) => {
               const s = p.seasons[si]
               if (!s) return <td key={p.id} className="py-1.5 px-2 text-right text-muted-foreground">-</td>
               return (
