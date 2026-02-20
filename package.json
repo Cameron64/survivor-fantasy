@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
-    "build": "prisma generate && next build && cp -r data .next/standalone/data",
+    "build": "prisma generate && next build && cp -r data .next/standalone/data && cp -r public .next/standalone/public && cp -r .next/static .next/standalone/.next/static",
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",

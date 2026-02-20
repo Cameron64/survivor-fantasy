@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "npx prisma db push --skip-generate && pnpm start"
+startCommand = "npx prisma db push --skip-generate && HOSTNAME=0.0.0.0 node .next/standalone/server.js"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
