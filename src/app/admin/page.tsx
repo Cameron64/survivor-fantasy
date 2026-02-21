@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { db } from '@/lib/db'
 import { checkSeasonReadiness } from '@/lib/season-readiness'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
