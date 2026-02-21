@@ -20,20 +20,24 @@ const userInclude = {
  * Returns the acting user's DB record, or null if headers are missing/invalid.
  */
 async function getUserFromApiKey() {
-  const apiKey = process.env.BOT_API_KEY
-  if (!apiKey) return null
+  try {
+    const apiKey = process.env.BOT_API_KEY
+    if (!apiKey) return null
 
-  const hdrs = await headers()
-  const authHeader = hdrs.get('authorization')
-  const actingUserId = hdrs.get('x-acting-user')
+    const hdrs = await headers()
+    const authHeader = hdrs.get('authorization')
+    const actingUserId = hdrs.get('x-acting-user')
 
-  if (!authHeader || !actingUserId) return null
-  if (authHeader !== `Bearer ${apiKey}`) return null
+    if (!authHeader || !actingUserId) return null
+    if (authHeader !== `Bearer ${apiKey}`) return null
 
-  return db.user.findUnique({
-    where: { id: actingUserId },
-    include: userInclude,
-  })
+    return db.user.findUnique({
+      where: { id: actingUserId },
+      include: userInclude,
+    })
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -46,11 +50,18 @@ export async function getCurrentUser() {
   if (apiKeyUser) return apiKeyUser
 
   // Clerk session auth (browser)
-  const { userId } = await auth()
-  if (!userId) return null
+  let clerkUserId: string | null = null
+  try {
+    const { userId } = await auth()
+    clerkUserId = userId
+  } catch {
+    return null
+  }
+
+  if (!clerkUserId) return null
 
   const user = await db.user.findUnique({
-    where: { clerkId: userId },
+    where: { clerkId: clerkUserId },
     include: userInclude,
   })
 
