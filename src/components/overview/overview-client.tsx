@@ -22,7 +22,7 @@ export function OverviewClient({
   maxScore,
 }: OverviewClientProps) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <StandingsOverview
         standings={standings}
         currentUserId={currentUserId}
@@ -31,7 +31,7 @@ export function OverviewClient({
 
       <TopContestants contestants={contestants} />
 
-      <div className="flex flex-col lg:flex-row gap-8">
+      <div className="flex flex-col lg:flex-row gap-6">
         <div className="lg:w-2/3">
           <PlayerDetailCards players={standings} currentUserId={currentUserId} />
         </div>
