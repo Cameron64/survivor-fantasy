@@ -1,73 +1,174 @@
 import { db } from '@/lib/db'
+import { getCurrentUser } from '@/lib/auth'
 import { calculateTotalPoints } from '@/lib/scoring'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Trophy, Medal, Award } from 'lucide-react'
+import { Trophy } from 'lucide-react'
+import { OverviewClient } from '@/components/overview/overview-client'
+import type {
+  PlayerStanding,
+  ContestantScore,
+  ApprovedEvent,
+} from '@/components/overview/overview-types'
 
-async function getLeaderboard() {
-  const teams = await db.team.findMany({
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          isPaid: true,
+async function getOverviewData() {
+  const [currentUser, teams, recentEvents] = await Promise.all([
+    getCurrentUser(),
+    db.team.findMany({
+      include: {
+        user: {
+          select: { id: true, name: true, isPaid: true },
         },
-      },
-      contestants: {
-        include: {
-          contestant: {
-            include: {
-              events: {
-                where: { isApproved: true },
+        contestants: {
+          include: {
+            contestant: {
+              include: {
+                events: {
+                  where: { isApproved: true },
+                  orderBy: { createdAt: 'desc' },
+                },
+                tribeMemberships: {
+                  where: { toWeek: null },
+                  include: {
+                    tribe: { select: { name: true, color: true } },
+                  },
+                  take: 1,
+                },
               },
             },
           },
         },
       },
-    },
-  })
+    }),
+    db.event.findMany({
+      where: { isApproved: true },
+      orderBy: { createdAt: 'desc' },
+      take: 30,
+      include: {
+        contestant: { select: { name: true } },
+      },
+    }),
+  ])
 
-  const leaderboard = teams.map((team) => {
-    const contestantScores = team.contestants.map((tc) => {
-      const totalPoints = calculateTotalPoints(tc.contestant.events)
+  // Build contestant map (id -> drafted-by user name)
+  const contestantDraftedBy = new Map<string, string>()
+  for (const team of teams) {
+    for (const tc of team.contestants) {
+      contestantDraftedBy.set(tc.contestant.id, team.user.name)
+    }
+  }
+
+  // Build standings
+  const standings: PlayerStanding[] = teams
+    .map((team) => {
+      const contestants: ContestantScore[] = team.contestants.map((tc) => {
+        const c = tc.contestant
+        const totalPoints = calculateTotalPoints(c.events)
+        const currentTribe = c.tribeMemberships[0]?.tribe ?? null
+
+        return {
+          id: c.id,
+          name: c.name,
+          imageUrl: c.imageUrl,
+          isEliminated: c.isEliminated,
+          totalPoints,
+          tribeColor: currentTribe?.color ?? null,
+          tribeName: currentTribe?.name ?? null,
+          draftedBy: team.user.name,
+          events: c.events.map((e) => ({
+            id: e.id,
+            type: e.type,
+            contestantId: e.contestantId,
+            contestantName: c.name,
+            week: e.week,
+            points: e.points,
+            createdAt: e.createdAt.toISOString(),
+          })),
+        }
+      })
+
+      const totalScore = contestants.reduce((s, c) => s + c.totalPoints, 0)
+      const allEliminated =
+        contestants.length > 0 && contestants.every((c) => c.isEliminated)
+
       return {
-        contestant: tc.contestant,
-        totalPoints,
+        teamId: team.id,
+        userId: team.user.id,
+        userName: team.user.name,
+        rank: 0,
+        totalScore,
+        allEliminated,
+        contestants,
       }
     })
+    .sort((a, b) => b.totalScore - a.totalScore)
+    .map((entry, idx) => ({ ...entry, rank: idx + 1 }))
 
-    const totalScore = contestantScores.reduce((sum, cs) => sum + cs.totalPoints, 0)
+  // Build all-contestant ranking
+  const allContestants: ContestantScore[] = teams
+    .flatMap((team) =>
+      team.contestants.map((tc) => {
+        const c = tc.contestant
+        const totalPoints = calculateTotalPoints(c.events)
+        const currentTribe = c.tribeMemberships[0]?.tribe ?? null
 
-    return {
-      teamId: team.id,
-      user: team.user,
-      contestants: contestantScores,
-      totalScore,
-    }
+        return {
+          id: c.id,
+          name: c.name,
+          imageUrl: c.imageUrl,
+          isEliminated: c.isEliminated,
+          totalPoints,
+          tribeColor: currentTribe?.color ?? null,
+          tribeName: currentTribe?.name ?? null,
+          draftedBy: contestantDraftedBy.get(c.id) ?? null,
+          events: [],
+        }
+      })
+    )
+    .sort((a, b) => b.totalPoints - a.totalPoints)
+
+  // Deduplicate contestants (in case same contestant on multiple teams - shouldn't happen but be safe)
+  const seenIds = new Set<string>()
+  const uniqueContestants = allContestants.filter((c) => {
+    if (seenIds.has(c.id)) return false
+    seenIds.add(c.id)
+    return true
   })
 
-  leaderboard.sort((a, b) => b.totalScore - a.totalScore)
-
-  return leaderboard.map((entry, index) => ({
-    ...entry,
-    rank: index + 1,
+  // Build activity feed
+  const feedEvents: ApprovedEvent[] = recentEvents.map((e) => ({
+    id: e.id,
+    type: e.type,
+    contestantId: e.contestantId,
+    contestantName: e.contestant.name,
+    week: e.week,
+    points: e.points,
+    createdAt: e.createdAt.toISOString(),
   }))
+
+  const maxScore = standings.length > 0 ? standings[0].totalScore : 0
+
+  return {
+    currentUserId: currentUser?.id ?? null,
+    standings,
+    contestants: uniqueContestants,
+    feedEvents,
+    maxScore,
+  }
 }
 
 export default async function LeaderboardPage() {
-  const leaderboard = await getLeaderboard()
+  const { currentUserId, standings, contestants, feedEvents, maxScore } =
+    await getOverviewData()
 
-  return (
-    <div className="space-y-6 pb-20 lg:pb-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Leaderboard</h1>
-        <p className="text-muted-foreground">
-          Season 50 Fantasy League Standings
-        </p>
-      </div>
-
-      {leaderboard.length === 0 ? (
+  if (standings.length === 0) {
+    return (
+      <div className="space-y-6 pb-20 lg:pb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
+          <p className="text-muted-foreground">
+            Season 50 Fantasy League
+          </p>
+        </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Trophy className="h-12 w-12 text-muted-foreground mb-4" />
@@ -77,56 +178,26 @@ export default async function LeaderboardPage() {
             </p>
           </CardContent>
         </Card>
-      ) : (
-        <div className="space-y-4">
-          {leaderboard.map((entry) => (
-            <Card key={entry.teamId} className={entry.rank <= 3 ? 'border-primary/50' : ''}>
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-muted">
-                  {entry.rank === 1 ? (
-                    <Trophy className="h-6 w-6 text-yellow-500" />
-                  ) : entry.rank === 2 ? (
-                    <Medal className="h-6 w-6 text-gray-400" />
-                  ) : entry.rank === 3 ? (
-                    <Award className="h-6 w-6 text-amber-600" />
-                  ) : (
-                    <span className="text-lg font-bold text-muted-foreground">
-                      {entry.rank}
-                    </span>
-                  )}
-                </div>
+      </div>
+    )
+  }
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold truncate">{entry.user.name}</p>
-                    {!entry.user.isPaid && (
-                      <Badge variant="outline" className="text-xs">
-                        Unpaid
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex gap-2 mt-1">
-                    {entry.contestants.map((cs) => (
-                      <Badge
-                        key={cs.contestant.id}
-                        variant={cs.contestant.isEliminated ? 'secondary' : 'default'}
-                        className="text-xs"
-                      >
-                        {cs.contestant.name} ({cs.totalPoints})
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+  return (
+    <div className="space-y-6 pb-20 lg:pb-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
+        <p className="text-muted-foreground">
+          Season 50 Fantasy League
+        </p>
+      </div>
 
-                <div className="text-right">
-                  <p className="text-2xl font-bold">{entry.totalScore}</p>
-                  <p className="text-xs text-muted-foreground">points</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <OverviewClient
+        standings={standings}
+        contestants={contestants}
+        feedEvents={feedEvents}
+        currentUserId={currentUserId}
+        maxScore={maxScore}
+      />
     </div>
   )
 }

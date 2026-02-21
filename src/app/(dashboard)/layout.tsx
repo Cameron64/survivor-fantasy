@@ -136,7 +136,7 @@ export default async function DashboardLayout({
             </div>
             <nav className="mt-8 flex-1 px-2 space-y-1">
               <NavLink href="/leaderboard" icon={Trophy}>
-                Leaderboard
+                Overview
               </NavLink>
               <NavLink href="/my-team" icon={Users}>
                 My Team
