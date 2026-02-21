@@ -35,7 +35,7 @@ export async function GET() {
     allUsers = await db.user.findMany({
       select: { id: true, name: true, role: true },
     })
-  } catch (e) {
+  } catch {
     // ignore
   }
 
