@@ -184,12 +184,14 @@ export default async function DashboardLayout({
       {/* Mobile Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 border-t bg-background lg:hidden z-50">
         <div className="flex items-center justify-around h-16">
-          <MobileNavLink href="/leaderboard" icon={Trophy} label="Scores" />
+          <MobileNavLink href="/leaderboard" icon={Trophy} label="Overview" />
           <MobileNavLink href="/my-team" icon={Users} label="Team" />
           <MobileNavLink href="/events" icon={Calendar} label="Events" />
-          <MobileNavLink href="/contestants" icon={Users} label="Players" />
           <MobileNavLink href="/simulation" icon={FlaskConical} label="Sim" />
           <MobileNavLink href="/settings" icon={Settings} label="Settings" />
+          {isModerator && (
+            <MobileNavLink href="/admin" icon={Shield} label="Admin" />
+          )}
         </div>
       </nav>
     </div>
