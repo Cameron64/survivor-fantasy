@@ -5,6 +5,15 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Check, Clock, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
 import { getEventTypeLabel } from '@/lib/scoring'
 import { getGameEventTypeLabel } from '@/lib/event-derivation'
@@ -41,6 +50,14 @@ export default function AdminEventsPage() {
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [processingId, setProcessingId] = useState<string | null>(null)
+  const [selectedGameEventIds, setSelectedGameEventIds] = useState<Set<string>>(new Set())
+  const [selectedEventIds, setSelectedEventIds] = useState<Set<string>>(new Set())
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    type: 'event' | 'gameEvent' | 'bulkEvents' | 'bulkGameEvents'
+    ids: string[]
+    label: string
+  } | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     fetchAll()
@@ -125,6 +142,25 @@ export default function AdminEventsPage() {
     }
   }
 
+  // Selection helpers
+  const toggleGameEventSelection = (id: string) => {
+    setSelectedGameEventIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleEventSelection = (id: string) => {
+    setSelectedEventIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   // Standalone events (not part of a game event)
   const standaloneEvents = events.filter((e) => !e.gameEventId)
   const pendingStandalone = standaloneEvents.filter((e) => !e.isApproved)
@@ -136,11 +172,110 @@ export default function AdminEventsPage() {
   const totalPending = pendingStandalone.length + pendingGameEvents.length
   const totalApproved = approvedStandalone.length + approvedGameEvents.length
 
+  const totalSelected = selectedGameEventIds.size + selectedEventIds.size
+
+  const selectAllApproved = () => {
+    setSelectedGameEventIds(new Set(approvedGameEvents.map((ge) => ge.id)))
+    setSelectedEventIds(new Set(approvedStandalone.map((e) => e.id)))
+  }
+
+  const clearSelection = () => {
+    setSelectedGameEventIds(new Set())
+    setSelectedEventIds(new Set())
+  }
+
+  const handleBulkDelete = () => {
+    // Count total scoring events being removed (game events include their derived events)
+    const gameEventCount = selectedGameEventIds.size
+    const derivedCount = approvedGameEvents
+      .filter((ge) => selectedGameEventIds.has(ge.id))
+      .reduce((sum, ge) => sum + ge.events.length, 0)
+    const standaloneCount = selectedEventIds.size
+
+    const parts: string[] = []
+    if (gameEventCount > 0) parts.push(`${gameEventCount} game event${gameEventCount > 1 ? 's' : ''} (${derivedCount} scoring events)`)
+    if (standaloneCount > 0) parts.push(`${standaloneCount} standalone event${standaloneCount > 1 ? 's' : ''}`)
+
+    // We need to fire both deletes; use bulkGameEvents for game events, bulkEvents for standalone
+    if (gameEventCount > 0 && standaloneCount > 0) {
+      // Delete both types - we'll chain them
+      setDeleteConfirm({
+        type: 'bulkGameEvents',
+        ids: Array.from(selectedGameEventIds).concat(Array.from(selectedEventIds)),
+        label: parts.join(' and '),
+      })
+    } else if (gameEventCount > 0) {
+      setDeleteConfirm({
+        type: 'bulkGameEvents',
+        ids: Array.from(selectedGameEventIds),
+        label: parts[0],
+      })
+    } else {
+      setDeleteConfirm({
+        type: 'bulkEvents',
+        ids: Array.from(selectedEventIds),
+        label: parts[0],
+      })
+    }
+  }
+
+  // Override confirmDelete to handle mixed bulk
+  const handleConfirmDeleteMixed = async () => {
+    if (!deleteConfirm) return
+    setIsDeleting(true)
+    try {
+      const { type, ids } = deleteConfirm
+      if (type === 'event') {
+        await fetch(`/api/events/${ids[0]}`, { method: 'DELETE' })
+      } else if (type === 'gameEvent') {
+        await fetch(`/api/game-events/${ids[0]}`, { method: 'DELETE' })
+      } else if (type === 'bulkEvents') {
+        await fetch('/api/events/bulk-delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids }),
+        })
+      } else if (type === 'bulkGameEvents') {
+        // If there are mixed selections, fire both
+        const geIds = Array.from(selectedGameEventIds)
+        const evIds = Array.from(selectedEventIds)
+        const promises: Promise<Response>[] = []
+        if (geIds.length > 0) {
+          promises.push(
+            fetch('/api/game-events/bulk-delete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ids: geIds }),
+            })
+          )
+        }
+        if (evIds.length > 0) {
+          promises.push(
+            fetch('/api/events/bulk-delete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ids: evIds }),
+            })
+          )
+        }
+        await Promise.all(promises)
+      }
+      setSelectedGameEventIds(new Set())
+      setSelectedEventIds(new Set())
+      fetchAll()
+    } catch (error) {
+      console.error('Failed to delete:', error)
+    } finally {
+      setIsDeleting(false)
+      setDeleteConfirm(null)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Event Management</h1>
-        <p className="text-muted-foreground">Approve or reject submitted events</p>
+        <p className="text-muted-foreground">Approve, reject, or delete submitted events</p>
       </div>
 
       <Tabs defaultValue="pending">
@@ -196,17 +331,101 @@ export default function AdminEventsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-3">
-              {approvedGameEvents.map((ge) => (
-                <ApprovedGameEventCard key={ge.id} gameEvent={ge} />
-              ))}
-              {approvedStandalone.map((event) => (
-                <ApprovedEventCard key={event.id} event={event} />
-              ))}
-            </div>
+            <>
+              {/* Bulk actions bar */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={totalSelected === totalApproved ? clearSelection : selectAllApproved}
+                >
+                  {totalSelected === totalApproved ? 'Deselect all' : 'Select all'}
+                </Button>
+                {totalSelected > 0 && (
+                  <>
+                    <span className="text-sm text-muted-foreground">
+                      {totalSelected} selected
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={handleBulkDelete}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete selected
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearSelection}
+                    >
+                      Clear
+                    </Button>
+                  </>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {approvedGameEvents.map((ge) => (
+                  <ApprovedGameEventCard
+                    key={ge.id}
+                    gameEvent={ge}
+                    selected={selectedGameEventIds.has(ge.id)}
+                    onToggleSelect={() => toggleGameEventSelection(ge.id)}
+                    onDelete={() =>
+                      setDeleteConfirm({
+                        type: 'gameEvent',
+                        ids: [ge.id],
+                        label: `${getGameEventTypeLabel(ge.type)} (Week ${ge.week}) and its ${ge.events.length} scoring events`,
+                      })
+                    }
+                  />
+                ))}
+                {approvedStandalone.map((event) => (
+                  <ApprovedEventCard
+                    key={event.id}
+                    event={event}
+                    selected={selectedEventIds.has(event.id)}
+                    onToggleSelect={() => toggleEventSelection(event.id)}
+                    onDelete={() =>
+                      setDeleteConfirm({
+                        type: 'event',
+                        ids: [event.id],
+                        label: `${event.contestant.name} — ${getEventTypeLabel(event.type)} (Week ${event.week})`,
+                      })
+                    }
+                  />
+                ))}
+              </div>
+            </>
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={deleteConfirm !== null} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete events</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {deleteConfirm?.label}? This will remove the scoring
+              data and affect the leaderboard. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDeleteMixed}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -391,48 +610,76 @@ function PendingEventCard({
   )
 }
 
-function ApprovedGameEventCard({ gameEvent }: { gameEvent: GameEvent }) {
+function ApprovedGameEventCard({
+  gameEvent,
+  selected,
+  onToggleSelect,
+  onDelete,
+}: {
+  gameEvent: GameEvent
+  selected: boolean
+  onToggleSelect: () => void
+  onDelete: () => void
+}) {
   const [expanded, setExpanded] = useState(false)
   const totalPoints = gameEvent.events.reduce((sum, e) => sum + e.points, 0)
 
   return (
-    <Card>
+    <Card className={selected ? 'ring-2 ring-destructive/50' : ''}>
       <CardContent className="p-4">
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-4 w-full text-left"
-        >
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-100">
-            <Check className="h-5 w-5 text-green-600" />
-          </div>
+        <div className="flex items-center gap-4">
+          <Checkbox
+            checked={selected}
+            onCheckedChange={onToggleSelect}
+            aria-label={`Select ${getGameEventTypeLabel(gameEvent.type)} Week ${gameEvent.week}`}
+          />
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-medium">{getGameEventTypeLabel(gameEvent.type)}</p>
-              <Badge variant="secondary">Week {gameEvent.week}</Badge>
-              <Badge variant="outline" className="text-xs">
-                {gameEvent.events.length} events
-              </Badge>
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-4 flex-1 text-left min-w-0"
+          >
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-100 shrink-0">
+              <Check className="h-5 w-5 text-green-600" />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Approved by {gameEvent.approvedBy?.name || 'Unknown'}
-            </p>
-          </div>
 
-          <div className="text-right">
-            <p
-              className={`text-xl font-bold ${
-                totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}
-            >
-              {totalPoints > 0 ? '+' : ''}
-              {totalPoints}
-            </p>
-          </div>
-        </button>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-medium">{getGameEventTypeLabel(gameEvent.type)}</p>
+                <Badge variant="secondary">Week {gameEvent.week}</Badge>
+                <Badge variant="outline" className="text-xs">
+                  {gameEvent.events.length} events
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Approved by {gameEvent.approvedBy?.name || 'Unknown'}
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p
+                className={`text-xl font-bold ${
+                  totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}
+              >
+                {totalPoints > 0 ? '+' : ''}
+                {totalPoints}
+              </p>
+            </div>
+          </button>
+
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+            aria-label="Delete event"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
 
         {expanded && (
-          <div className="mt-3 pt-3 border-t space-y-1">
+          <div className="mt-3 pt-3 border-t space-y-1 ml-10">
             {gameEvent.events.map((event) => (
               <div key={event.id} className="flex items-center gap-3 px-2 py-1">
                 <div className="flex-1 min-w-0">
@@ -458,10 +705,26 @@ function ApprovedGameEventCard({ gameEvent }: { gameEvent: GameEvent }) {
   )
 }
 
-function ApprovedEventCard({ event }: { event: Event }) {
+function ApprovedEventCard({
+  event,
+  selected,
+  onToggleSelect,
+  onDelete,
+}: {
+  event: Event
+  selected: boolean
+  onToggleSelect: () => void
+  onDelete: () => void
+}) {
   return (
-    <Card>
+    <Card className={selected ? 'ring-2 ring-destructive/50' : ''}>
       <CardContent className="flex items-center gap-4 p-4">
+        <Checkbox
+          checked={selected}
+          onCheckedChange={onToggleSelect}
+          aria-label={`Select ${event.contestant.name} ${getEventTypeLabel(event.type)}`}
+        />
+
         <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-100">
           <Check className="h-5 w-5 text-green-600" />
         </div>
@@ -487,6 +750,16 @@ function ApprovedEventCard({ event }: { event: Event }) {
             {event.points}
           </p>
         </div>
+
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+          aria-label="Delete event"
+          onClick={onDelete}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </CardContent>
     </Card>
   )
