@@ -1,19 +1,45 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
+import { db } from '@/lib/db'
+import { getCurrentUser } from '@/lib/auth'
 
 export async function GET() {
   const hdrs = await headers()
   const authHeader = hdrs.get('authorization')
-  const actingUser = hdrs.get('x-acting-user')
+  const actingUserId = hdrs.get('x-acting-user')
   const apiKey = process.env.BOT_API_KEY
+
+  let dbUser = null
+  let dbError = null
+  if (actingUserId) {
+    try {
+      dbUser = await db.user.findUnique({
+        where: { id: actingUserId },
+        select: { id: true, name: true, role: true },
+      })
+    } catch (e) {
+      dbError = String(e)
+    }
+  }
+
+  let currentUser = null
+  let currentUserError = null
+  try {
+    currentUser = await getCurrentUser()
+  } catch (e) {
+    currentUserError = String(e)
+  }
 
   return NextResponse.json({
     hasAuthHeader: !!authHeader,
     authHeaderPrefix: authHeader?.substring(0, 20),
-    hasActingUser: !!actingUser,
-    actingUser,
+    hasActingUser: !!actingUserId,
+    actingUserId,
     hasApiKey: !!apiKey,
-    apiKeyPrefix: apiKey?.substring(0, 10),
     headersMatch: authHeader === `Bearer ${apiKey}`,
+    dbUser,
+    dbError,
+    currentUser: currentUser ? { id: currentUser.id, name: currentUser.name } : null,
+    currentUserError,
   })
 }
