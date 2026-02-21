@@ -3,7 +3,7 @@ import withPWAInit from 'next-pwa'
 const withPWA = withPWAInit({
   dest: 'public',
   register: true,
-  skipWaiting: false, // Allow user to control update
+  skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
   runtimeCaching: [
     {
