@@ -30,6 +30,15 @@ export async function GET() {
     currentUserError = String(e)
   }
 
+  let allUsers = null
+  try {
+    allUsers = await db.user.findMany({
+      select: { id: true, name: true, role: true },
+    })
+  } catch (e) {
+    // ignore
+  }
+
   return NextResponse.json({
     hasAuthHeader: !!authHeader,
     authHeaderPrefix: authHeader?.substring(0, 20),
@@ -41,5 +50,6 @@ export async function GET() {
     dbError,
     currentUser: currentUser ? { id: currentUser.id, name: currentUser.name } : null,
     currentUserError,
+    allUsers,
   })
 }
