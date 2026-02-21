@@ -66,3 +66,7 @@ data/survivor-raw/*.json
 
 # Test output
 test-results.json
+
+# Slack bot
+slack-bot/node_modules
+slack-bot/dist

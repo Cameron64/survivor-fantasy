@@ -1,28 +1,57 @@
 import { auth } from '@clerk/nextjs/server'
+import { headers } from 'next/headers'
 import { Role } from '@prisma/client'
 import { db } from './db'
 
+const userInclude = {
+  team: {
+    include: {
+      contestants: {
+        include: {
+          contestant: true,
+        },
+      },
+    },
+  },
+} as const
+
 /**
- * Get the current user's database record
- * Creates user if they don't exist (first login)
+ * Try to authenticate via BOT_API_KEY + X-Acting-User headers.
+ * Returns the acting user's DB record, or null if headers are missing/invalid.
+ */
+async function getUserFromApiKey() {
+  const apiKey = process.env.BOT_API_KEY
+  if (!apiKey) return null
+
+  const hdrs = await headers()
+  const authHeader = hdrs.get('authorization')
+  const actingUserId = hdrs.get('x-acting-user')
+
+  if (!authHeader || !actingUserId) return null
+  if (authHeader !== `Bearer ${apiKey}`) return null
+
+  return db.user.findUnique({
+    where: { id: actingUserId },
+    include: userInclude,
+  })
+}
+
+/**
+ * Get the current user's database record.
+ * Tries API key auth first (for bot), then falls back to Clerk session.
  */
 export async function getCurrentUser() {
+  // API key auth (bot service)
+  const apiKeyUser = await getUserFromApiKey()
+  if (apiKeyUser) return apiKeyUser
+
+  // Clerk session auth (browser)
   const { userId } = await auth()
   if (!userId) return null
 
   const user = await db.user.findUnique({
     where: { clerkId: userId },
-    include: {
-      team: {
-        include: {
-          contestants: {
-            include: {
-              contestant: true,
-            },
-          },
-        },
-      },
-    },
+    include: userInclude,
   })
 
   return user

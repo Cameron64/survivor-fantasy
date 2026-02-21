@@ -9,7 +9,12 @@ const isPublicRoute = createRouteMatcher([
   '/api/health',
 ])
 
+const isApiRoute = createRouteMatcher(['/api/(.*)'])
+
 export default clerkMiddleware(async (auth, req) => {
+  // API routes handle their own auth (supports both Clerk sessions and API key auth)
+  if (isApiRoute(req)) return
+
   if (!isPublicRoute(req)) {
     await auth.protect()
   }
