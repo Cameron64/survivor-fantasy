@@ -70,3 +70,7 @@ test-results.json
 # Slack bot
 slack-bot/node_modules
 slack-bot/dist
+
+# Recap agent
+recap-agent/node_modules
+recap-agent/dist
