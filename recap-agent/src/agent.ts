@@ -4,7 +4,7 @@ import { customTools, webSearchTool, executeTool } from './tools'
 import { getContestants } from './tool-impl/api'
 import type { AgentResult, Episode, Contestant } from './types'
 
-const MODEL = 'claude-sonnet-4-6-20250514'
+const MODEL = 'claude-sonnet-4-6'
 const MAX_TURNS = 25
 const RATE_LIMIT_RETRIES = 5
 const RATE_LIMIT_WAIT_MS = 65_000
