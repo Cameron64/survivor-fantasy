@@ -35,6 +35,7 @@ import {
   ChevronUp,
   Search,
   Plus,
+  UserRoundPen,
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
@@ -101,6 +102,12 @@ export default function AdminUsersPage() {
   const [deletingUser, setDeletingUser] = useState<User | null>(null)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+
+  // Replace dialog
+  const [replacingUser, setReplacingUser] = useState<User | null>(null)
+  const [replaceForm, setReplaceForm] = useState({ name: '', email: '' })
+  const [replaceLoading, setReplaceLoading] = useState(false)
+  const [replaceError, setReplaceError] = useState('')
 
   // Invitations section
   const [showInvitations, setShowInvitations] = useState(false)
@@ -308,6 +315,40 @@ export default function AdminUsersPage() {
     }
   }
 
+  // Replace
+  const openReplaceDialog = (user: User) => {
+    setReplacingUser(user)
+    setReplaceForm({ name: '', email: '' })
+    setReplaceError('')
+  }
+
+  const handleReplace = async () => {
+    if (!replacingUser) return
+    setReplaceLoading(true)
+    setReplaceError('')
+    try {
+      const res = await fetch(`/api/users/${replacingUser.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: replaceForm.name,
+          email: replaceForm.email,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setReplaceError(data.error || 'Failed to replace user')
+        return
+      }
+      setReplacingUser(null)
+      fetchUsers()
+    } catch {
+      setReplaceError('Failed to replace user')
+    } finally {
+      setReplaceLoading(false)
+    }
+  }
+
   const paidCount = users.filter((u) => u.isPaid).length
   const unpaidCount = users.filter((u) => !u.isPaid).length
 
@@ -504,6 +545,10 @@ export default function AdminUsersPage() {
                     {user.isPaid ? 'Mark Unpaid' : 'Mark Paid'}
                   </Button>
 
+                  <Button size="icon" variant="ghost" onClick={() => openReplaceDialog(user)} title="Replace with real user">
+                    <UserRoundPen className="h-4 w-4" />
+                  </Button>
+
                   <Button size="icon" variant="ghost" onClick={() => openEditDialog(user)}>
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -669,6 +714,60 @@ export default function AdminUsersPage() {
             </Button>
             <Button onClick={handleSaveEdit} disabled={editLoading || !editForm.name.trim()}>
               {editLoading ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Replace User Dialog */}
+      <Dialog open={!!replacingUser} onOpenChange={(open) => !open && setReplacingUser(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Replace User</DialogTitle>
+            <DialogDescription>
+              Hand {replacingUser?.name}&apos;s slot (and team) to a real person. The new person can
+              use &quot;Forgot password&quot; at sign-in to set their credentials.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {replacingUser?.team && replacingUser.team.contestants.length > 0 && (
+              <div className="rounded-md border bg-muted/50 p-3 text-sm">
+                <p className="font-medium mb-1">Team will be preserved:</p>
+                <p className="text-muted-foreground">
+                  {replacingUser.team.contestants.map((tc) => tc.contestant.name).join(', ')}
+                </p>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="replace-name">New person&apos;s name</Label>
+              <Input
+                id="replace-name"
+                placeholder="Jane Smith"
+                value={replaceForm.name}
+                onChange={(e) => setReplaceForm({ ...replaceForm, name: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="replace-email">New person&apos;s email</Label>
+              <Input
+                id="replace-email"
+                type="email"
+                placeholder="jane@example.com"
+                value={replaceForm.email}
+                onChange={(e) => setReplaceForm({ ...replaceForm, email: e.target.value })}
+              />
+            </div>
+            {replaceError && <p className="text-sm text-destructive">{replaceError}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReplacingUser(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleReplace}
+              disabled={replaceLoading || !replaceForm.name.trim() || !replaceForm.email.trim()}
+            >
+              {replaceLoading ? 'Replacing...' : 'Replace User'}
             </Button>
           </DialogFooter>
         </DialogContent>

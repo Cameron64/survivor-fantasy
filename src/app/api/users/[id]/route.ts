@@ -29,7 +29,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const { id } = await params
     const body = await req.json()
 
-    const { role, isPaid, name, adminNotes, tags } = body
+    const { role, isPaid, name, email, adminNotes, tags } = body
 
     const existingUser = await db.user.findUnique({
       where: { id },
@@ -44,10 +44,51 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
     }
 
-    // If name is being updated, sync to Clerk first
+    const clerk = await clerkClient()
+
+    // If email is being replaced, swap the Clerk account's primary email
+    if (email !== undefined && typeof email === 'string' && email.trim()) {
+      const newEmail = email.trim().toLowerCase()
+
+      // Check for duplicate in DB
+      if (newEmail !== existingUser.email) {
+        const duplicate = await db.user.findUnique({ where: { email: newEmail } })
+        if (duplicate) {
+          return NextResponse.json(
+            { error: 'A user with this email already exists' },
+            { status: 409 }
+          )
+        }
+
+        try {
+          // Create new verified email on the Clerk user and set as primary
+          const newEmailAddr = await clerk.emailAddresses.createEmailAddress({
+            userId: existingUser.clerkId,
+            emailAddress: newEmail,
+            verified: true,
+            primary: true,
+          })
+
+          // Delete old email addresses
+          const clerkUser = await clerk.users.getUser(existingUser.clerkId)
+          for (const addr of clerkUser.emailAddresses) {
+            if (addr.id !== newEmailAddr.id) {
+              await clerk.emailAddresses.deleteEmailAddress(addr.id)
+            }
+          }
+        } catch (clerkError) {
+          console.error('Failed to update email in Clerk:', clerkError)
+          return NextResponse.json(
+            { error: 'Failed to update email in Clerk' },
+            { status: 502 }
+          )
+        }
+      }
+    }
+
+    // If name is being updated, sync to Clerk
     if (name !== undefined && typeof name === 'string' && name.trim()) {
       try {
-        const clerk = await clerkClient()
         const parts = name.trim().split(/\s+/)
         const firstName = parts[0]
         const lastName = parts.slice(1).join(' ') || undefined
@@ -67,6 +108,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         ...(role !== undefined && { role }),
         ...(isPaid !== undefined && { isPaid }),
         ...(name !== undefined && { name: name.trim() }),
+        ...(email !== undefined && { email: email.trim().toLowerCase() }),
         ...(adminNotes !== undefined && { adminNotes: adminNotes || null }),
         ...(tags !== undefined && { tags }),
       },
