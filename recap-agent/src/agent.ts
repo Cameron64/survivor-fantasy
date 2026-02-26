@@ -4,7 +4,7 @@ import { customTools, webSearchTool, executeTool } from './tools'
 import { getContestants } from './tool-impl/api'
 import type { AgentResult, Episode, Contestant } from './types'
 
-const MODEL = 'claude-haiku-4-5-20251001'
+const MODEL = 'claude-sonnet-4-6-20250514'
 const MAX_TURNS = 25
 const RATE_LIMIT_RETRIES = 5
 const RATE_LIMIT_WAIT_MS = 65_000
@@ -64,6 +64,7 @@ ${roster}
 
 ## Rules
 - Use contestant IDs (not names) in all data
+- **Always include \`contestantNames\`** when submitting: a map of every contestant ID in \`data\` to their full name (e.g. \`{"cxyz123": "John Smith"}\`). The system validates these against the roster and rejects mismatches.
 - Need full vote breakdown for tribal council — search multiple sources if needed
 - Do NOT submit incomplete events — use \`dm_admin\` to report missing data
 - Multiple tribal councils = separate TRIBAL_COUNCIL events
@@ -175,7 +176,7 @@ export async function runAgent(episode: Episode): Promise<AgentResult> {
     for (const toolUse of toolUseBlocks) {
       console.log(`  [tool] ${toolUse.name}(${JSON.stringify(toolUse.input).slice(0, 100)}...)`)
 
-      const result = await executeTool(toolUse.name, toolUse.input as Record<string, unknown>)
+      const result = await executeTool(toolUse.name, toolUse.input as Record<string, unknown>, contestants)
 
       if (toolUse.name === 'submit_game_event' && !result.startsWith('Error')) {
         eventCount++

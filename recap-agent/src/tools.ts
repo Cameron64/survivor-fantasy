@@ -2,6 +2,7 @@ import type Anthropic from '@anthropic-ai/sdk'
 import { fetchArticle } from './tool-impl/scraper'
 import { getGameEvents, submitGameEvent } from './tool-impl/api'
 import { dmAdmin } from './tool-impl/notify'
+import type { Contestant } from './types'
 
 /**
  * Anthropic built-in web search tool (server-side, no API key needed).
@@ -75,8 +76,13 @@ export const customTools: Anthropic.Tool[] = [
           type: 'object',
           description: 'Structured event data. All IDs must be contestant IDs from the roster in the system prompt.',
         },
+        contestantNames: {
+          type: 'object',
+          description:
+            'Name verification map: { "contestantId": "Full Name" } for EVERY contestant ID referenced in data. Used to validate correct ID-to-name mapping.',
+        },
       },
-      required: ['type', 'week', 'data'],
+      required: ['type', 'week', 'data', 'contestantNames'],
     },
   },
   {
@@ -97,11 +103,39 @@ export const customTools: Anthropic.Tool[] = [
 ]
 
 /**
+ * Validate that every contestant ID referenced in contestantNames matches
+ * the expected name in the roster. Returns an array of mismatch descriptions.
+ */
+function validateContestantNames(
+  contestantNames: Record<string, string>,
+  roster: Map<string, string>,
+): string[] {
+  const mismatches: string[] = []
+
+  for (const [id, providedName] of Object.entries(contestantNames)) {
+    const rosterName = roster.get(id)
+    if (!rosterName) {
+      mismatches.push(`ID "${id}" (claimed: "${providedName}") does not exist in the roster`)
+      continue
+    }
+    if (rosterName.toLowerCase() !== providedName.toLowerCase()) {
+      mismatches.push(
+        `ID "${id}" is "${rosterName}" in the roster, but you provided "${providedName}"`,
+      )
+    }
+  }
+
+  return mismatches
+}
+
+/**
  * Execute a custom tool. web_search is server-side and never reaches here.
+ * @param contestants - the full contestant roster, used for name validation on submit_game_event
  */
 export async function executeTool(
   name: string,
   input: Record<string, unknown>,
+  contestants: Contestant[],
 ): Promise<string> {
   try {
     switch (name) {
@@ -116,6 +150,19 @@ export async function executeTool(
       }
 
       case 'submit_game_event': {
+        const contestantNames = input.contestantNames as Record<string, string> | undefined
+        if (!contestantNames || Object.keys(contestantNames).length === 0) {
+          return 'Error: contestantNames is required. Provide { "id": "Full Name" } for every contestant ID in data so the system can verify correct mapping.'
+        }
+
+        // Validate names against roster
+        const roster = new Map(contestants.map((c) => [c.id, c.name]))
+        const mismatches = validateContestantNames(contestantNames, roster)
+        if (mismatches.length > 0) {
+          return `Error: Name verification failed. Fix these and resubmit:\n${mismatches.map((m) => `  - ${m}`).join('\n')}`
+        }
+
+        // Validation passed — submit without the contestantNames field
         const result = await submitGameEvent({
           type: input.type as string,
           week: input.week as number,
