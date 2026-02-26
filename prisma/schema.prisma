@@ -18,6 +18,8 @@ model User {
   name                     String
   role                     Role        @default(USER)
   isPaid                   Boolean     @default(false)
+  adminNotes               String?
+  tags                     String[]    @default([])
   inviteCode               String?     @unique
   invitedBy                User?       @relation("Invites", fields: [invitedById], references: [id])
   invitedById              String?
