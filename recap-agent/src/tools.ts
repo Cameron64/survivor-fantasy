@@ -128,6 +128,14 @@ function validateContestantNames(
   return mismatches
 }
 
+const MAX_FETCH_ARTICLE_CALLS = 5
+let fetchArticleCount = 0
+
+/** Reset the per-run fetch_article counter. Call at the start of each agent run. */
+export function resetFetchCount(): void {
+  fetchArticleCount = 0
+}
+
 /**
  * Execute a custom tool. web_search is server-side and never reaches here.
  * @param contestants - the full contestant roster, used for name validation on submit_game_event
@@ -140,6 +148,10 @@ export async function executeTool(
   try {
     switch (name) {
       case 'fetch_article': {
+        fetchArticleCount++
+        if (fetchArticleCount > MAX_FETCH_ARTICLE_CALLS) {
+          return `Error: fetch_article limit reached (${MAX_FETCH_ARTICLE_CALLS}). Use the articles you already have to submit events, or dm_admin if data is insufficient.`
+        }
         const article = await fetchArticle(input.url as string)
         return JSON.stringify(article, null, 2)
       }

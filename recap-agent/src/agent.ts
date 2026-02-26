@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { config } from './config'
-import { customTools, webSearchTool, executeTool } from './tools'
+import { customTools, webSearchTool, executeTool, resetFetchCount } from './tools'
 import { getContestants } from './tool-impl/api'
 import type { AgentResult, Episode, Contestant } from './types'
 
@@ -37,12 +37,14 @@ ${roster}
 
 ## Workflow
 1. Use \`get_existing_events\` to check for duplicates
-2. Search the web for recaps (e.g. "Survivor 50 episode N recap tribal council votes")
-3. Use \`fetch_article\` to read sources with vote breakdowns
-4. If missing details, search for another source (e.g. Survivor wiki)
+2. Use \`web_search\` to find recaps (e.g. "Survivor 50 episode N recap tribal council votes")
+3. Use \`fetch_article\` on the **best 2-3 URLs** from search results — do NOT guess URLs
+4. If the first search doesn't find vote breakdowns, do ONE more targeted search (e.g. "Survivor 50 episode N vote breakdown wiki")
 5. Map names to contestant IDs from the roster above
 6. Use \`submit_game_event\` for each complete event
 7. Use \`dm_admin\` to summarize what you submitted
+
+**IMPORTANT: Only use \`fetch_article\` on URLs returned by \`web_search\`. Never guess or construct URLs. Maximum 5 fetch_article calls total.**
 
 ## Events to Extract
 - **TRIBAL_COUNCIL**: attendees, votes (voterId→votedForId), eliminated, isBlindside, blindsideLeader?, idolPlayed?, sentToJury
@@ -122,6 +124,8 @@ async function createMessageWithRetry(
 }
 
 export async function runAgent(episode: Episode): Promise<AgentResult> {
+  resetFetchCount()
+
   // Pre-fetch contestants and bake into system prompt
   const contestants = await getContestants()
   const roster = formatRoster(contestants)
