@@ -155,6 +155,23 @@ export async function syncUserFromClerk(clerkUser: {
     })
   }
 
+  // Check for a replaced user waiting to be re-linked (email match with pending clerkId)
+  const replacedUser = await db.user.findUnique({
+    where: { email },
+  })
+
+  if (replacedUser) {
+    return db.user.update({
+      where: { id: replacedUser.id },
+      data: {
+        clerkId: clerkUser.id,
+        name,
+        role: (clerkUser.publicMetadata?.role as Role) || replacedUser.role,
+        isPaid: clerkUser.publicMetadata?.isPaid ?? replacedUser.isPaid,
+      },
+    })
+  }
+
   return db.user.create({
     data: {
       clerkId: clerkUser.id,

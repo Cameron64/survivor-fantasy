@@ -46,11 +46,12 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
     const clerk = await clerkClient()
 
-    // If email is being replaced, swap the Clerk account's primary email
+    // If email is being replaced (user replacement flow):
+    // Delete old Clerk account, update DB email, send invitation to new person.
+    // When they sign up, the webhook re-links via email match.
     if (email !== undefined && typeof email === 'string' && email.trim()) {
       const newEmail = email.trim().toLowerCase()
 
-      // Check for duplicate in DB
       if (newEmail !== existingUser.email) {
         const duplicate = await db.user.findUnique({ where: { email: newEmail } })
         if (duplicate) {
@@ -60,29 +61,54 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           )
         }
 
+        // Delete old Clerk account (skip if it doesn't exist, e.g. test users)
         try {
-          // Create new verified email on the Clerk user and set as primary
-          const newEmailAddr = await clerk.emailAddresses.createEmailAddress({
-            userId: existingUser.clerkId,
-            emailAddress: newEmail,
-            verified: true,
-            primary: true,
-          })
-
-          // Delete old email addresses
-          const clerkUser = await clerk.users.getUser(existingUser.clerkId)
-          for (const addr of clerkUser.emailAddresses) {
-            if (addr.id !== newEmailAddr.id) {
-              await clerk.emailAddresses.deleteEmailAddress(addr.id)
-            }
+          await clerk.users.deleteUser(existingUser.clerkId)
+        } catch (clerkError: unknown) {
+          const isNotFound =
+            clerkError &&
+            typeof clerkError === 'object' &&
+            'status' in clerkError &&
+            clerkError.status === 404
+          if (!isNotFound) {
+            console.error('Failed to delete old Clerk account:', clerkError)
+            return NextResponse.json(
+              { error: 'Failed to delete old Clerk account' },
+              { status: 502 }
+            )
           }
-        } catch (clerkError) {
-          console.error('Failed to update email in Clerk:', clerkError)
-          return NextResponse.json(
-            { error: 'Failed to update email in Clerk' },
-            { status: 502 }
-          )
         }
+
+        // Send invitation to new email
+        try {
+          const redirectUrl = process.env.NEXT_PUBLIC_APP_URL
+            ? `${process.env.NEXT_PUBLIC_APP_URL}/sign-up`
+            : undefined
+          await clerk.invitations.createInvitation({
+            emailAddress: newEmail,
+            redirectUrl,
+          })
+        } catch (inviteError) {
+          console.error('Failed to send invitation:', inviteError)
+          // Non-fatal: DB update still proceeds, admin can resend manually
+        }
+
+        // Update DB — clear clerkId placeholder until webhook re-links
+        const user = await db.user.update({
+          where: { id },
+          data: {
+            clerkId: `pending_${id}`,
+            email: newEmail,
+            ...(name !== undefined && { name: name.trim() }),
+            ...(role !== undefined && { role }),
+            ...(isPaid !== undefined && { isPaid }),
+            ...(adminNotes !== undefined && { adminNotes: adminNotes || null }),
+            ...(tags !== undefined && { tags }),
+          },
+          include: userInclude,
+        })
+
+        return NextResponse.json(user)
       }
     }
 
@@ -108,7 +134,6 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         ...(role !== undefined && { role }),
         ...(isPaid !== undefined && { isPaid }),
         ...(name !== undefined && { name: name.trim() }),
-        ...(email !== undefined && { email: email.trim().toLowerCase() }),
         ...(adminNotes !== undefined && { adminNotes: adminNotes || null }),
         ...(tags !== undefined && { tags }),
       },
@@ -167,16 +192,23 @@ export async function DELETE(_req: NextRequest, { params }: RouteParams) {
       )
     }
 
-    // Delete from Clerk first
+    // Delete from Clerk first (skip if not found, e.g. test users)
     try {
       const clerk = await clerkClient()
       await clerk.users.deleteUser(existingUser.clerkId)
-    } catch (clerkError) {
-      console.error('Failed to delete user from Clerk:', clerkError)
-      return NextResponse.json(
-        { error: 'Failed to delete user from Clerk' },
-        { status: 502 }
-      )
+    } catch (clerkError: unknown) {
+      const isNotFound =
+        clerkError &&
+        typeof clerkError === 'object' &&
+        'status' in clerkError &&
+        clerkError.status === 404
+      if (!isNotFound) {
+        console.error('Failed to delete user from Clerk:', clerkError)
+        return NextResponse.json(
+          { error: 'Failed to delete user from Clerk' },
+          { status: 502 }
+        )
+      }
     }
 
     // Cascade delete locally: team contestants -> team -> nullify invitedById -> delete user
