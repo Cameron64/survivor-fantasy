@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Switch } from '@/components/ui/switch'
 import { Users, Plus, Edit2, Trash2 } from 'lucide-react'
 
 interface Tribe {
@@ -61,6 +62,8 @@ export default function AdminContestantsPage() {
   const [tribeId, setTribeId] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [originalSeasons, setOriginalSeasons] = useState('')
+  const [isEliminated, setIsEliminated] = useState(false)
+  const [eliminatedWeek, setEliminatedWeek] = useState('')
 
   useEffect(() => {
     fetchContestants()
@@ -95,6 +98,8 @@ export default function AdminContestantsPage() {
     setTribeId('')
     setImageUrl('')
     setOriginalSeasons('')
+    setIsEliminated(false)
+    setEliminatedWeek('')
     setEditingContestant(null)
   }
 
@@ -106,6 +111,8 @@ export default function AdminContestantsPage() {
     setTribeId(currentMembership?.tribe.id || '')
     setImageUrl(contestant.imageUrl || '')
     setOriginalSeasons(contestant.originalSeasons || '')
+    setIsEliminated(contestant.isEliminated)
+    setEliminatedWeek(contestant.eliminatedWeek?.toString() || '')
     setIsDialogOpen(true)
   }
 
@@ -127,6 +134,8 @@ export default function AdminContestantsPage() {
             tribe: selectedTribe?.name || null,
             imageUrl: imageUrl || null,
             originalSeasons: originalSeasons || null,
+            isEliminated,
+            eliminatedWeek: isEliminated && eliminatedWeek ? parseInt(eliminatedWeek) : null,
           }),
         })
 
@@ -307,6 +316,34 @@ export default function AdminContestantsPage() {
                   placeholder="https://..."
                 />
               </div>
+              {editingContestant && (
+                <div className="grid gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="isEliminated">Eliminated</Label>
+                    <Switch
+                      id="isEliminated"
+                      checked={isEliminated}
+                      onCheckedChange={(checked) => {
+                        setIsEliminated(checked)
+                        if (!checked) setEliminatedWeek('')
+                      }}
+                    />
+                  </div>
+                  {isEliminated && (
+                    <div className="grid gap-2">
+                      <Label htmlFor="eliminatedWeek">Eliminated Week</Label>
+                      <Input
+                        id="eliminatedWeek"
+                        type="number"
+                        min="1"
+                        value={eliminatedWeek}
+                        onChange={(e) => setEliminatedWeek(e.target.value)}
+                        placeholder="Week number"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button onClick={handleSubmit} disabled={!name || isSubmitting}>
