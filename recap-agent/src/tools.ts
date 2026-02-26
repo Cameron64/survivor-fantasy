@@ -1,26 +1,26 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import { fetchArticle } from './tool-impl/scraper'
-import { getContestants, getEpisodes, getGameEvents, submitGameEvent } from './tool-impl/api'
+import { getGameEvents, submitGameEvent } from './tool-impl/api'
 import { dmAdmin } from './tool-impl/notify'
 
 /**
  * Anthropic built-in web search tool (server-side, no API key needed).
- * The API executes searches automatically — we don't handle these in executeTool.
  */
 export const webSearchTool: Anthropic.WebSearchTool20250305 = {
   type: 'web_search_20250305',
   name: 'web_search',
-  max_uses: 15,
+  max_uses: 10,
 }
 
 /**
- * Custom tool definitions for the Claude API (tool_use).
+ * Custom tool definitions for the Claude API.
+ * Contestants are pre-loaded into the system prompt — no tool needed.
  */
 export const customTools: Anthropic.Tool[] = [
   {
     name: 'fetch_article',
     description:
-      'Fetch and extract readable text from a URL. Use this to read full recap articles found via web search. Returns the article title, content (truncated to ~15K chars), and byline.',
+      'Fetch and extract readable text from a URL. Returns article title and content (truncated to ~8K chars).',
     input_schema: {
       type: 'object' as const,
       properties: {
@@ -33,27 +33,9 @@ export const customTools: Anthropic.Tool[] = [
     },
   },
   {
-    name: 'get_contestants',
-    description:
-      'Get the full contestant roster for the current season. Returns each contestant\'s ID, name, nickname, elimination status, and eliminated week. Use this to map names from recaps to contestant IDs.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {},
-    },
-  },
-  {
-    name: 'get_episodes',
-    description:
-      'Get the full episode schedule with episode numbers, titles, and air dates.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {},
-    },
-  },
-  {
     name: 'get_existing_events',
     description:
-      'Check what game events already exist for a specific week. Use this to avoid submitting duplicates.',
+      'Check what game events already exist for a specific week. Use to avoid duplicates.',
     input_schema: {
       type: 'object' as const,
       properties: {
@@ -68,7 +50,7 @@ export const customTools: Anthropic.Tool[] = [
   {
     name: 'submit_game_event',
     description:
-      'Submit a structured game event for admin approval. The event will be created as pending (not yet approved). Each game event type has a specific data schema that must be followed exactly.',
+      'Submit a structured game event for admin approval. Created as pending.',
     input_schema: {
       type: 'object' as const,
       properties: {
@@ -91,16 +73,7 @@ export const customTools: Anthropic.Tool[] = [
         },
         data: {
           type: 'object',
-          description:
-            'The structured event data. Schema depends on the type:\n' +
-            '- TRIBAL_COUNCIL: { attendees: string[], votes: Record<voterId, votedForId>, eliminated: string, isBlindside: boolean, blindsideLeader?: string, idolPlayed?: { by: string, successful: boolean } | null, sentToJury: boolean }\n' +
-            '- IMMUNITY_CHALLENGE: { winner: string }\n' +
-            '- REWARD_CHALLENGE: { winners: string[], isTeamChallenge: boolean }\n' +
-            '- IDOL_FOUND: { finder: string }\n' +
-            '- FIRE_MAKING: { winner: string, loser: string }\n' +
-            '- QUIT_MEDEVAC: { contestant: string, reason: "quit" | "medevac" }\n' +
-            '- ENDGAME: { finalists: string[], winner: string }\n' +
-            'All string IDs must be contestant IDs from get_contestants.',
+          description: 'Structured event data. All IDs must be contestant IDs from the roster in the system prompt.',
         },
       },
       required: ['type', 'week', 'data'],
@@ -109,13 +82,13 @@ export const customTools: Anthropic.Tool[] = [
   {
     name: 'dm_admin',
     description:
-      'Send a direct message to the league admin via Slack. Use this to report what events you submitted, or to report that you could not find sufficient data.',
+      'Send a DM to the league admin via Slack. Use to report submissions or missing data.',
     input_schema: {
       type: 'object' as const,
       properties: {
         message: {
           type: 'string',
-          description: 'The message to send to the admin',
+          description: 'The message to send',
         },
       },
       required: ['message'],
@@ -124,8 +97,7 @@ export const customTools: Anthropic.Tool[] = [
 ]
 
 /**
- * Execute a custom tool by name with the given input. Returns the result as a string.
- * Note: web_search is a server-side tool handled by the API — it never reaches here.
+ * Execute a custom tool. web_search is server-side and never reaches here.
  */
 export async function executeTool(
   name: string,
@@ -136,16 +108,6 @@ export async function executeTool(
       case 'fetch_article': {
         const article = await fetchArticle(input.url as string)
         return JSON.stringify(article, null, 2)
-      }
-
-      case 'get_contestants': {
-        const contestants = await getContestants()
-        return JSON.stringify(contestants, null, 2)
-      }
-
-      case 'get_episodes': {
-        const episodes = await getEpisodes()
-        return JSON.stringify(episodes, null, 2)
       }
 
       case 'get_existing_events': {

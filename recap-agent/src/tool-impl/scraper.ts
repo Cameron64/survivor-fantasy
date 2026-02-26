@@ -1,7 +1,7 @@
 import { Readability } from '@mozilla/readability'
 import { parseHTML } from 'linkedom'
 
-const MAX_CONTENT_LENGTH = 15_000
+const MAX_CONTENT_LENGTH = 8_000
 
 export interface ArticleContent {
   title: string
