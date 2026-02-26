@@ -3,8 +3,14 @@ import { config } from './config'
 import { customTools, webSearchTool, executeTool } from './tools'
 import type { AgentResult, Episode } from './types'
 
-const MODEL = 'claude-sonnet-4-20250514'
+const MODEL = 'claude-haiku-4-5-20251001'
 const MAX_TURNS = 30
+const RATE_LIMIT_RETRIES = 5
+const RATE_LIMIT_WAIT_MS = 65_000 // just over 1 minute
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
 function buildSystemPrompt(): string {
   return `You are the automated recap agent for a Survivor Season 50 fantasy league.
@@ -41,59 +47,64 @@ All contestant references must use the exact contestant ID from \`get_contestant
 **TRIBAL_COUNCIL:**
 \`\`\`json
 {
-  "attendees": ["id1", "id2", ...],      // All contestants who attended tribal
-  "votes": { "voterId": "votedForId" },   // How each person voted
-  "eliminated": "contestantId",            // Who was voted out
-  "isBlindside": true/false,               // Was the eliminated person blindsided?
-  "blindsideLeader": "contestantId",       // Optional: who orchestrated the blindside
+  "attendees": ["id1", "id2", ...],
+  "votes": { "voterId": "votedForId" },
+  "eliminated": "contestantId",
+  "isBlindside": true/false,
+  "blindsideLeader": "contestantId",
   "idolPlayed": { "by": "id", "successful": true/false } | null,
-  "sentToJury": true/false                 // Is the person going to jury?
+  "sentToJury": true/false
 }
 \`\`\`
 
-**IMMUNITY_CHALLENGE:**
-\`\`\`json
-{ "winner": "contestantId" }
-\`\`\`
+**IMMUNITY_CHALLENGE:** \`{ "winner": "contestantId" }\`
 
-**REWARD_CHALLENGE:**
-\`\`\`json
-{
-  "winners": ["id1", "id2", ...],
-  "isTeamChallenge": true/false
-}
-\`\`\`
+**REWARD_CHALLENGE:** \`{ "winners": ["id1", ...], "isTeamChallenge": true/false }\`
 
-**IDOL_FOUND:**
-\`\`\`json
-{ "finder": "contestantId" }
-\`\`\`
+**IDOL_FOUND:** \`{ "finder": "contestantId" }\`
 
-**FIRE_MAKING:**
-\`\`\`json
-{ "winner": "contestantId", "loser": "contestantId" }
-\`\`\`
+**FIRE_MAKING:** \`{ "winner": "contestantId", "loser": "contestantId" }\`
 
-**QUIT_MEDEVAC:**
-\`\`\`json
-{ "contestant": "contestantId", "reason": "quit" | "medevac" }
-\`\`\`
+**QUIT_MEDEVAC:** \`{ "contestant": "contestantId", "reason": "quit" | "medevac" }\`
 
-**ENDGAME:**
-\`\`\`json
-{ "finalists": ["id1", "id2", ...], "winner": "contestantId" }
-\`\`\`
+**ENDGAME:** \`{ "finalists": ["id1", ...], "winner": "contestantId" }\`
 
 ## Important rules
 
 - ALWAYS use contestant IDs (not names) in the data schemas
-- For tribal council votes, you need to know who each individual person voted for. If you can't find the full vote breakdown, search for another source (e.g., "Survivor 50 episode N vote breakdown" or check the Survivor wiki)
-- Do NOT submit incomplete events. If you're missing critical data for a tribal council (like the vote breakdown), report what's missing via \`dm_admin\` instead of submitting with made-up data
+- For tribal council votes, you need the full vote breakdown. If one source doesn't have it, search for another (e.g., Survivor wiki)
+- Do NOT submit incomplete events — report missing data via \`dm_admin\` instead
 - If the episode had multiple tribal councils, submit each as a separate TRIBAL_COUNCIL event
-- The "attendees" array for tribal council should include ALL people at tribal, including the person who was eliminated
-- "sentToJury" is true if the season has reached the jury phase (typically after the merge)
-- A "blindside" means the eliminated person did not know they were the target and was surprised
-- If events already exist for this week (from get_existing_events), mention this in your DM and do not submit duplicates`
+- The "attendees" array should include ALL people at tribal, including the eliminated person
+- "sentToJury" is true after the merge (jury phase)
+- A "blindside" means the eliminated person was surprised
+- If events already exist for this week, mention it in your DM and do not submit duplicates`
+}
+
+/**
+ * Call Claude API with automatic rate limit retry.
+ */
+async function createMessageWithRetry(
+  client: Anthropic,
+  params: Anthropic.MessageCreateParamsNonStreaming,
+): Promise<Anthropic.Message> {
+  for (let attempt = 0; attempt < RATE_LIMIT_RETRIES; attempt++) {
+    try {
+      return await client.messages.create(params)
+    } catch (error) {
+      const isRateLimit =
+        error instanceof Anthropic.RateLimitError ||
+        (error instanceof Error && error.message.includes('429'))
+
+      if (isRateLimit && attempt < RATE_LIMIT_RETRIES - 1) {
+        console.log(`  Rate limited. Waiting ${RATE_LIMIT_WAIT_MS / 1000}s before retry (${attempt + 1}/${RATE_LIMIT_RETRIES})...`)
+        await sleep(RATE_LIMIT_WAIT_MS)
+        continue
+      }
+      throw error
+    }
+  }
+  throw new Error('Rate limit retries exhausted')
 }
 
 export async function runAgent(episode: Episode): Promise<AgentResult> {
@@ -113,9 +124,9 @@ export async function runAgent(episode: Episode): Promise<AgentResult> {
   let summary = ''
 
   for (let turn = 0; turn < MAX_TURNS; turn++) {
-    const response = await client.messages.create({
+    const response = await createMessageWithRetry(client, {
       model: MODEL,
-      max_tokens: 16384,
+      max_tokens: 8192,
       system: systemPrompt,
       tools: [webSearchTool, ...customTools],
       messages,
