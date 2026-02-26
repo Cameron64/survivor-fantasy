@@ -140,6 +140,7 @@ export async function runAgent(episode: Episode): Promise<AgentResult> {
 
   let eventCount = 0
   let summary = ''
+  let containerId: string | undefined
 
   for (let turn = 0; turn < MAX_TURNS; turn++) {
     // Prune old tool results to keep context lean
@@ -153,7 +154,15 @@ export async function runAgent(episode: Episode): Promise<AgentResult> {
       system: systemPrompt,
       tools: [webSearchTool, ...customTools],
       messages,
-    })
+      // Pass container ID for web search code execution continuity
+      ...(containerId && { container: containerId }),
+    } as Anthropic.MessageCreateParamsNonStreaming)
+
+    // Capture container ID from response (web search uses code execution internally)
+    const responseAny = response as unknown as { container?: { id: string } }
+    if (responseAny.container) {
+      containerId = responseAny.container.id
+    }
 
     const toolUseBlocks = response.content.filter(
       (block): block is Anthropic.ToolUseBlock =>
@@ -161,9 +170,16 @@ export async function runAgent(episode: Episode): Promise<AgentResult> {
     )
 
     for (const block of response.content) {
-      if (block.type === 'text' && block.text) {
+      if (block.type === 'text' && 'text' in block) {
         summary += block.text + '\n'
       }
+    }
+
+    // Server-side tool paused — send response back to resume
+    if (response.stop_reason === 'pause_turn') {
+      messages.push({ role: 'assistant', content: response.content })
+      messages.push({ role: 'user', content: [{ type: 'text', text: 'Continue.' }] })
+      continue
     }
 
     if (response.stop_reason === 'end_turn' || toolUseBlocks.length === 0) {
