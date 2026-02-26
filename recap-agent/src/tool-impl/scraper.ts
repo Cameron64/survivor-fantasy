@@ -27,7 +27,8 @@ export async function fetchArticle(url: string): Promise<ArticleContent> {
   const html = await res.text()
   const { document } = parseHTML(html)
 
-  const reader = new Readability(document as unknown as Document)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const reader = new Readability(document as any)
   const article = reader.parse()
 
   if (!article) {
