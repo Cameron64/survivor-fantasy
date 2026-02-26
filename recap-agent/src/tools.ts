@@ -7,9 +7,9 @@ import type { Contestant } from './types'
 /**
  * Anthropic built-in web search tool (server-side, no API key needed).
  */
-export const webSearchTool: Anthropic.WebSearchTool20250305 = {
-  type: 'web_search_20250305',
-  name: 'web_search',
+export const webSearchTool = {
+  type: 'web_search_20260209' as const,
+  name: 'web_search' as const,
   max_uses: 10,
 }
 
