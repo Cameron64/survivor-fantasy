@@ -54,11 +54,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         },
       })
 
-      // On approval: handle side effects
-      if (isApproved) {
-        const data = ge.data as unknown as GameEventData
+      const data = ge.data as unknown as GameEventData
 
-        // Auto-eliminate contestants for tribal council
+      if (isApproved) {
+        // On approval: auto-eliminate contestants
         if (ge.type === 'TRIBAL_COUNCIL') {
           const tribalData = data as TribalCouncilData
           await tx.contestant.update({
@@ -70,7 +69,6 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           })
         }
 
-        // Auto-eliminate for quit/medevac
         if (ge.type === 'QUIT_MEDEVAC') {
           const quitData = data as QuitMedevacData
           await tx.contestant.update({
@@ -78,6 +76,29 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
             data: {
               isEliminated: true,
               eliminatedWeek: ge.week,
+            },
+          })
+        }
+      } else {
+        // On unapproval: reverse elimination if this event caused it
+        if (ge.type === 'TRIBAL_COUNCIL') {
+          const tribalData = data as TribalCouncilData
+          await tx.contestant.update({
+            where: { id: tribalData.eliminated },
+            data: {
+              isEliminated: false,
+              eliminatedWeek: null,
+            },
+          })
+        }
+
+        if (ge.type === 'QUIT_MEDEVAC') {
+          const quitData = data as QuitMedevacData
+          await tx.contestant.update({
+            where: { id: quitData.contestant },
+            data: {
+              isEliminated: false,
+              eliminatedWeek: null,
             },
           })
         }
@@ -143,9 +164,38 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Game event not found' }, { status: 404 })
     }
 
-    // Cascade delete handles derived events (onDelete: Cascade in schema)
-    await db.gameEvent.delete({
-      where: { id },
+    await db.$transaction(async (tx) => {
+      // Reverse elimination if this approved event caused one
+      if (existingGameEvent.isApproved) {
+        const data = existingGameEvent.data as unknown as GameEventData
+
+        if (existingGameEvent.type === 'TRIBAL_COUNCIL') {
+          const tribalData = data as TribalCouncilData
+          await tx.contestant.update({
+            where: { id: tribalData.eliminated },
+            data: {
+              isEliminated: false,
+              eliminatedWeek: null,
+            },
+          })
+        }
+
+        if (existingGameEvent.type === 'QUIT_MEDEVAC') {
+          const quitData = data as QuitMedevacData
+          await tx.contestant.update({
+            where: { id: quitData.contestant },
+            data: {
+              isEliminated: false,
+              eliminatedWeek: null,
+            },
+          })
+        }
+      }
+
+      // Cascade delete handles derived events (onDelete: Cascade in schema)
+      await tx.gameEvent.delete({
+        where: { id },
+      })
     })
 
     return NextResponse.json({ success: true })
