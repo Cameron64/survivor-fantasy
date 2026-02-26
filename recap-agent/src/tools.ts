@@ -1,36 +1,26 @@
 import type Anthropic from '@anthropic-ai/sdk'
-import { searchWeb } from './tool-impl/search'
 import { fetchArticle } from './tool-impl/scraper'
 import { getContestants, getEpisodes, getGameEvents, submitGameEvent } from './tool-impl/api'
 import { dmAdmin } from './tool-impl/notify'
 
 /**
- * Tool definitions for the Claude API (tool_use).
+ * Anthropic built-in web search tool (server-side, no API key needed).
+ * The API executes searches automatically — we don't handle these in executeTool.
  */
-export const toolDefinitions: Anthropic.Tool[] = [
-  {
-    name: 'search_web',
-    description:
-      'Search the web for Survivor episode recaps, spoilers, or detailed breakdowns. Returns a list of search results with title, URL, and snippet.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        query: {
-          type: 'string',
-          description: 'The search query, e.g. "Survivor 50 episode 3 recap tribal council votes"',
-        },
-        count: {
-          type: 'number',
-          description: 'Number of results to return (default 10, max 20)',
-        },
-      },
-      required: ['query'],
-    },
-  },
+export const webSearchTool: Anthropic.WebSearchTool20250305 = {
+  type: 'web_search_20250305',
+  name: 'web_search',
+  max_uses: 15,
+}
+
+/**
+ * Custom tool definitions for the Claude API (tool_use).
+ */
+export const customTools: Anthropic.Tool[] = [
   {
     name: 'fetch_article',
     description:
-      'Fetch and extract readable text from a URL. Use this to read full recap articles found via search_web. Returns the article title, content (truncated to ~15K chars), and byline.',
+      'Fetch and extract readable text from a URL. Use this to read full recap articles found via web search. Returns the article title, content (truncated to ~15K chars), and byline.',
     input_schema: {
       type: 'object' as const,
       properties: {
@@ -134,7 +124,8 @@ export const toolDefinitions: Anthropic.Tool[] = [
 ]
 
 /**
- * Execute a tool by name with the given input. Returns the result as a string.
+ * Execute a custom tool by name with the given input. Returns the result as a string.
+ * Note: web_search is a server-side tool handled by the API — it never reaches here.
  */
 export async function executeTool(
   name: string,
@@ -142,14 +133,6 @@ export async function executeTool(
 ): Promise<string> {
   try {
     switch (name) {
-      case 'search_web': {
-        const results = await searchWeb(
-          input.query as string,
-          (input.count as number | undefined) ?? 10,
-        )
-        return JSON.stringify(results, null, 2)
-      }
-
       case 'fetch_article': {
         const article = await fetchArticle(input.url as string)
         return JSON.stringify(article, null, 2)

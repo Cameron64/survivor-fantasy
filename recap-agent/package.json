@@ -9,10 +9,9 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
+    "@anthropic-ai/sdk": "^0.78.0",
     "@mozilla/readability": "^0.5.0",
     "dotenv": "^16.4.7",
-    "duck-duck-scrape": "^2.2.5",
     "linkedom": "^0.18.0"
   },
   "devDependencies": {

@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { config } from './config'
-import { toolDefinitions, executeTool } from './tools'
+import { customTools, webSearchTool, executeTool } from './tools'
 import type { AgentResult, Episode } from './types'
 
 const MODEL = 'claude-sonnet-4-20250514'
@@ -15,7 +15,7 @@ Your job is to find the latest episode recap and extract ALL scorable game event
 
 1. Use \`get_contestants\` to load the full contestant roster with IDs
 2. Use \`get_existing_events\` to check if events already exist for this episode's week
-3. Use \`search_web\` to find detailed recaps of the episode
+3. Search the web for detailed recaps of the episode (e.g. "Survivor 50 episode N recap tribal council votes")
 4. Use \`fetch_article\` to read the best results — prioritize sources with vote breakdowns
 5. If one source is missing details (e.g., who voted for whom, challenge results), search for and read additional sources
 6. Map contestant names/nicknames from the recap to exact contestant IDs from the roster
@@ -115,15 +115,15 @@ export async function runAgent(episode: Episode): Promise<AgentResult> {
   for (let turn = 0; turn < MAX_TURNS; turn++) {
     const response = await client.messages.create({
       model: MODEL,
-      max_tokens: 4096,
+      max_tokens: 16384,
       system: systemPrompt,
-      tools: toolDefinitions,
+      tools: [webSearchTool, ...customTools],
       messages,
     })
 
-    // Collect tool use blocks
+    // Collect custom tool_use blocks (web_search is handled server-side)
     const toolUseBlocks = response.content.filter(
-      (block): block is Anthropic.ContentBlockParam & { type: 'tool_use'; id: string; name: string; input: Record<string, unknown> } =>
+      (block): block is Anthropic.ToolUseBlock =>
         block.type === 'tool_use',
     )
 
@@ -134,20 +134,20 @@ export async function runAgent(episode: Episode): Promise<AgentResult> {
       }
     }
 
-    // If no tool calls, agent is done
+    // If no custom tool calls, agent is done
     if (response.stop_reason === 'end_turn' || toolUseBlocks.length === 0) {
       break
     }
 
-    // Add assistant message
+    // Add assistant message (includes server tool results + tool_use blocks)
     messages.push({ role: 'assistant', content: response.content })
 
-    // Execute each tool call and build result messages
+    // Execute each custom tool call and build result messages
     const toolResults: Anthropic.ToolResultBlockParam[] = []
     for (const toolUse of toolUseBlocks) {
       console.log(`  [tool] ${toolUse.name}(${JSON.stringify(toolUse.input).slice(0, 100)}...)`)
 
-      const result = await executeTool(toolUse.name, toolUse.input)
+      const result = await executeTool(toolUse.name, toolUse.input as Record<string, unknown>)
 
       // Track submissions
       if (toolUse.name === 'submit_game_event' && !result.startsWith('Error')) {
