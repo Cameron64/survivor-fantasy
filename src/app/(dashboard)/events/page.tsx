@@ -1,20 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Calendar, Plus, Check, Clock, X } from 'lucide-react'
-import { getEventTypeLabel } from '@/lib/scoring'
-import { EventType } from '@prisma/client'
-import { formatRelativeTime } from '@/lib/utils'
-import { getGameEventTypeLabel } from '@/lib/event-derivation'
+import { Calendar, Plus, Clock } from 'lucide-react'
+import { getContestantDisplayName } from '@/lib/utils'
+import { WeekGroup, type TimelineItem, type WeekData } from '@/components/events/week-group'
+import { GameEventCard } from '@/components/events/game-event-card'
+import { StandaloneEventCard } from '@/components/events/standalone-event-card'
+import type { EventType } from '@prisma/client'
 
 interface Contestant {
   id: string
   name: string
+  nickname?: string | null
   tribe: string | null
   isEliminated: boolean
 }
@@ -37,6 +38,7 @@ interface GameEvent {
   id: string
   type: string
   week: number
+  data?: unknown
   isApproved: boolean
   createdAt: string
   events: Event[]
@@ -44,11 +46,20 @@ interface GameEvent {
   approvedBy: { id: string; name: string } | null
 }
 
+interface Episode {
+  id: string
+  number: number
+  title: string | null
+  airDate: string
+}
+
 export default function EventsPage() {
   const router = useRouter()
   const [events, setEvents] = useState<Event[]>([])
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([])
+  const [episodes, setEpisodes] = useState<Episode[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     fetchData()
@@ -56,9 +67,10 @@ export default function EventsPage() {
 
   const fetchData = async () => {
     try {
-      const [eventsRes, gameEventsRes] = await Promise.all([
+      const [eventsRes, gameEventsRes, episodesRes] = await Promise.all([
         fetch('/api/events'),
         fetch('/api/game-events'),
+        fetch('/api/episodes'),
       ])
 
       if (eventsRes.ok) {
@@ -69,6 +81,10 @@ export default function EventsPage() {
         const data = await gameEventsRes.json()
         if (Array.isArray(data)) setGameEvents(data)
       }
+      if (episodesRes.ok) {
+        const data = await episodesRes.json()
+        if (Array.isArray(data)) setEpisodes(data)
+      }
     } catch (error) {
       console.error('Failed to fetch data:', error)
     } finally {
@@ -76,16 +92,141 @@ export default function EventsPage() {
     }
   }
 
-  // Standalone events (not part of a game event)
+  // Build contestant name map from all event data
+  const contestantNames = useMemo(() => {
+    const names: Record<string, string> = {}
+    // From game event derived events
+    for (const ge of gameEvents) {
+      for (const e of ge.events) {
+        if (!names[e.contestant.id]) {
+          names[e.contestant.id] = getContestantDisplayName(e.contestant)
+        }
+      }
+    }
+    // From standalone events
+    for (const e of events) {
+      if (!names[e.contestant.id]) {
+        names[e.contestant.id] = getContestantDisplayName(e.contestant)
+      }
+    }
+    return names
+  }, [gameEvents, events])
+
+  // Episode number → title map
+  const episodeTitles = useMemo(() => {
+    const map: Record<number, string | null> = {}
+    for (const ep of episodes) {
+      map[ep.number] = ep.title
+    }
+    return map
+  }, [episodes])
+
+  // Separate approved vs pending
   const standaloneEvents = events.filter((e) => !e.gameEventId)
   const approvedStandalone = standaloneEvents.filter((e) => e.isApproved)
   const pendingStandalone = standaloneEvents.filter((e) => !e.isApproved)
-
   const approvedGameEvents = gameEvents.filter((ge) => ge.isApproved)
   const pendingGameEvents = gameEvents.filter((ge) => !ge.isApproved)
 
   const totalApproved = approvedStandalone.length + approvedGameEvents.length
   const totalPending = pendingStandalone.length + pendingGameEvents.length
+
+  // Group approved items by week
+  const weekGroups = useMemo(() => {
+    const items: TimelineItem[] = []
+
+    for (const ge of approvedGameEvents) {
+      items.push({
+        kind: 'game-event',
+        id: ge.id,
+        type: ge.type,
+        week: ge.week,
+        data: ge.data,
+        isApproved: ge.isApproved,
+        createdAt: ge.createdAt,
+        events: ge.events,
+        submittedBy: ge.submittedBy,
+        approvedBy: ge.approvedBy,
+      })
+    }
+
+    for (const e of approvedStandalone) {
+      items.push({
+        kind: 'standalone',
+        id: e.id,
+        type: e.type,
+        week: e.week,
+        points: e.points,
+        description: e.description,
+        isApproved: e.isApproved,
+        createdAt: e.createdAt,
+        contestant: e.contestant,
+        submittedBy: e.submittedBy,
+      })
+    }
+
+    // Group by week
+    const byWeek = new Map<number, TimelineItem[]>()
+    for (const item of items) {
+      const weekItems = byWeek.get(item.week)
+      if (weekItems) {
+        weekItems.push(item)
+      } else {
+        byWeek.set(item.week, [item])
+      }
+    }
+
+    // Build WeekData and sort descending
+    const weeks: WeekData[] = Array.from(byWeek.entries()).map(([week, weekItems]) => {
+      // Sort items within week: game events first, then by createdAt desc
+      weekItems.sort((a, b) => {
+        if (a.kind !== b.kind) return a.kind === 'game-event' ? -1 : 1
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      })
+
+      let totalPoints = 0
+      let eventCount = 0
+      for (const item of weekItems) {
+        if (item.kind === 'game-event') {
+          totalPoints += item.events.reduce((sum, e) => sum + e.points, 0)
+          eventCount++
+        } else {
+          totalPoints += item.points
+          eventCount++
+        }
+      }
+
+      return {
+        week,
+        episodeTitle: episodeTitles[week] ?? null,
+        items: weekItems,
+        totalPoints,
+        eventCount,
+      }
+    })
+
+    weeks.sort((a, b) => b.week - a.week)
+    return weeks
+  }, [approvedGameEvents, approvedStandalone, episodeTitles])
+
+  // Auto-expand most recent week on first load
+  useEffect(() => {
+    if (weekGroups.length > 0 && expandedWeeks.size === 0) {
+      setExpandedWeeks(new Set([weekGroups[0].week]))
+    }
+  }, [weekGroups]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggleWeek = (week: number) => {
+    setExpandedWeeks((prev) => {
+      const next = new Set(prev)
+      if (next.has(week)) {
+        next.delete(week)
+      } else {
+        next.add(week)
+      }
+      return next
+    })
+  }
 
   return (
     <div className="space-y-6 pb-20 lg:pb-6">
@@ -112,7 +253,7 @@ export default function EventsPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="approved" className="space-y-4">
+        <TabsContent value="approved" className="space-y-3">
           {isLoading ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
@@ -131,17 +272,20 @@ export default function EventsPage() {
             </Card>
           ) : (
             <div className="space-y-3">
-              {approvedGameEvents.map((ge) => (
-                <GameEventCard key={ge.id} gameEvent={ge} />
-              ))}
-              {approvedStandalone.map((event) => (
-                <EventCard key={event.id} event={event} />
+              {weekGroups.map((wd) => (
+                <WeekGroup
+                  key={wd.week}
+                  weekData={wd}
+                  isExpanded={expandedWeeks.has(wd.week)}
+                  onToggle={() => toggleWeek(wd.week)}
+                  contestantNames={contestantNames}
+                />
               ))}
             </div>
           )}
         </TabsContent>
 
-        <TabsContent value="pending" className="space-y-4">
+        <TabsContent value="pending" className="space-y-3">
           {totalPending === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
@@ -153,147 +297,27 @@ export default function EventsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {pendingGameEvents.map((ge) => (
-                <GameEventCard key={ge.id} gameEvent={ge} isPending />
+                <GameEventCard
+                  key={ge.id}
+                  gameEvent={ge}
+                  contestantNames={contestantNames}
+                  isPending
+                />
               ))}
               {pendingStandalone.map((event) => (
-                <EventCard key={event.id} event={event} isPending />
+                <StandaloneEventCard
+                  key={event.id}
+                  event={event}
+                  contestantNames={contestantNames}
+                  isPending
+                />
               ))}
             </div>
           )}
         </TabsContent>
       </Tabs>
     </div>
-  )
-}
-
-function GameEventCard({ gameEvent, isPending }: { gameEvent: GameEvent; isPending?: boolean }) {
-  const [expanded, setExpanded] = useState(false)
-  const totalPoints = gameEvent.events.reduce((sum, e) => sum + e.points, 0)
-
-  return (
-    <Card>
-      <CardContent className="p-4">
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-4 w-full text-left"
-        >
-          <div
-            className={`flex items-center justify-center w-10 h-10 rounded-full ${
-              isPending ? 'bg-yellow-100' : 'bg-green-100'
-            }`}
-          >
-            {isPending ? (
-              <Clock className="h-5 w-5 text-yellow-600" />
-            ) : (
-              <Check className="h-5 w-5 text-green-600" />
-            )}
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-medium">
-                {getGameEventTypeLabel(gameEvent.type as import('@prisma/client').GameEventType)}
-              </p>
-              <Badge variant={isPending ? 'outline' : 'secondary'}>
-                Week {gameEvent.week}
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                {gameEvent.events.length} events
-              </Badge>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Submitted by {gameEvent.submittedBy.name} •{' '}
-              {formatRelativeTime(gameEvent.createdAt)}
-            </p>
-          </div>
-
-          <div className="text-right">
-            <p
-              className={`text-xl font-bold ${
-                totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}
-            >
-              {totalPoints > 0 ? '+' : ''}
-              {totalPoints}
-            </p>
-          </div>
-        </button>
-
-        {expanded && (
-          <div className="mt-3 pt-3 border-t space-y-2">
-            {gameEvent.events.map((event) => (
-              <div key={event.id} className="flex items-center gap-3 px-2 py-1">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{event.contestant.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {getEventTypeLabel(event.type)}
-                  </p>
-                </div>
-                <span
-                  className={`text-sm font-semibold ${
-                    event.points >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}
-                >
-                  {event.points > 0 ? '+' : ''}
-                  {event.points}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-function EventCard({ event, isPending }: { event: Event; isPending?: boolean }) {
-  return (
-    <Card>
-      <CardContent className="flex items-center gap-4 p-4">
-        <div
-          className={`flex items-center justify-center w-10 h-10 rounded-full ${
-            event.points >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
-          }`}
-        >
-          {isPending ? (
-            <Clock className="h-5 w-5 text-yellow-600" />
-          ) : event.points >= 0 ? (
-            <Check className="h-5 w-5" />
-          ) : (
-            <X className="h-5 w-5" />
-          )}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-medium">{event.contestant.name}</p>
-            <Badge variant={isPending ? 'outline' : 'secondary'}>
-              Week {event.week}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {getEventTypeLabel(event.type)}
-          </p>
-          {event.description && (
-            <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
-          )}
-          <p className="text-xs text-muted-foreground mt-1">
-            Submitted by {event.submittedBy.name} • {formatRelativeTime(event.createdAt)}
-          </p>
-        </div>
-
-        <div className="text-right">
-          <p
-            className={`text-xl font-bold ${
-              event.points >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}
-          >
-            {event.points > 0 ? '+' : ''}{event.points}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
   )
 }
