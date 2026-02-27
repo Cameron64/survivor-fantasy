@@ -3,11 +3,13 @@
 import { useState } from 'react'
 import { ChevronDown, Flame, Shield, Gift, Search, Swords, LogOut, Trophy, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getEventTypeLabel } from '@/lib/scoring'
 import { getGameEventTypeLabel, getGameEventSummary } from '@/lib/event-derivation'
 import { formatRelativeTime } from '@/lib/utils'
 import type { GameEventType, EventType } from '@prisma/client'
 import type { GameEventData } from '@/lib/event-derivation'
+import type { ContestantAvatarMap } from './week-group'
 
 const TYPE_ICONS: Record<string, typeof Flame> = {
   TRIBAL_COUNCIL: Flame,
@@ -39,10 +41,15 @@ interface GameEventCardProps {
     approvedBy: { id: string; name: string } | null
   }
   contestantNames: Record<string, string>
+  contestantAvatars?: ContestantAvatarMap
   isPending?: boolean
 }
 
-export function GameEventCard({ gameEvent, contestantNames, isPending }: GameEventCardProps) {
+function getInitials(name: string): string {
+  return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
+}
+
+export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, isPending }: GameEventCardProps) {
   const [expanded, setExpanded] = useState(false)
   const totalPoints = gameEvent.events.reduce((sum, e) => sum + e.points, 0)
 
@@ -105,26 +112,40 @@ export function GameEventCard({ gameEvent, contestantNames, isPending }: GameEve
 
       {expanded && (
         <div className="border-t px-3 pb-3 pt-2 space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-          {gameEvent.events.map((event) => (
-            <div key={event.id} className="flex items-center gap-2 text-sm px-1">
-              <span className="text-muted-foreground flex-1 truncate">
-                <span className="font-medium text-foreground">
-                  {contestantNames[event.contestant.id] || event.contestant.name}
+          {gameEvent.events.map((event) => {
+            const avatar = contestantAvatars?.[event.contestant.id]
+            const displayName = contestantNames[event.contestant.id] || event.contestant.name
+
+            return (
+              <div key={event.id} className="flex items-center gap-2 text-sm px-1">
+                <Avatar
+                  className="h-6 w-6 shrink-0"
+                  style={avatar?.tribeColor ? { boxShadow: `0 0 0 2px ${avatar.tribeColor}` } : undefined}
+                >
+                  {avatar?.imageUrl && (
+                    <AvatarImage src={avatar.imageUrl} alt={displayName} />
+                  )}
+                  <AvatarFallback className="text-[10px]">
+                    {getInitials(event.contestant.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-muted-foreground flex-1 truncate">
+                  <span className="font-medium text-foreground">{displayName}</span>
+                  {' — '}
+                  {getEventTypeLabel(event.type)}
                 </span>
-                {' — '}
-                {getEventTypeLabel(event.type)}
-              </span>
-              <span
-                className={cn(
-                  'text-xs font-semibold tabular-nums',
-                  event.points >= 0 ? 'text-green-600' : 'text-red-600'
-                )}
-              >
-                {event.points > 0 ? '+' : ''}
-                {event.points}
-              </span>
-            </div>
-          ))}
+                <span
+                  className={cn(
+                    'text-xs font-semibold tabular-nums',
+                    event.points >= 0 ? 'text-green-600' : 'text-red-600'
+                  )}
+                >
+                  {event.points > 0 ? '+' : ''}
+                  {event.points}
+                </span>
+              </div>
+            )
+          })}
           <p className="text-xs text-muted-foreground pt-1 px-1">
             Submitted by {gameEvent.submittedBy.name} • {formatRelativeTime(gameEvent.createdAt)}
           </p>

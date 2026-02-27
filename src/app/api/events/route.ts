@@ -24,7 +24,15 @@ export async function GET(req: NextRequest) {
         ...(pendingOnly && { isApproved: false }),
       },
       include: {
-        contestant: true,
+        contestant: {
+          include: {
+            tribeMemberships: {
+              where: { toWeek: null },
+              include: { tribe: { select: { id: true, name: true, color: true } } },
+              take: 1,
+            },
+          },
+        },
         submittedBy: {
           select: { id: true, name: true },
         },

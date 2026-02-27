@@ -7,6 +7,8 @@ import { GameEventCard } from './game-event-card'
 import { StandaloneEventCard } from './standalone-event-card'
 import type { EventType } from '@prisma/client'
 
+export type ContestantAvatarMap = Record<string, { imageUrl?: string | null; tribeColor?: string | null }>
+
 interface TimelineGameEvent {
   kind: 'game-event'
   id: string
@@ -53,9 +55,10 @@ interface WeekGroupProps {
   isExpanded: boolean
   onToggle: () => void
   contestantNames: Record<string, string>
+  contestantAvatars: ContestantAvatarMap
 }
 
-export function WeekGroup({ weekData, isExpanded, onToggle, contestantNames }: WeekGroupProps) {
+export function WeekGroup({ weekData, isExpanded, onToggle, contestantNames, contestantAvatars }: WeekGroupProps) {
   const { week, episodeTitle, items, totalPoints, eventCount } = weekData
 
   return (
@@ -103,12 +106,14 @@ export function WeekGroup({ weekData, isExpanded, onToggle, contestantNames }: W
                 key={item.id}
                 gameEvent={item}
                 contestantNames={contestantNames}
+                contestantAvatars={contestantAvatars}
               />
             ) : (
               <StandaloneEventCard
                 key={item.id}
                 event={item}
                 contestantNames={contestantNames}
+                contestantAvatars={contestantAvatars}
               />
             )
           )}

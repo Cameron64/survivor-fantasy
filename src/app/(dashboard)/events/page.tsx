@@ -12,12 +12,18 @@ import { GameEventCard } from '@/components/events/game-event-card'
 import { StandaloneEventCard } from '@/components/events/standalone-event-card'
 import type { EventType } from '@prisma/client'
 
+interface TribeMembership {
+  tribe: { id: string; name: string; color: string }
+}
+
 interface Contestant {
   id: string
   name: string
   nickname?: string | null
+  imageUrl?: string | null
   tribe: string | null
   isEliminated: boolean
+  tribeMemberships?: TribeMembership[]
 }
 
 interface Event {
@@ -92,24 +98,27 @@ export default function EventsPage() {
     }
   }
 
-  // Build contestant name map from all event data
-  const contestantNames = useMemo(() => {
+  // Build contestant name + avatar maps from all event data
+  const { contestantNames, contestantAvatars } = useMemo(() => {
     const names: Record<string, string> = {}
-    // From game event derived events
-    for (const ge of gameEvents) {
-      for (const e of ge.events) {
-        if (!names[e.contestant.id]) {
-          names[e.contestant.id] = getContestantDisplayName(e.contestant)
+    const avatars: Record<string, { imageUrl?: string | null; tribeColor?: string | null }> = {}
+
+    function collect(c: Contestant) {
+      if (!names[c.id]) {
+        names[c.id] = getContestantDisplayName(c)
+        avatars[c.id] = {
+          imageUrl: c.imageUrl,
+          tribeColor: c.tribeMemberships?.[0]?.tribe.color ?? null,
         }
       }
     }
-    // From standalone events
-    for (const e of events) {
-      if (!names[e.contestant.id]) {
-        names[e.contestant.id] = getContestantDisplayName(e.contestant)
-      }
+
+    for (const ge of gameEvents) {
+      for (const e of ge.events) collect(e.contestant)
     }
-    return names
+    for (const e of events) collect(e.contestant)
+
+    return { contestantNames: names, contestantAvatars: avatars }
   }, [gameEvents, events])
 
   // Episode number → title map
@@ -279,6 +288,7 @@ export default function EventsPage() {
                   isExpanded={expandedWeeks.has(wd.week)}
                   onToggle={() => toggleWeek(wd.week)}
                   contestantNames={contestantNames}
+                  contestantAvatars={contestantAvatars}
                 />
               ))}
             </div>

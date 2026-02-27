@@ -25,7 +25,15 @@ export async function GET(req: NextRequest) {
       include: {
         events: {
           include: {
-            contestant: true,
+            contestant: {
+              include: {
+                tribeMemberships: {
+                  where: { toWeek: null },
+                  include: { tribe: { select: { id: true, name: true, color: true } } },
+                  take: 1,
+                },
+              },
+            },
           },
         },
         submittedBy: {
