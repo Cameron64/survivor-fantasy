@@ -67,17 +67,35 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
       )
     : typeLabel
 
-  // Derive accent color from first contestant's tribe
-  const accentColor = contestantAvatars?.[gameEvent.events[0]?.contestant.id]?.tribeColor ?? null
+  // Collect unique tribe colors from all contestants in this event
+  const accentColors = contestantAvatars
+    ? Array.from(
+        new Set(
+          gameEvent.events
+            .map((e) => contestantAvatars[e.contestant.id]?.tribeColor)
+            .filter(Boolean) as string[]
+        )
+      )
+    : []
 
   return (
     <div
       className={cn(
-        'group rounded-lg border bg-card transition-colors',
+        'group rounded-lg border bg-card transition-colors relative overflow-hidden',
         isPending && 'border-yellow-300/50 bg-yellow-50/30 dark:bg-yellow-950/10'
       )}
-      style={accentColor ? { borderLeftWidth: '3px', borderLeftColor: accentColor } : undefined}
     >
+      {accentColors.length > 0 && (
+        <div
+          className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg"
+          style={{
+            background:
+              accentColors.length === 1
+                ? accentColors[0]
+                : `linear-gradient(to bottom, ${accentColors.map((c, i) => `${c} ${(i / accentColors.length) * 100}%, ${c} ${((i + 1) / accentColors.length) * 100}%`).join(', ')})`,
+          }}
+        />
+      )}
       <div className="flex items-center">
         <button
           onClick={() => setExpanded(!expanded)}
