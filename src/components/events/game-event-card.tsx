@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { ChevronDown, Flame, Shield, Gift, Search, Swords, LogOut, Trophy, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
 import { getEventTypeLabel } from '@/lib/scoring'
 import { getGameEventTypeLabel, getGameEventSummary } from '@/lib/event-derivation'
 import { formatRelativeTime } from '@/lib/utils'
