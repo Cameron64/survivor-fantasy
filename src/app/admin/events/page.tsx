@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -14,11 +13,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Check, Clock, Trash2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Check, Trash2 } from 'lucide-react'
 import { getEventTypeLabel } from '@/lib/scoring'
 import { getGameEventTypeLabel } from '@/lib/event-derivation'
 import { EventType, GameEventType } from '@prisma/client'
-import { formatRelativeTime } from '@/lib/utils'
+import { getContestantDisplayName } from '@/lib/utils'
+import { GameEventCard } from '@/components/events/game-event-card'
+import { StandaloneEventCard } from '@/components/events/standalone-event-card'
+import type { ContestantAvatarMap } from '@/components/events/week-group'
+
+interface TribeMembership {
+  tribe: { id: string; name: string; color: string }
+}
+
+interface Contestant {
+  id: string
+  name: string
+  nickname?: string | null
+  imageUrl?: string | null
+  tribe: string | null
+  isEliminated: boolean
+  tribeMemberships?: TribeMembership[]
+}
 
 interface Event {
   id: string
@@ -29,7 +45,7 @@ interface Event {
   isApproved: boolean
   createdAt: string
   gameEventId: string | null
-  contestant: { id: string; name: string }
+  contestant: Contestant
   submittedBy: { id: string; name: string }
   approvedBy: { id: string; name: string } | null
 }
@@ -38,6 +54,7 @@ interface GameEvent {
   id: string
   type: GameEventType
   week: number
+  data?: unknown
   isApproved: boolean
   createdAt: string
   events: Event[]
@@ -84,6 +101,29 @@ export default function AdminEventsPage() {
     }
   }
 
+  // Build contestant name + avatar maps
+  const { contestantNames, contestantAvatars } = useMemo(() => {
+    const names: Record<string, string> = {}
+    const avatars: ContestantAvatarMap = {}
+
+    function collect(c: Contestant) {
+      if (!names[c.id]) {
+        names[c.id] = getContestantDisplayName(c)
+        avatars[c.id] = {
+          imageUrl: c.imageUrl,
+          tribeColor: c.tribeMemberships?.[0]?.tribe.color ?? null,
+        }
+      }
+    }
+
+    for (const ge of gameEvents) {
+      for (const e of ge.events) collect(e.contestant)
+    }
+    for (const e of events) collect(e.contestant)
+
+    return { contestantNames: names, contestantAvatars: avatars }
+  }, [gameEvents, events])
+
   // Game event actions
   const handleApproveGameEvent = async (id: string) => {
     setProcessingId(id)
@@ -113,7 +153,6 @@ export default function AdminEventsPage() {
     }
   }
 
-  // Standalone event actions
   const handleApproveEvent = async (id: string) => {
     setProcessingId(id)
     try {
@@ -161,17 +200,15 @@ export default function AdminEventsPage() {
     })
   }
 
-  // Standalone events (not part of a game event)
+  // Separate by status
   const standaloneEvents = events.filter((e) => !e.gameEventId)
   const pendingStandalone = standaloneEvents.filter((e) => !e.isApproved)
   const approvedStandalone = standaloneEvents.filter((e) => e.isApproved)
-
   const pendingGameEvents = gameEvents.filter((ge) => !ge.isApproved)
   const approvedGameEvents = gameEvents.filter((ge) => ge.isApproved)
 
   const totalPending = pendingStandalone.length + pendingGameEvents.length
   const totalApproved = approvedStandalone.length + approvedGameEvents.length
-
   const totalSelected = selectedGameEventIds.size + selectedEventIds.size
 
   const selectAllApproved = () => {
@@ -185,7 +222,6 @@ export default function AdminEventsPage() {
   }
 
   const handleBulkDelete = () => {
-    // Count total scoring events being removed (game events include their derived events)
     const gameEventCount = selectedGameEventIds.size
     const derivedCount = approvedGameEvents
       .filter((ge) => selectedGameEventIds.has(ge.id))
@@ -196,30 +232,15 @@ export default function AdminEventsPage() {
     if (gameEventCount > 0) parts.push(`${gameEventCount} game event${gameEventCount > 1 ? 's' : ''} (${derivedCount} scoring events)`)
     if (standaloneCount > 0) parts.push(`${standaloneCount} standalone event${standaloneCount > 1 ? 's' : ''}`)
 
-    // We need to fire both deletes; use bulkGameEvents for game events, bulkEvents for standalone
     if (gameEventCount > 0 && standaloneCount > 0) {
-      // Delete both types - we'll chain them
-      setDeleteConfirm({
-        type: 'bulkGameEvents',
-        ids: Array.from(selectedGameEventIds).concat(Array.from(selectedEventIds)),
-        label: parts.join(' and '),
-      })
+      setDeleteConfirm({ type: 'bulkGameEvents', ids: Array.from(selectedGameEventIds).concat(Array.from(selectedEventIds)), label: parts.join(' and ') })
     } else if (gameEventCount > 0) {
-      setDeleteConfirm({
-        type: 'bulkGameEvents',
-        ids: Array.from(selectedGameEventIds),
-        label: parts[0],
-      })
+      setDeleteConfirm({ type: 'bulkGameEvents', ids: Array.from(selectedGameEventIds), label: parts[0] })
     } else {
-      setDeleteConfirm({
-        type: 'bulkEvents',
-        ids: Array.from(selectedEventIds),
-        label: parts[0],
-      })
+      setDeleteConfirm({ type: 'bulkEvents', ids: Array.from(selectedEventIds), label: parts[0] })
     }
   }
 
-  // Override confirmDelete to handle mixed bulk
   const handleConfirmDeleteMixed = async () => {
     if (!deleteConfirm) return
     setIsDeleting(true)
@@ -236,7 +257,6 @@ export default function AdminEventsPage() {
           body: JSON.stringify({ ids }),
         })
       } else if (type === 'bulkGameEvents') {
-        // If there are mixed selections, fire both
         const geIds = Array.from(selectedGameEventIds)
         const evIds = Array.from(selectedEventIds)
         const promises: Promise<Response>[] = []
@@ -284,7 +304,7 @@ export default function AdminEventsPage() {
           <TabsTrigger value="approved" data-testid="tab-approved">Approved ({totalApproved})</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pending" className="space-y-4 mt-4">
+        <TabsContent value="pending" className="space-y-3 mt-4">
           {isLoading ? (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
@@ -302,21 +322,67 @@ export default function AdminEventsPage() {
           ) : (
             <div className="space-y-3">
               {pendingGameEvents.map((ge) => (
-                <PendingGameEventCard
+                <GameEventCard
                   key={ge.id}
                   gameEvent={ge}
-                  onApprove={handleApproveGameEvent}
-                  onReject={handleRejectGameEvent}
-                  isProcessing={processingId === ge.id}
+                  contestantNames={contestantNames}
+                  contestantAvatars={contestantAvatars}
+                  isPending
+                  actions={
+                    <>
+                      <Button
+                        size="sm"
+                        data-testid={`approve-${ge.id}`}
+                        aria-label="Approve event"
+                        onClick={() => handleApproveGameEvent(ge.id)}
+                        disabled={processingId === ge.id}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        data-testid={`reject-${ge.id}`}
+                        aria-label="Reject event"
+                        onClick={() => handleRejectGameEvent(ge.id)}
+                        disabled={processingId === ge.id}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  }
                 />
               ))}
               {pendingStandalone.map((event) => (
-                <PendingEventCard
+                <StandaloneEventCard
                   key={event.id}
                   event={event}
-                  onApprove={handleApproveEvent}
-                  onReject={handleRejectEvent}
-                  isProcessing={processingId === event.id}
+                  contestantNames={contestantNames}
+                  contestantAvatars={contestantAvatars}
+                  isPending
+                  actions={
+                    <>
+                      <Button
+                        size="sm"
+                        data-testid={`approve-${event.id}`}
+                        aria-label="Approve event"
+                        onClick={() => handleApproveEvent(event.id)}
+                        disabled={processingId === event.id}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        data-testid={`reject-${event.id}`}
+                        aria-label="Reject event"
+                        onClick={() => handleRejectEvent(event.id)}
+                        disabled={processingId === event.id}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  }
                 />
               ))}
             </div>
@@ -332,7 +398,6 @@ export default function AdminEventsPage() {
             </Card>
           ) : (
             <>
-              {/* Bulk actions bar */}
               <div className="flex items-center gap-3 flex-wrap">
                 <Button
                   variant="outline"
@@ -346,19 +411,11 @@ export default function AdminEventsPage() {
                     <span className="text-sm text-muted-foreground">
                       {totalSelected} selected
                     </span>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={handleBulkDelete}
-                    >
+                    <Button size="sm" variant="destructive" onClick={handleBulkDelete}>
                       <Trash2 className="h-4 w-4 mr-1" />
                       Delete selected
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearSelection}
-                    >
+                    <Button variant="ghost" size="sm" onClick={clearSelection}>
                       Clear
                     </Button>
                   </>
@@ -367,34 +424,72 @@ export default function AdminEventsPage() {
 
               <div className="space-y-3">
                 {approvedGameEvents.map((ge) => (
-                  <ApprovedGameEventCard
-                    key={ge.id}
-                    gameEvent={ge}
-                    selected={selectedGameEventIds.has(ge.id)}
-                    onToggleSelect={() => toggleGameEventSelection(ge.id)}
-                    onDelete={() =>
-                      setDeleteConfirm({
-                        type: 'gameEvent',
-                        ids: [ge.id],
-                        label: `${getGameEventTypeLabel(ge.type)} (Week ${ge.week}) and its ${ge.events.length} scoring events`,
-                      })
-                    }
-                  />
+                  <div key={ge.id} className={`flex items-start gap-3 ${selectedGameEventIds.has(ge.id) ? 'ring-2 ring-destructive/50 rounded-lg' : ''}`}>
+                    <Checkbox
+                      className="mt-4 ml-1 shrink-0"
+                      checked={selectedGameEventIds.has(ge.id)}
+                      onCheckedChange={() => toggleGameEventSelection(ge.id)}
+                      aria-label={`Select ${getGameEventTypeLabel(ge.type)} Week ${ge.week}`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <GameEventCard
+                        gameEvent={ge}
+                        contestantNames={contestantNames}
+                        contestantAvatars={contestantAvatars}
+                        actions={
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            aria-label="Delete event"
+                            onClick={() =>
+                              setDeleteConfirm({
+                                type: 'gameEvent',
+                                ids: [ge.id],
+                                label: `${getGameEventTypeLabel(ge.type)} (Week ${ge.week}) and its ${ge.events.length} scoring events`,
+                              })
+                            }
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
+                    </div>
+                  </div>
                 ))}
                 {approvedStandalone.map((event) => (
-                  <ApprovedEventCard
-                    key={event.id}
-                    event={event}
-                    selected={selectedEventIds.has(event.id)}
-                    onToggleSelect={() => toggleEventSelection(event.id)}
-                    onDelete={() =>
-                      setDeleteConfirm({
-                        type: 'event',
-                        ids: [event.id],
-                        label: `${event.contestant.name} — ${getEventTypeLabel(event.type)} (Week ${event.week})`,
-                      })
-                    }
-                  />
+                  <div key={event.id} className={`flex items-center gap-3 ${selectedEventIds.has(event.id) ? 'ring-2 ring-destructive/50 rounded-lg' : ''}`}>
+                    <Checkbox
+                      className="ml-1 shrink-0"
+                      checked={selectedEventIds.has(event.id)}
+                      onCheckedChange={() => toggleEventSelection(event.id)}
+                      aria-label={`Select ${event.contestant.name} ${getEventTypeLabel(event.type)}`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <StandaloneEventCard
+                        event={event}
+                        contestantNames={contestantNames}
+                        contestantAvatars={contestantAvatars}
+                        actions={
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            aria-label="Delete event"
+                            onClick={() =>
+                              setDeleteConfirm({
+                                type: 'event',
+                                ids: [event.id],
+                                label: `${event.contestant.name} — ${getEventTypeLabel(event.type)} (Week ${event.week})`,
+                              })
+                            }
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        }
+                      />
+                    </div>
+                  </div>
                 ))}
               </div>
             </>
@@ -402,7 +497,6 @@ export default function AdminEventsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Delete confirmation dialog */}
       <Dialog open={deleteConfirm !== null} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <DialogContent>
           <DialogHeader>
@@ -427,340 +521,5 @@ export default function AdminEventsPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
-}
-
-function PendingGameEventCard({
-  gameEvent,
-  onApprove,
-  onReject,
-  isProcessing,
-}: {
-  gameEvent: GameEvent
-  onApprove: (id: string) => void
-  onReject: (id: string) => void
-  isProcessing: boolean
-}) {
-  const [expanded, setExpanded] = useState(true)
-  const totalPoints = gameEvent.events.reduce((sum, e) => sum + e.points, 0)
-
-  return (
-    <Card data-testid={`game-event-${gameEvent.id}`} className="border-yellow-200">
-      <CardContent className="p-4">
-        <div className="flex items-start gap-4">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-100 shrink-0">
-            <Clock className="h-5 w-5 text-yellow-600" />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="font-medium">{getGameEventTypeLabel(gameEvent.type)}</p>
-              <Badge variant="secondary">Week {gameEvent.week}</Badge>
-              <Badge variant="outline" className="text-xs">
-                {gameEvent.events.length} scoring events
-              </Badge>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Submitted by {gameEvent.submittedBy.name} •{' '}
-              {formatRelativeTime(gameEvent.createdAt)}
-            </p>
-          </div>
-
-          <div className="text-right mr-2">
-            <p
-              className={`text-xl font-bold ${
-                totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}
-            >
-              {totalPoints > 0 ? '+' : ''}
-              {totalPoints}
-            </p>
-          </div>
-
-          <div className="flex gap-2 shrink-0">
-            <Button
-              size="sm"
-              data-testid={`approve-${gameEvent.id}`}
-              aria-label="Approve event"
-              onClick={() => onApprove(gameEvent.id)}
-              disabled={isProcessing}
-            >
-              <Check className="h-4 w-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              data-testid={`reject-${gameEvent.id}`}
-              aria-label="Reject event"
-              onClick={() => onReject(gameEvent.id)}
-              disabled={isProcessing}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Expandable event list */}
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-1 text-xs text-muted-foreground mt-3 hover:text-foreground transition-colors"
-        >
-          {expanded ? (
-            <ChevronUp className="h-3 w-3" />
-          ) : (
-            <ChevronDown className="h-3 w-3" />
-          )}
-          {expanded ? 'Hide' : 'Show'} derived events
-        </button>
-
-        {expanded && (
-          <div className="mt-2 pt-2 border-t space-y-1">
-            {gameEvent.events.map((event) => (
-              <div key={event.id} className="flex items-center gap-3 px-2 py-1.5">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm">{event.contestant.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {getEventTypeLabel(event.type)}
-                    {event.description && ` — ${event.description}`}
-                  </p>
-                </div>
-                <span
-                  className={`text-sm font-semibold ${
-                    event.points >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}
-                >
-                  {event.points > 0 ? '+' : ''}
-                  {event.points}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-function PendingEventCard({
-  event,
-  onApprove,
-  onReject,
-  isProcessing,
-}: {
-  event: Event
-  onApprove: (id: string) => void
-  onReject: (id: string) => void
-  isProcessing: boolean
-}) {
-  return (
-    <Card data-testid={`event-${event.id}`}>
-      <CardContent className="flex items-center gap-4 p-4">
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-100">
-          <Clock className="h-5 w-5 text-yellow-600" />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-medium">{event.contestant.name}</p>
-            <Badge variant="secondary">Week {event.week}</Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">{getEventTypeLabel(event.type)}</p>
-          {event.description && (
-            <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
-          )}
-          <p className="text-xs text-muted-foreground mt-1">
-            Submitted by {event.submittedBy.name} • {formatRelativeTime(event.createdAt)}
-          </p>
-        </div>
-
-        <div className="text-right mr-4">
-          <p
-            className={`text-xl font-bold ${
-              event.points >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}
-          >
-            {event.points > 0 ? '+' : ''}
-            {event.points}
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            data-testid={`approve-${event.id}`}
-            aria-label="Approve event"
-            onClick={() => onApprove(event.id)}
-            disabled={isProcessing}
-          >
-            <Check className="h-4 w-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant="destructive"
-            data-testid={`reject-${event.id}`}
-            aria-label="Reject event"
-            onClick={() => onReject(event.id)}
-            disabled={isProcessing}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function ApprovedGameEventCard({
-  gameEvent,
-  selected,
-  onToggleSelect,
-  onDelete,
-}: {
-  gameEvent: GameEvent
-  selected: boolean
-  onToggleSelect: () => void
-  onDelete: () => void
-}) {
-  const [expanded, setExpanded] = useState(false)
-  const totalPoints = gameEvent.events.reduce((sum, e) => sum + e.points, 0)
-
-  return (
-    <Card className={selected ? 'ring-2 ring-destructive/50' : ''}>
-      <CardContent className="p-4">
-        <div className="flex items-center gap-4">
-          <Checkbox
-            checked={selected}
-            onCheckedChange={onToggleSelect}
-            aria-label={`Select ${getGameEventTypeLabel(gameEvent.type)} Week ${gameEvent.week}`}
-          />
-
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-4 flex-1 text-left min-w-0"
-          >
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-100 shrink-0">
-              <Check className="h-5 w-5 text-green-600" />
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="font-medium">{getGameEventTypeLabel(gameEvent.type)}</p>
-                <Badge variant="secondary">Week {gameEvent.week}</Badge>
-                <Badge variant="outline" className="text-xs">
-                  {gameEvent.events.length} events
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Approved by {gameEvent.approvedBy?.name || 'Unknown'}
-              </p>
-            </div>
-
-            <div className="text-right">
-              <p
-                className={`text-xl font-bold ${
-                  totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}
-              >
-                {totalPoints > 0 ? '+' : ''}
-                {totalPoints}
-              </p>
-            </div>
-          </button>
-
-          <Button
-            size="sm"
-            variant="ghost"
-            className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-            aria-label="Delete event"
-            onClick={onDelete}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {expanded && (
-          <div className="mt-3 pt-3 border-t space-y-1 ml-10">
-            {gameEvent.events.map((event) => (
-              <div key={event.id} className="flex items-center gap-3 px-2 py-1">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm">{event.contestant.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {getEventTypeLabel(event.type)}
-                  </p>
-                </div>
-                <span
-                  className={`text-sm font-semibold ${
-                    event.points >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}
-                >
-                  {event.points > 0 ? '+' : ''}
-                  {event.points}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-function ApprovedEventCard({
-  event,
-  selected,
-  onToggleSelect,
-  onDelete,
-}: {
-  event: Event
-  selected: boolean
-  onToggleSelect: () => void
-  onDelete: () => void
-}) {
-  return (
-    <Card className={selected ? 'ring-2 ring-destructive/50' : ''}>
-      <CardContent className="flex items-center gap-4 p-4">
-        <Checkbox
-          checked={selected}
-          onCheckedChange={onToggleSelect}
-          aria-label={`Select ${event.contestant.name} ${getEventTypeLabel(event.type)}`}
-        />
-
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-100">
-          <Check className="h-5 w-5 text-green-600" />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-medium">{event.contestant.name}</p>
-            <Badge variant="secondary">Week {event.week}</Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">{getEventTypeLabel(event.type)}</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Approved by {event.approvedBy?.name || 'Unknown'}
-          </p>
-        </div>
-
-        <div className="text-right">
-          <p
-            className={`text-xl font-bold ${
-              event.points >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}
-          >
-            {event.points > 0 ? '+' : ''}
-            {event.points}
-          </p>
-        </div>
-
-        <Button
-          size="sm"
-          variant="ghost"
-          className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-          aria-label="Delete event"
-          onClick={onDelete}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
-      </CardContent>
-    </Card>
   )
 }

@@ -7,6 +7,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getEventTypeLabel } from '@/lib/scoring'
 import { getGameEventTypeLabel, getGameEventSummary } from '@/lib/event-derivation'
 import { formatRelativeTime } from '@/lib/utils'
+import type { ReactNode } from 'react'
 import type { GameEventType, EventType } from '@prisma/client'
 import type { GameEventData } from '@/lib/event-derivation'
 import type { ContestantAvatarMap } from './week-group'
@@ -43,13 +44,15 @@ interface GameEventCardProps {
   contestantNames: Record<string, string>
   contestantAvatars?: ContestantAvatarMap
   isPending?: boolean
+  /** Optional action buttons rendered in the header (e.g. approve/reject for admin) */
+  actions?: ReactNode
 }
 
 function getInitials(name: string): string {
   return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
 }
 
-export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, isPending }: GameEventCardProps) {
+export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, isPending, actions }: GameEventCardProps) {
   const [expanded, setExpanded] = useState(false)
   const totalPoints = gameEvent.events.reduce((sum, e) => sum + e.points, 0)
 
@@ -64,51 +67,63 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
       )
     : typeLabel
 
+  // Derive accent color from first contestant's tribe
+  const accentColor = contestantAvatars?.[gameEvent.events[0]?.contestant.id]?.tribeColor ?? null
+
   return (
     <div
       className={cn(
         'group rounded-lg border bg-card transition-colors',
         isPending && 'border-yellow-300/50 bg-yellow-50/30 dark:bg-yellow-950/10'
       )}
+      style={accentColor ? { borderLeftWidth: '3px', borderLeftColor: accentColor } : undefined}
     >
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-3 w-full text-left p-3 hover:bg-accent/50 transition-colors rounded-lg"
-      >
-        <div
-          className={cn(
-            'flex items-center justify-center w-8 h-8 rounded-full shrink-0',
-            isPending
-              ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'
-              : 'bg-muted text-muted-foreground'
-          )}
+      <div className="flex items-center">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-3 flex-1 min-w-0 text-left p-3 hover:bg-accent/50 transition-colors rounded-lg"
         >
-          {isPending ? <Clock className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm leading-snug truncate">{summary}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}</p>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <span
+          <div
             className={cn(
-              'text-sm font-semibold tabular-nums',
-              totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
+              'flex items-center justify-center w-8 h-8 rounded-full shrink-0',
+              isPending
+                ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'
+                : 'bg-muted text-muted-foreground'
             )}
           >
-            {totalPoints > 0 ? '+' : ''}
-            {totalPoints}
-          </span>
-          <ChevronDown
-            className={cn(
-              'h-4 w-4 text-muted-foreground transition-transform duration-200',
-              expanded && 'rotate-180'
-            )}
-          />
-        </div>
-      </button>
+            {isPending ? <Clock className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-sm leading-snug truncate">{summary}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}</p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span
+              className={cn(
+                'text-sm font-semibold tabular-nums',
+                totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
+              )}
+            >
+              {totalPoints > 0 ? '+' : ''}
+              {totalPoints}
+            </span>
+            <ChevronDown
+              className={cn(
+                'h-4 w-4 text-muted-foreground transition-transform duration-200',
+                expanded && 'rotate-180'
+              )}
+            />
+          </div>
+        </button>
+
+        {actions && (
+          <div className="flex items-center gap-1 pr-3 shrink-0">
+            {actions}
+          </div>
+        )}
+      </div>
 
       {expanded && (
         <div className="border-t px-3 pb-3 pt-2 space-y-1.5 animate-in slide-in-from-top-1 duration-200">

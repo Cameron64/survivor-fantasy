@@ -24,7 +24,10 @@ export interface TribalCouncilData {
 }
 
 export interface ImmunityChallengeData {
-  winner: string // contestant ID
+  winner?: string // contestant ID (individual)
+  winners?: string[] // contestant IDs (team)
+  isTeamChallenge?: boolean
+  tribeNames?: string[] // winning tribe name(s) when isTeamChallenge
 }
 
 export interface RewardChallengeData {
@@ -188,10 +191,18 @@ function deriveTribalCouncil(data: TribalCouncilData, pv?: Record<EventType, num
 }
 
 function deriveImmunityChallenge(data: ImmunityChallengeData, pv?: Record<EventType, number>): DerivedEvent[] {
+  if (data.isTeamChallenge && data.winners?.length) {
+    return data.winners.map((id) => ({
+      type: 'TEAM_CHALLENGE_WIN' as EventType,
+      contestantId: id,
+      points: resolvePoints('TEAM_CHALLENGE_WIN', pv),
+      description: 'Won team immunity challenge',
+    }))
+  }
   return [
     {
       type: 'INDIVIDUAL_IMMUNITY_WIN',
-      contestantId: data.winner,
+      contestantId: data.winner!,
       points: resolvePoints('INDIVIDUAL_IMMUNITY_WIN', pv),
       description: 'Won individual immunity challenge',
     },
@@ -300,7 +311,10 @@ export function getGameEventSummary(
     }
     case 'IMMUNITY_CHALLENGE': {
       const d = data as ImmunityChallengeData
-      return `${name(d.winner)} won individual immunity`
+      if (d.isTeamChallenge && d.tribeNames?.length) {
+        return `${d.tribeNames.join(' & ')} won team immunity`
+      }
+      return `${name(d.winner!)} won individual immunity`
     }
     case 'REWARD_CHALLENGE': {
       const d = data as RewardChallengeData

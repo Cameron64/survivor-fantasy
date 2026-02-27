@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getEventTypeLabel } from '@/lib/scoring'
@@ -23,15 +24,17 @@ interface StandaloneEventCardProps {
   contestantNames: Record<string, string>
   contestantAvatars?: ContestantAvatarMap
   isPending?: boolean
+  actions?: ReactNode
 }
 
 function getInitials(name: string): string {
   return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
 }
 
-export function StandaloneEventCard({ event, contestantNames, contestantAvatars, isPending }: StandaloneEventCardProps) {
+export function StandaloneEventCard({ event, contestantNames, contestantAvatars, isPending, actions }: StandaloneEventCardProps) {
   const displayName = contestantNames[event.contestant.id] || event.contestant.name
   const avatar = contestantAvatars?.[event.contestant.id]
+  const accentColor = avatar?.tribeColor ?? null
 
   return (
     <div
@@ -39,6 +42,7 @@ export function StandaloneEventCard({ event, contestantNames, contestantAvatars,
         'flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors',
         isPending && 'border-yellow-300/50 bg-yellow-50/30 dark:bg-yellow-950/10'
       )}
+      style={accentColor ? { borderLeftWidth: '3px', borderLeftColor: accentColor } : undefined}
     >
       {isPending ? (
         <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
@@ -80,6 +84,12 @@ export function StandaloneEventCard({ event, contestantNames, contestantAvatars,
         {event.points > 0 ? '+' : ''}
         {event.points}
       </span>
+
+      {actions && (
+        <div className="flex items-center gap-1 shrink-0">
+          {actions}
+        </div>
+      )}
     </div>
   )
 }

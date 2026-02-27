@@ -343,6 +343,7 @@ export default function SubmitEventPage() {
       {step === 'form' && selectedType === 'IMMUNITY_CHALLENGE' && (
         <ImmunityChallengeForm
           contestants={contestants}
+          tribes={tribes}
           onSubmit={handleFormSubmit}
           onBack={goBack}
         />
