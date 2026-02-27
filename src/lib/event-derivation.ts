@@ -30,6 +30,7 @@ export interface ImmunityChallengeData {
 export interface RewardChallengeData {
   winners: string[] // contestant IDs
   isTeamChallenge: boolean
+  tribeNames?: string[] // winning tribe name(s) when isTeamChallenge
 }
 
 export interface IdolFoundData {
@@ -303,6 +304,9 @@ export function getGameEventSummary(
     }
     case 'REWARD_CHALLENGE': {
       const d = data as RewardChallengeData
+      if (d.isTeamChallenge && d.tribeNames?.length) {
+        return `${d.tribeNames.join(' & ')} won team reward`
+      }
       return `${d.winners.map(name).join(', ')} won reward`
     }
     case 'IDOL_FOUND': {

@@ -267,10 +267,18 @@ export function RewardChallengeForm({ contestants, tribes = [], onSubmit, onBack
         </Button>
         <Button
           className="flex-1"
-          onClick={() => onSubmit({
-            winners: isTeamChallenge ? Array.from(tribeWinnerIds) : Array.from(winners),
-            isTeamChallenge,
-          })}
+          onClick={() => {
+            const data: RewardChallengeData = {
+              winners: isTeamChallenge ? Array.from(tribeWinnerIds) : Array.from(winners),
+              isTeamChallenge,
+            }
+            if (isTeamChallenge) {
+              data.tribeNames = tribes
+                .filter((t) => selectedTribes.has(t.id))
+                .map((t) => t.name)
+            }
+            onSubmit(data)
+          }}
           disabled={!canSubmit}
         >
           Review Events
