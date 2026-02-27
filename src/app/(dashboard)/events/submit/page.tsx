@@ -16,9 +16,11 @@ import {
   LogOut,
   Trophy,
 } from 'lucide-react'
-import { GameEventType } from '@prisma/client'
+import { GameEventType, EventType } from '@prisma/client'
 import { deriveEvents, type GameEventData } from '@/lib/event-derivation'
 import { getCurrentWeek } from '@/lib/season'
+import { getDisplayName } from '@/components/shared/contestant-label'
+import type { FormContestant } from '@/components/shared/contestant-label'
 import { TribalCouncilForm } from '@/components/events/tribal-council-form'
 import {
   ImmunityChallengeForm,
@@ -32,11 +34,26 @@ import {
 } from '@/components/events/simple-event-form'
 import { EventReview } from '@/components/events/event-review'
 
-interface Contestant {
+interface TribeMembership {
+  tribe: { id: string; name: string; color: string }
+}
+
+interface RawContestant {
   id: string
   name: string
+  nickname?: string | null
+  imageUrl?: string | null
   tribe: string | null
   isEliminated: boolean
+  tribeMemberships?: TribeMembership[]
+}
+
+interface TribeGroup {
+  id: string
+  name: string
+  color: string
+  contestantIds: string[]
+  contestantNames: string[]
 }
 
 type WizardStep = 'type' | 'form' | 'review'
@@ -93,7 +110,7 @@ const EVENT_TYPE_OPTIONS: {
 
 export default function SubmitEventPage() {
   const router = useRouter()
-  const [contestants, setContestants] = useState<Contestant[]>([])
+  const [contestants, setContestants] = useState<FormContestant[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -104,25 +121,67 @@ export default function SubmitEventPage() {
   const [isEditingWeek, setIsEditingWeek] = useState(false)
   const [formData, setFormData] = useState<GameEventData | null>(null)
 
+  const [tribes, setTribes] = useState<TribeGroup[]>([])
+  const [pointValues, setPointValues] = useState<Record<EventType, number> | undefined>(undefined)
+
   useEffect(() => {
-    fetch('/api/contestants')
+    fetch('/api/league/scoring')
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) setContestants(data)
+        if (data.effective) {
+          setPointValues(data.effective)
+        }
+      })
+      .catch(console.error)
+  }, [])
+
+  useEffect(() => {
+    fetch('/api/contestants?includeMemberships=true')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          // Enrich contestants with tribeColor from memberships
+          const enriched: FormContestant[] = (data as RawContestant[]).map((c) => ({
+            id: c.id,
+            name: c.name,
+            nickname: c.nickname,
+            imageUrl: c.imageUrl,
+            tribe: c.tribe,
+            tribeColor: c.tribeMemberships?.[0]?.tribe.color ?? null,
+            isEliminated: c.isEliminated,
+          }))
+          setContestants(enriched)
+
+          // Build tribe groups from membership data
+          const tribeMap = new Map<string, TribeGroup>()
+          for (const raw of data as RawContestant[]) {
+            if (raw.isEliminated) continue
+            const membership = raw.tribeMemberships?.[0]
+            if (!membership) continue
+            const t = membership.tribe
+            if (!tribeMap.has(t.id)) {
+              tribeMap.set(t.id, { id: t.id, name: t.name, color: t.color, contestantIds: [], contestantNames: [] })
+            }
+            const group = tribeMap.get(t.id)!
+            group.contestantIds.push(raw.id)
+            group.contestantNames.push(raw.nickname || raw.name)
+          }
+          setTribes(Array.from(tribeMap.values()))
+        }
       })
       .catch(console.error)
       .finally(() => setIsLoading(false))
   }, [])
 
   const contestantNames = useMemo(
-    () => Object.fromEntries(contestants.map((c) => [c.id, c.name])),
+    () => Object.fromEntries(contestants.map((c) => [c.id, getDisplayName(c)])),
     [contestants]
   )
 
   const derivedEvents = useMemo(() => {
     if (!selectedType || !formData) return []
-    return deriveEvents(selectedType, formData)
-  }, [selectedType, formData])
+    return deriveEvents(selectedType, formData, pointValues)
+  }, [selectedType, formData, pointValues])
 
   const handleTypeSelect = (type: GameEventType) => {
     setSelectedType(type)
@@ -291,6 +350,7 @@ export default function SubmitEventPage() {
       {step === 'form' && selectedType === 'REWARD_CHALLENGE' && (
         <RewardChallengeForm
           contestants={contestants}
+          tribes={tribes}
           onSubmit={handleFormSubmit}
           onBack={goBack}
         />

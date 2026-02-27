@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { requireUser } from '@/lib/auth'
 import { GameEventType } from '@prisma/client'
 import { deriveEvents, GameEventData } from '@/lib/event-derivation'
+import { getLeagueScoringConfig } from '@/lib/scoring'
 import { notifyGameEventSubmitted } from '@/lib/slack'
 
 // GET /api/game-events - List game events
@@ -71,8 +72,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid game event type' }, { status: 400 })
     }
 
+    // Read league scoring config for dynamic point values
+    const pointValues = await getLeagueScoringConfig()
+
     // Derive individual scoring events
-    const derivedEvents = deriveEvents(type, data)
+    const derivedEvents = deriveEvents(type, data, pointValues)
 
     if (derivedEvents.length === 0) {
       return NextResponse.json(

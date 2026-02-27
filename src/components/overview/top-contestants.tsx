@@ -54,14 +54,16 @@ export function TopContestants({ contestants }: TopContestantsProps) {
           >
             <CardContent className="p-3">
               <div className="flex items-start gap-2">
-                <Avatar className="h-9 w-9 shrink-0">
-                  {c.imageUrl && <AvatarImage src={c.imageUrl} alt={c.name} />}
+                <Avatar className="h-9 w-9 shrink-0"
+                  style={c.tribeColor ? { boxShadow: `0 0 0 2px ${c.tribeColor}` } : undefined}
+                >
+                  {c.imageUrl && <AvatarImage src={c.imageUrl} alt={c.displayName} />}
                   <AvatarFallback className="text-xs">{getInitials(c.name)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1">
                     {idx < 3 && <Star className="h-3 w-3 text-yellow-500 shrink-0" />}
-                    <p className="font-medium text-sm truncate">{c.name}</p>
+                    <p className="font-medium text-sm truncate">{c.displayName}</p>
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="text-lg font-bold tabular-nums">{c.totalPoints}</span>

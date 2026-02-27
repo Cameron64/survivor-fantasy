@@ -61,32 +61,47 @@ export type GameEventData =
   | EndgameData
 
 /**
+ * Look up points for an event type, using custom point values if provided.
+ */
+function resolvePoints(type: EventType, pointValues?: Record<EventType, number>): number {
+  return pointValues ? pointValues[type] : getEventPoints(type)
+}
+
+/**
  * Derive individual scoring events from a game event.
  * This is the core logic that converts what happened in the game
  * into individual point-scoring entries.
+ *
+ * @param pointValues Optional custom point values map. When provided, uses these
+ *   instead of the hardcoded EVENT_POINTS defaults. Pass the result of
+ *   getLeagueScoringConfig() for dynamic league scoring.
  */
-export function deriveEvents(type: GameEventType, data: GameEventData): DerivedEvent[] {
+export function deriveEvents(
+  type: GameEventType,
+  data: GameEventData,
+  pointValues?: Record<EventType, number>
+): DerivedEvent[] {
   switch (type) {
     case 'TRIBAL_COUNCIL':
-      return deriveTribalCouncil(data as TribalCouncilData)
+      return deriveTribalCouncil(data as TribalCouncilData, pointValues)
     case 'IMMUNITY_CHALLENGE':
-      return deriveImmunityChallenge(data as ImmunityChallengeData)
+      return deriveImmunityChallenge(data as ImmunityChallengeData, pointValues)
     case 'REWARD_CHALLENGE':
-      return deriveRewardChallenge(data as RewardChallengeData)
+      return deriveRewardChallenge(data as RewardChallengeData, pointValues)
     case 'IDOL_FOUND':
-      return deriveIdolFound(data as IdolFoundData)
+      return deriveIdolFound(data as IdolFoundData, pointValues)
     case 'FIRE_MAKING':
-      return deriveFireMaking(data as FireMakingData)
+      return deriveFireMaking(data as FireMakingData, pointValues)
     case 'QUIT_MEDEVAC':
-      return deriveQuitMedevac(data as QuitMedevacData)
+      return deriveQuitMedevac(data as QuitMedevacData, pointValues)
     case 'ENDGAME':
-      return deriveEndgame(data as EndgameData)
+      return deriveEndgame(data as EndgameData, pointValues)
     default:
       return []
   }
 }
 
-function deriveTribalCouncil(data: TribalCouncilData): DerivedEvent[] {
+function deriveTribalCouncil(data: TribalCouncilData, pv?: Record<EventType, number>): DerivedEvent[] {
   const events: DerivedEvent[] = []
   const { attendees, votes, eliminated, isBlindside, blindsideLeader, idolPlayed, sentToJury } =
     data
@@ -108,7 +123,7 @@ function deriveTribalCouncil(data: TribalCouncilData): DerivedEvent[] {
       events.push({
         type: 'CORRECT_VOTE',
         contestantId: voterId,
-        points: getEventPoints('CORRECT_VOTE'),
+        points: resolvePoints('CORRECT_VOTE', pv),
         description: 'Voted correctly at tribal council',
       })
     }
@@ -120,7 +135,7 @@ function deriveTribalCouncil(data: TribalCouncilData): DerivedEvent[] {
       events.push({
         type: 'ZERO_VOTES_RECEIVED',
         contestantId: id,
-        points: getEventPoints('ZERO_VOTES_RECEIVED'),
+        points: resolvePoints('ZERO_VOTES_RECEIVED', pv),
         description: 'Received zero votes at tribal council',
       })
     }
@@ -132,7 +147,7 @@ function deriveTribalCouncil(data: TribalCouncilData): DerivedEvent[] {
       events.push({
         type: 'SURVIVED_WITH_VOTES',
         contestantId: id,
-        points: getEventPoints('SURVIVED_WITH_VOTES'),
+        points: resolvePoints('SURVIVED_WITH_VOTES', pv),
         description: `Survived tribal council with ${votesReceived[id]} vote(s)`,
       })
     }
@@ -143,7 +158,7 @@ function deriveTribalCouncil(data: TribalCouncilData): DerivedEvent[] {
     events.push({
       type: 'CAUSED_BLINDSIDE',
       contestantId: blindsideLeader,
-      points: getEventPoints('CAUSED_BLINDSIDE'),
+      points: resolvePoints('CAUSED_BLINDSIDE', pv),
       description: 'Led a blindside at tribal council',
     })
   }
@@ -153,7 +168,7 @@ function deriveTribalCouncil(data: TribalCouncilData): DerivedEvent[] {
     events.push({
       type: 'IDOL_PLAY_SUCCESS',
       contestantId: idolPlayed.by,
-      points: getEventPoints('IDOL_PLAY_SUCCESS'),
+      points: resolvePoints('IDOL_PLAY_SUCCESS', pv),
       description: 'Successfully played a hidden immunity idol',
     })
   }
@@ -163,7 +178,7 @@ function deriveTribalCouncil(data: TribalCouncilData): DerivedEvent[] {
     events.push({
       type: 'MADE_JURY',
       contestantId: eliminated,
-      points: getEventPoints('MADE_JURY'),
+      points: resolvePoints('MADE_JURY', pv),
       description: 'Sent to the jury',
     })
   }
@@ -171,70 +186,70 @@ function deriveTribalCouncil(data: TribalCouncilData): DerivedEvent[] {
   return events
 }
 
-function deriveImmunityChallenge(data: ImmunityChallengeData): DerivedEvent[] {
+function deriveImmunityChallenge(data: ImmunityChallengeData, pv?: Record<EventType, number>): DerivedEvent[] {
   return [
     {
       type: 'INDIVIDUAL_IMMUNITY_WIN',
       contestantId: data.winner,
-      points: getEventPoints('INDIVIDUAL_IMMUNITY_WIN'),
+      points: resolvePoints('INDIVIDUAL_IMMUNITY_WIN', pv),
       description: 'Won individual immunity challenge',
     },
   ]
 }
 
-function deriveRewardChallenge(data: RewardChallengeData): DerivedEvent[] {
+function deriveRewardChallenge(data: RewardChallengeData, pv?: Record<EventType, number>): DerivedEvent[] {
   const eventType: EventType = data.isTeamChallenge ? 'TEAM_CHALLENGE_WIN' : 'REWARD_CHALLENGE_WIN'
   return data.winners.map((id) => ({
     type: eventType,
     contestantId: id,
-    points: getEventPoints(eventType),
+    points: resolvePoints(eventType, pv),
     description: data.isTeamChallenge
       ? 'Won team reward challenge'
       : 'Won reward challenge',
   }))
 }
 
-function deriveIdolFound(data: IdolFoundData): DerivedEvent[] {
+function deriveIdolFound(data: IdolFoundData, pv?: Record<EventType, number>): DerivedEvent[] {
   return [
     {
       type: 'IDOL_FIND',
       contestantId: data.finder,
-      points: getEventPoints('IDOL_FIND'),
+      points: resolvePoints('IDOL_FIND', pv),
       description: 'Found a hidden immunity idol',
     },
   ]
 }
 
-function deriveFireMaking(data: FireMakingData): DerivedEvent[] {
+function deriveFireMaking(data: FireMakingData, pv?: Record<EventType, number>): DerivedEvent[] {
   return [
     {
       type: 'FIRE_MAKING_WIN',
       contestantId: data.winner,
-      points: getEventPoints('FIRE_MAKING_WIN'),
+      points: resolvePoints('FIRE_MAKING_WIN', pv),
       description: 'Won fire making challenge',
     },
   ]
 }
 
-function deriveQuitMedevac(data: QuitMedevacData): DerivedEvent[] {
+function deriveQuitMedevac(data: QuitMedevacData, pv?: Record<EventType, number>): DerivedEvent[] {
   return [
     {
       type: 'QUIT',
       contestantId: data.contestant,
-      points: getEventPoints('QUIT'),
+      points: resolvePoints('QUIT', pv),
       description: data.reason === 'quit' ? 'Quit the game' : 'Medically evacuated',
     },
   ]
 }
 
-function deriveEndgame(data: EndgameData): DerivedEvent[] {
+function deriveEndgame(data: EndgameData, pv?: Record<EventType, number>): DerivedEvent[] {
   const events: DerivedEvent[] = []
 
   for (const id of data.finalists) {
     events.push({
       type: 'FINALIST',
       contestantId: id,
-      points: getEventPoints('FINALIST'),
+      points: resolvePoints('FINALIST', pv),
       description: 'Made it to the final tribal council',
     })
   }
@@ -242,7 +257,7 @@ function deriveEndgame(data: EndgameData): DerivedEvent[] {
   events.push({
     type: 'WINNER',
     contestantId: data.winner,
-    points: getEventPoints('WINNER'),
+    points: resolvePoints('WINNER', pv),
     description: 'Won Survivor!',
   })
 

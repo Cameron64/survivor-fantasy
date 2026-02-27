@@ -15,13 +15,10 @@ import {
 } from '@/components/ui/select'
 import { Check, X } from 'lucide-react'
 import type { TribalCouncilData } from '@/lib/event-derivation'
+import { ContestantLabel, getDisplayName } from '@/components/shared/contestant-label'
+import type { FormContestant } from '@/components/shared/contestant-label'
 
-interface Contestant {
-  id: string
-  name: string
-  tribe: string | null
-  isEliminated: boolean
-}
+type Contestant = FormContestant
 
 interface TribalCouncilFormProps {
   contestants: Contestant[]
@@ -132,7 +129,10 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
   }
 
   const allVotesCast = attendeeList.every((c) => votes[c.id])
-  const getName = (id: string) => contestants.find((c) => c.id === id)?.name || 'Unknown'
+  const getName = (id: string) => {
+    const c = contestants.find((c) => c.id === id)
+    return c ? getDisplayName(c) : 'Unknown'
+  }
 
   return (
     <div className="space-y-6">
@@ -194,13 +194,13 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
                         }`}
                       >
                         <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                          className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
                             isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
                           }`}
                         >
                           {isSelected && <Check className="h-3 w-3" />}
                         </div>
-                        <span className="text-sm font-medium">{c.name}</span>
+                        <ContestantLabel contestant={c} />
                       </button>
                     )
                   })}
@@ -239,10 +239,7 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
               <Card key={voter.id}>
                 <CardContent className="flex items-center gap-3 p-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{voter.name}</p>
-                    {voter.tribe && (
-                      <p className="text-xs text-muted-foreground">{voter.tribe}</p>
-                    )}
+                    <ContestantLabel contestant={voter} />
                   </div>
                   <div className="text-xs text-muted-foreground mr-1">voted for</div>
                   <Select
@@ -259,7 +256,7 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
                         .filter((c) => c.id !== voter.id)
                         .map((target) => (
                           <SelectItem key={target.id} value={target.id}>
-                            {target.name}
+                            {getDisplayName(target)}
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -283,7 +280,7 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
                         key={c.id}
                         variant={c.id === mostVoted ? 'destructive' : 'secondary'}
                       >
-                        {c.name}: {voteTallies[c.id]}
+                        {getDisplayName(c)}: {voteTallies[c.id]}
                       </Badge>
                     ))}
                 </div>
@@ -338,15 +335,15 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
                   }`}
                 >
                   <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                    className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
                       isSelected ? 'bg-red-500 text-white' : 'bg-muted'
                     }`}
                   >
                     {isSelected && <X className="h-3 w-3" />}
                   </div>
-                  <div>
-                    <span className="text-sm font-medium">{c.name}</span>
-                    <span className="text-xs text-muted-foreground ml-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <ContestantLabel contestant={c} />
+                    <span className="text-xs text-muted-foreground shrink-0">
                       ({voteTallies[c.id] || 0} votes)
                     </span>
                   </div>
@@ -406,7 +403,7 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
                         .filter((c) => c.id !== eliminated)
                         .map((c) => (
                           <SelectItem key={c.id} value={c.id}>
-                            {c.name}
+                            {getDisplayName(c)}
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -436,7 +433,7 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
                       <SelectContent>
                         {attendeeList.map((c) => (
                           <SelectItem key={c.id} value={c.id}>
-                            {c.name}
+                            {getDisplayName(c)}
                           </SelectItem>
                         ))}
                       </SelectContent>

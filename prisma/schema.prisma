@@ -161,6 +161,7 @@ model League {
   isActive       Boolean   @default(true)
   paymentInfo    String? // Admin's preferred payment method
   slackWebhook   String?
+  scoringConfig  Json? // Partial<Record<EventType, number>> overrides, null = all defaults
   tribes         Tribe[]
   episodes       Episode[]
   createdAt      DateTime  @default(now())

@@ -17,13 +17,10 @@ import type {
   QuitMedevacData,
   EndgameData,
 } from '@/lib/event-derivation'
+import { ContestantLabel } from '@/components/shared/contestant-label'
+import type { FormContestant } from '@/components/shared/contestant-label'
 
-interface Contestant {
-  id: string
-  name: string
-  tribe: string | null
-  isEliminated: boolean
-}
+type Contestant = FormContestant
 
 // --- Idol Found ---
 interface IdolFoundFormProps {
@@ -64,7 +61,7 @@ export function IdolFoundForm({ contestants, onSubmit, onBack }: IdolFoundFormPr
               >
                 {isSelected && <Check className="h-3 w-3" />}
               </div>
-              <span className="text-sm font-medium">{c.name}</span>
+              <ContestantLabel contestant={c} />
             </button>
           )
         })}
@@ -131,7 +128,7 @@ export function FireMakingForm({ contestants, onSubmit, onBack }: FireMakingForm
                   >
                     {isSelected && <Check className="h-3 w-3" />}
                   </div>
-                  <span className="text-sm font-medium">{c.name}</span>
+                  <ContestantLabel contestant={c} />
                 </button>
               )
             })}
@@ -168,7 +165,7 @@ export function FireMakingForm({ contestants, onSubmit, onBack }: FireMakingForm
                   >
                     {isSelected && <Check className="h-3 w-3" />}
                   </div>
-                  <span className="text-sm font-medium">{c.name}</span>
+                  <ContestantLabel contestant={c} />
                 </button>
               )
             })}
@@ -247,7 +244,7 @@ export function QuitMedevacForm({ contestants, onSubmit, onBack }: QuitMedevacFo
                 >
                   {isSelected && <Check className="h-3 w-3" />}
                 </div>
-                <span className="text-sm font-medium">{c.name}</span>
+                <ContestantLabel contestant={c} />
               </button>
             )
           })}
@@ -328,7 +325,7 @@ export function EndgameForm({ contestants, onSubmit, onBack }: EndgameFormProps)
                 >
                   {isSelected && <Check className="h-3 w-3" />}
                 </div>
-                <span className="text-sm font-medium">{c.name}</span>
+                <ContestantLabel contestant={c} />
               </button>
             )
           })}
@@ -362,7 +359,7 @@ export function EndgameForm({ contestants, onSubmit, onBack }: EndgameFormProps)
                     >
                       {isSelected && <Check className="h-3 w-3" />}
                     </div>
-                    <span className="text-sm font-medium">{c.name}</span>
+                    <ContestantLabel contestant={c} />
                   </button>
                 )
               })}

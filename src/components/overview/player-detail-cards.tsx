@@ -72,7 +72,7 @@ export function PlayerDetailCards({ players, currentUserId }: PlayerDetailCardsP
                               style={{ backgroundColor: contestant.tribeColor }}
                             />
                           )}
-                          <span className="font-medium text-sm">{contestant.name}</span>
+                          <span className="font-medium text-sm">{contestant.displayName}</span>
                           <span className="text-sm text-muted-foreground">
                             {contestant.totalPoints} pts
                           </span>

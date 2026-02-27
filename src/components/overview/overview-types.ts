@@ -3,6 +3,8 @@ import type { EventType } from '@prisma/client'
 export interface ContestantScore {
   id: string
   name: string
+  nickname: string | null
+  displayName: string
   imageUrl: string | null
   isEliminated: boolean
   totalPoints: number

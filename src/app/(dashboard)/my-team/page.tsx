@@ -1,6 +1,7 @@
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { calculateTotalPoints, calculatePointsByWeek, getEventTypeLabel } from '@/lib/scoring'
+import { getContestantDisplayName } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -112,16 +113,21 @@ export default async function MyTeamPage() {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12">
+                      <Avatar className="h-12 w-12"
+                        style={(() => {
+                          const color = tc.contestant.tribeMemberships?.[0]?.tribe.color
+                          return color ? { boxShadow: `0 0 0 2px ${color}` } : undefined
+                        })()}
+                      >
                         {tc.contestant.imageUrl && (
-                          <AvatarImage src={tc.contestant.imageUrl} alt={tc.contestant.name} />
+                          <AvatarImage src={tc.contestant.imageUrl} alt={getContestantDisplayName(tc.contestant)} />
                         )}
                         <AvatarFallback className="text-lg">
                           {tc.contestant.name.split(' ').map(n => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle className="text-lg">{tc.contestant.name}</CardTitle>
+                        <CardTitle className="text-lg">{getContestantDisplayName(tc.contestant)}</CardTitle>
                         <CardDescription>
                           <span className="flex items-center gap-1.5">
                             {(() => {

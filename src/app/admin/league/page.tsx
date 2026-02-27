@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Settings, Trophy } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import { EVENT_POINTS } from '@/lib/scoring'
+import { EventType } from '@prisma/client'
+import { ScoringConfigForm } from '@/components/admin/scoring-config-form'
 
 async function getLeague() {
   const league = await db.league.findFirst({
@@ -15,6 +18,8 @@ async function getLeague() {
 
 export default async function AdminLeaguePage() {
   const league = await getLeague()
+
+  const scoringOverrides = (league?.scoringConfig as Partial<Record<EventType, number>>) || {}
 
   return (
     <div className="space-y-6">
@@ -83,100 +88,12 @@ export default async function AdminLeaguePage() {
             <Settings className="h-5 w-5" />
             Scoring Rules
           </CardTitle>
-          <CardDescription>Point values for each event type</CardDescription>
+          <CardDescription>
+            Point values for each event type. Changes apply retroactively to all existing events.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div>
-              <h4 className="font-medium text-sm text-primary mb-2">Challenge Performance</h4>
-              <ul className="space-y-1 text-sm">
-                <li className="flex justify-between">
-                  <span>Individual Immunity Win</span>
-                  <span className="text-green-600">+5</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Reward Challenge Win</span>
-                  <span className="text-green-600">+3</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Team Challenge Win</span>
-                  <span className="text-green-600">+1</span>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-sm text-primary mb-2">Strategy</h4>
-              <ul className="space-y-1 text-sm">
-                <li className="flex justify-between">
-                  <span>Correct Vote</span>
-                  <span className="text-green-600">+2</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Idol Play Success</span>
-                  <span className="text-green-600">+5</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Idol Find</span>
-                  <span className="text-green-600">+3</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Fire Making Win</span>
-                  <span className="text-green-600">+5</span>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-sm text-primary mb-2">Social Game</h4>
-              <ul className="space-y-1 text-sm">
-                <li className="flex justify-between">
-                  <span>Zero Votes Received</span>
-                  <span className="text-green-600">+1</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Survived with Votes</span>
-                  <span className="text-green-600">+2</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Caused Blindside</span>
-                  <span className="text-green-600">+2</span>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-sm text-primary mb-2">Endgame</h4>
-              <ul className="space-y-1 text-sm">
-                <li className="flex justify-between">
-                  <span>Made Jury</span>
-                  <span className="text-green-600">+5</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Finalist</span>
-                  <span className="text-green-600">+10</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Winner</span>
-                  <span className="text-green-600">+20</span>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-sm text-destructive mb-2">Deductions</h4>
-              <ul className="space-y-1 text-sm">
-                <li className="flex justify-between">
-                  <span>Voted Out with Idol</span>
-                  <span className="text-red-600">-3</span>
-                </li>
-                <li className="flex justify-between">
-                  <span>Quit</span>
-                  <span className="text-red-600">-10</span>
-                </li>
-              </ul>
-            </div>
-          </div>
+          <ScoringConfigForm defaults={EVENT_POINTS} initialOverrides={scoringOverrides} />
         </CardContent>
       </Card>
     </div>

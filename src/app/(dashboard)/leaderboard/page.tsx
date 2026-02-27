@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
 import { calculateTotalPoints } from '@/lib/scoring'
+import { getContestantDisplayName } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Trophy } from 'lucide-react'
 import { OverviewClient } from '@/components/overview/overview-client'
@@ -44,7 +45,7 @@ async function getOverviewData() {
       orderBy: { createdAt: 'desc' },
       take: 30,
       include: {
-        contestant: { select: { name: true } },
+        contestant: { select: { name: true, nickname: true } },
       },
     }),
   ])
@@ -68,6 +69,8 @@ async function getOverviewData() {
         return {
           id: c.id,
           name: c.name,
+          nickname: c.nickname ?? null,
+          displayName: getContestantDisplayName(c),
           imageUrl: c.imageUrl,
           isEliminated: c.isEliminated,
           totalPoints,
@@ -78,7 +81,7 @@ async function getOverviewData() {
             id: e.id,
             type: e.type,
             contestantId: e.contestantId,
-            contestantName: c.name,
+            contestantName: getContestantDisplayName(c),
             week: e.week,
             points: e.points,
             createdAt: e.createdAt.toISOString(),
@@ -114,6 +117,8 @@ async function getOverviewData() {
         return {
           id: c.id,
           name: c.name,
+          nickname: c.nickname ?? null,
+          displayName: getContestantDisplayName(c),
           imageUrl: c.imageUrl,
           isEliminated: c.isEliminated,
           totalPoints,
@@ -139,7 +144,7 @@ async function getOverviewData() {
     id: e.id,
     type: e.type,
     contestantId: e.contestantId,
-    contestantName: e.contestant.name,
+    contestantName: getContestantDisplayName(e.contestant),
     week: e.week,
     points: e.points,
     createdAt: e.createdAt.toISOString(),

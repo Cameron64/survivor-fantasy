@@ -1,5 +1,5 @@
 // Season 50 premiere date — update this each season
-const SEASON_PREMIERE = new Date('2025-02-26T20:00:00-05:00')
+const SEASON_PREMIERE = new Date('2026-02-25T20:00:00-05:00')
 
 /**
  * Get the current week number based on the season premiere date.

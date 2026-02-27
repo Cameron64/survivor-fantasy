@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireUser } from '@/lib/auth'
-import { getEventPoints } from '@/lib/scoring'
+import { getLeagueScoringConfig } from '@/lib/scoring'
 import { EventType } from '@prisma/client'
 import { notifyEventSubmitted } from '@/lib/slack'
 
@@ -74,8 +74,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Contestant not found' }, { status: 404 })
     }
 
-    // Calculate points based on event type
-    const points = getEventPoints(type as EventType)
+    // Calculate points based on event type using league config
+    const pointValues = await getLeagueScoringConfig()
+    const points = pointValues[type as EventType]
 
     const event = await db.event.create({
       data: {

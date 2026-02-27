@@ -34,6 +34,12 @@ export function generateInviteCode(): string {
   return code
 }
 
+/** Returns "Coach (Benjamin)" if nickname exists, otherwise "Benjamin Wade" */
+export function getContestantDisplayName(c: { name: string; nickname?: string | null }): string {
+  if (c.nickname) return `${c.nickname} (${c.name.split(' ')[0]})`
+  return c.name
+}
+
 export function slugify(text: string): string {
   return text
     .trim()

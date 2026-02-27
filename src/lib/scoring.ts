@@ -1,4 +1,5 @@
 import { EventType, Event } from '@prisma/client'
+import { db } from './db'
 
 /**
  * Points mapping for each event type
@@ -33,10 +34,33 @@ export const EVENT_POINTS: Record<EventType, number> = {
 }
 
 /**
- * Get the point value for an event type
+ * Get the point value for an event type (uses hardcoded defaults)
  */
 export function getEventPoints(eventType: EventType): number {
   return EVENT_POINTS[eventType]
+}
+
+/**
+ * Merge default EVENT_POINTS with optional overrides.
+ * Returns a full Record<EventType, number> with overrides applied on top of defaults.
+ */
+export function getEffectivePoints(
+  overrides?: Partial<Record<EventType, number>> | null
+): Record<EventType, number> {
+  if (!overrides) return { ...EVENT_POINTS }
+  return { ...EVENT_POINTS, ...overrides }
+}
+
+/**
+ * Read the active league's scoringConfig from the DB and return the effective merged points map.
+ */
+export async function getLeagueScoringConfig(): Promise<Record<EventType, number>> {
+  const league = await db.league.findFirst({
+    where: { isActive: true },
+    select: { scoringConfig: true },
+  })
+  const overrides = league?.scoringConfig as Partial<Record<EventType, number>> | null
+  return getEffectivePoints(overrides)
 }
 
 /**

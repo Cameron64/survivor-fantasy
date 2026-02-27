@@ -148,10 +148,10 @@ export async function executeTool(
   try {
     switch (name) {
       case 'fetch_article': {
-        fetchArticleCount++
-        if (fetchArticleCount > MAX_FETCH_ARTICLE_CALLS) {
+        if (fetchArticleCount >= MAX_FETCH_ARTICLE_CALLS) {
           return `Error: fetch_article limit reached (${MAX_FETCH_ARTICLE_CALLS}). Use the articles you already have to submit events, or dm_admin if data is insufficient.`
         }
+        fetchArticleCount++
         const article = await fetchArticle(input.url as string)
         return JSON.stringify(article, null, 2)
       }

@@ -4,15 +4,12 @@ import { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Check } from 'lucide-react'
+import { Check, ChevronDown, ChevronRight } from 'lucide-react'
 import type { ImmunityChallengeData, RewardChallengeData } from '@/lib/event-derivation'
+import { ContestantLabel } from '@/components/shared/contestant-label'
+import type { FormContestant } from '@/components/shared/contestant-label'
 
-interface Contestant {
-  id: string
-  name: string
-  tribe: string | null
-  isEliminated: boolean
-}
+type Contestant = FormContestant
 
 interface ImmunityChallengeFormProps {
   contestants: Contestant[]
@@ -54,18 +51,13 @@ export function ImmunityChallengeForm({
               }`}
             >
               <div
-                className={`w-5 h-5 rounded-full flex items-center justify-center ${
+                className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
                   isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
                 }`}
               >
                 {isSelected && <Check className="h-3 w-3" />}
               </div>
-              <div>
-                <span className="text-sm font-medium">{c.name}</span>
-                {c.tribe && (
-                  <span className="text-xs text-muted-foreground ml-1">({c.tribe})</span>
-                )}
-              </div>
+              <ContestantLabel contestant={c} />
             </button>
           )
         })}
@@ -83,15 +75,26 @@ export function ImmunityChallengeForm({
   )
 }
 
+interface TribeGroup {
+  id: string
+  name: string
+  color: string
+  contestantIds: string[]
+  contestantNames: string[]
+}
+
 interface RewardChallengeFormProps {
   contestants: Contestant[]
+  tribes?: TribeGroup[]
   onSubmit: (data: RewardChallengeData) => void
   onBack: () => void
 }
 
-export function RewardChallengeForm({ contestants, onSubmit, onBack }: RewardChallengeFormProps) {
+export function RewardChallengeForm({ contestants, tribes = [], onSubmit, onBack }: RewardChallengeFormProps) {
   const [winners, setWinners] = useState<Set<string>>(new Set())
   const [isTeamChallenge, setIsTeamChallenge] = useState(false)
+  const [selectedTribes, setSelectedTribes] = useState<Set<string>>(new Set())
+  const [expandedTribes, setExpandedTribes] = useState<Set<string>>(new Set())
 
   const active = useMemo(() => contestants.filter((c) => !c.isEliminated), [contestants])
 
@@ -107,12 +110,56 @@ export function RewardChallengeForm({ contestants, onSubmit, onBack }: RewardCha
     })
   }
 
+  const toggleTribe = (tribe: TribeGroup) => {
+    setSelectedTribes((prev) => {
+      const next = new Set(prev)
+      if (next.has(tribe.id)) {
+        next.delete(tribe.id)
+      } else {
+        next.add(tribe.id)
+      }
+      return next
+    })
+  }
+
+  const toggleTribeExpanded = (tribeId: string) => {
+    setExpandedTribes((prev) => {
+      const next = new Set(prev)
+      if (next.has(tribeId)) {
+        next.delete(tribeId)
+      } else {
+        next.add(tribeId)
+      }
+      return next
+    })
+  }
+
+  // When switching modes, clear selections
+  const handleTeamToggle = (checked: boolean) => {
+    setIsTeamChallenge(checked)
+    setWinners(new Set())
+    setSelectedTribes(new Set())
+  }
+
+  // Build the winners list from selected tribes
+  const tribeWinnerIds = useMemo(() => {
+    const ids = new Set<string>()
+    for (const tribe of tribes) {
+      if (selectedTribes.has(tribe.id)) {
+        for (const cId of tribe.contestantIds) ids.add(cId)
+      }
+    }
+    return ids
+  }, [selectedTribes, tribes])
+
+  const canSubmit = isTeamChallenge ? selectedTribes.size > 0 : winners.size > 0
+
   return (
     <div className="space-y-4">
       <div>
         <h3 className="text-lg font-semibold">Who won the reward challenge?</h3>
         <p className="text-sm text-muted-foreground">
-          Select all winners. Toggle team challenge if applicable.
+          {isTeamChallenge ? 'Select the winning tribe.' : 'Select all winners.'}
         </p>
       </div>
 
@@ -124,42 +171,95 @@ export function RewardChallengeForm({ contestants, onSubmit, onBack }: RewardCha
           id="team-challenge"
           data-testid="switch-team-challenge"
           checked={isTeamChallenge}
-          onCheckedChange={setIsTeamChallenge}
+          onCheckedChange={handleTeamToggle}
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        {active.map((c) => {
-          const isSelected = winners.has(c.id)
-          return (
-            <button
-              key={c.id}
-              data-testid={`reward-winner-${c.id}`}
-              aria-selected={isSelected}
-              onClick={() => toggleWinner(c.id)}
-              className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                isSelected
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted hover:border-muted-foreground'
-              }`}
-            >
-              <div
-                className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                  isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                }`}
-              >
-                {isSelected && <Check className="h-3 w-3" />}
-              </div>
-              <div>
-                <span className="text-sm font-medium">{c.name}</span>
-                {c.tribe && (
-                  <span className="text-xs text-muted-foreground ml-1">({c.tribe})</span>
+      {isTeamChallenge ? (
+        <div className="space-y-2">
+          {tribes.map((tribe) => {
+            const isSelected = selectedTribes.has(tribe.id)
+            const isExpanded = expandedTribes.has(tribe.id)
+            return (
+              <div key={tribe.id} className="rounded-lg border overflow-hidden">
+                <div className="flex items-center">
+                  <button
+                    data-testid={`tribe-${tribe.id}`}
+                    aria-selected={isSelected}
+                    onClick={() => toggleTribe(tribe)}
+                    className={`flex-1 flex items-center gap-3 p-4 text-left transition-colors ${
+                      isSelected
+                        ? 'border-primary bg-primary/5'
+                        : 'hover:bg-muted/50'
+                    }`}
+                  >
+                    <div
+                      className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${
+                        isSelected ? 'border-primary' : 'border-transparent'
+                      }`}
+                      style={{ backgroundColor: tribe.color }}
+                    >
+                      {isSelected && <Check className="h-3 w-3 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]" />}
+                    </div>
+                    <div>
+                      <span className="font-medium">{tribe.name}</span>
+                      <span className="text-xs text-muted-foreground ml-2">
+                        {tribe.contestantIds.length} members
+                      </span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => toggleTribeExpanded(tribe.id)}
+                    className="p-4 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label={`${isExpanded ? 'Hide' : 'Show'} ${tribe.name} members`}
+                  >
+                    {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  </button>
+                </div>
+                {isExpanded && (
+                  <div className="px-4 pb-3 pt-1 border-t bg-muted/30">
+                    <div className="flex flex-wrap gap-1.5">
+                      {tribe.contestantNames.map((name) => (
+                        <span key={name} className="text-xs px-2 py-0.5 rounded-full bg-background border">
+                          {name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
-            </button>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2">
+          {active.map((c) => {
+            const isSelected = winners.has(c.id)
+            return (
+              <button
+                key={c.id}
+                data-testid={`reward-winner-${c.id}`}
+                aria-selected={isSelected}
+                onClick={() => toggleWinner(c.id)}
+                className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
+                  isSelected
+                    ? 'border-primary bg-primary/5'
+                    : 'border-muted hover:border-muted-foreground'
+                }`}
+              >
+                <div
+                  className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                    isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                  }`}
+                >
+                  {isSelected && <Check className="h-3 w-3" />}
+                </div>
+                <ContestantLabel contestant={c} />
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       <div className="flex gap-2 pt-4">
         <Button variant="outline" onClick={onBack}>
@@ -167,8 +267,11 @@ export function RewardChallengeForm({ contestants, onSubmit, onBack }: RewardCha
         </Button>
         <Button
           className="flex-1"
-          onClick={() => onSubmit({ winners: Array.from(winners), isTeamChallenge })}
-          disabled={winners.size === 0}
+          onClick={() => onSubmit({
+            winners: isTeamChallenge ? Array.from(tribeWinnerIds) : Array.from(winners),
+            isTeamChallenge,
+          })}
+          disabled={!canSubmit}
         >
           Review Events
         </Button>
