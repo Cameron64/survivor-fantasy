@@ -31,6 +31,9 @@ export const EVENT_POINTS: Record<EventType, number> = {
   // Deductions
   VOTED_OUT_WITH_IDOL: -3,
   QUIT: -10,
+
+  // Neutral
+  MEDEVAC: 0,
 }
 
 /**
@@ -133,6 +136,7 @@ export function getEventTypeLabel(eventType: EventType): string {
     WINNER: 'Winner',
     VOTED_OUT_WITH_IDOL: 'Voted Out with Idol',
     QUIT: 'Quit',
+    MEDEVAC: 'Medevac',
   }
   return labels[eventType]
 }
@@ -156,6 +160,7 @@ export function getEventTypesByCategory(): Record<string, EventType[]> {
     'Social & Game': ['ZERO_VOTES_RECEIVED', 'SURVIVED_WITH_VOTES', 'CAUSED_BLINDSIDE'],
     Endgame: ['MADE_JURY', 'FINALIST', 'WINNER'],
     Deductions: ['VOTED_OUT_WITH_IDOL', 'QUIT'],
+    Neutral: ['MEDEVAC'],
   }
 }
 

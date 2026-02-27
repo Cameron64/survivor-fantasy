@@ -150,6 +150,9 @@ enum EventType {
   // Deductions
   VOTED_OUT_WITH_IDOL // -3
   QUIT // -10
+
+  // Neutral
+  MEDEVAC // 0
 }
 
 model League {

@@ -77,4 +77,5 @@ export const eventTypePoints: Record<EventType, number> = {
   WINNER: 20,
   VOTED_OUT_WITH_IDOL: -3,
   QUIT: -10,
+  MEDEVAC: 0,
 }

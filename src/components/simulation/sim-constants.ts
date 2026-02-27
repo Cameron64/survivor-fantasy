@@ -20,6 +20,7 @@ export const DEFAULT_BASE_POINTS: Record<SimEventType, number> = {
   WINNER: 20,
   VOTED_OUT_WITH_IDOL: -3,
   QUIT: -10,
+  MEDEVAC: 0,
 }
 
 export const SIM_EVENT_LABELS: Record<SimEventType, string> = {
@@ -38,6 +39,7 @@ export const SIM_EVENT_LABELS: Record<SimEventType, string> = {
   WINNER: 'Winner',
   VOTED_OUT_WITH_IDOL: 'Voted Out with Idol',
   QUIT: 'Quit',
+  MEDEVAC: 'Medevac',
 }
 
 export const EVENT_CATEGORIES: Record<string, SimEventType[]> = {
@@ -46,6 +48,7 @@ export const EVENT_CATEGORIES: Record<string, SimEventType[]> = {
   Idols: ['IDOL_FIND', 'IDOL_PLAY_SUCCESS'],
   Endgame: ['MADE_JURY', 'FINALIST', 'WINNER'],
   Penalties: ['VOTED_OUT_WITH_IDOL', 'QUIT'],
+  Other: ['MEDEVAC'],
 }
 
 export const CATEGORY_COLORS: Record<string, string> = {
@@ -54,6 +57,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
   Idols: '#7c3aed',      // violet-600
   Endgame: '#059669',    // emerald-600
   Penalties: '#dc2626',  // red-600
+  Other: '#6b7280',     // gray-500
 }
 
 export function getCategoryForEvent(eventType: SimEventType): string {

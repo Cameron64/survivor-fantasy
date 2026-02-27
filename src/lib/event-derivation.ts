@@ -232,11 +232,12 @@ function deriveFireMaking(data: FireMakingData, pv?: Record<EventType, number>):
 }
 
 function deriveQuitMedevac(data: QuitMedevacData, pv?: Record<EventType, number>): DerivedEvent[] {
+  const eventType: EventType = data.reason === 'quit' ? 'QUIT' : 'MEDEVAC'
   return [
     {
-      type: 'QUIT',
+      type: eventType,
       contestantId: data.contestant,
-      points: resolvePoints('QUIT', pv),
+      points: resolvePoints(eventType, pv),
       description: data.reason === 'quit' ? 'Quit the game' : 'Medically evacuated',
     },
   ]

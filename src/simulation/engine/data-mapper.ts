@@ -28,6 +28,7 @@ export const BASE_EVENT_POINTS: Record<SimEventType, number> = {
   WINNER: 20,
   VOTED_OUT_WITH_IDOL: -3,
   QUIT: -10,
+  MEDEVAC: 0,
 }
 
 interface MapperInput {
@@ -283,6 +284,17 @@ export function mapSeasonEvents(input: MapperInput): MapperOutput {
         episode: lastEpisode ?? 0,
         points: pts.QUIT,
         description: `Quit the game`,
+      })
+    }
+
+    // MEDEVAC
+    if (c.result?.toLowerCase().includes('medevac') || c.result?.toLowerCase().includes('medical')) {
+      events.push({
+        type: 'MEDEVAC',
+        castawayId: c.castaway_id,
+        episode: lastEpisode ?? 0,
+        points: pts.MEDEVAC,
+        description: `Medically evacuated`,
       })
     }
 

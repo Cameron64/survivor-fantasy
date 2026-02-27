@@ -12,7 +12,7 @@ import type {
 } from '@/components/overview/overview-types'
 
 async function getOverviewData() {
-  const [currentUser, teams, recentEvents] = await Promise.all([
+  const [currentUser, teams, recentEvents, allDbContestants] = await Promise.all([
     getCurrentUser(),
     db.team.findMany({
       include: {
@@ -46,6 +46,20 @@ async function getOverviewData() {
       take: 30,
       include: {
         contestant: { select: { name: true, nickname: true } },
+      },
+    }),
+    db.contestant.findMany({
+      include: {
+        events: {
+          where: { isApproved: true },
+        },
+        tribeMemberships: {
+          where: { toWeek: null },
+          include: {
+            tribe: { select: { name: true, color: true } },
+          },
+          take: 1,
+        },
       },
     }),
   ])
@@ -106,38 +120,27 @@ async function getOverviewData() {
     .sort((a, b) => b.totalScore - a.totalScore)
     .map((entry, idx) => ({ ...entry, rank: idx + 1 }))
 
-  // Build all-contestant ranking
-  const allContestants: ContestantScore[] = teams
-    .flatMap((team) =>
-      team.contestants.map((tc) => {
-        const c = tc.contestant
-        const totalPoints = calculateTotalPoints(c.events)
-        const currentTribe = c.tribeMemberships[0]?.tribe ?? null
+  // Build all-contestant ranking from full DB query (includes undrafted contestants)
+  const uniqueContestants: ContestantScore[] = allDbContestants
+    .map((c) => {
+      const totalPoints = calculateTotalPoints(c.events)
+      const currentTribe = c.tribeMemberships[0]?.tribe ?? null
 
-        return {
-          id: c.id,
-          name: c.name,
-          nickname: c.nickname ?? null,
-          displayName: getContestantDisplayName(c),
-          imageUrl: c.imageUrl,
-          isEliminated: c.isEliminated,
-          totalPoints,
-          tribeColor: currentTribe?.color ?? null,
-          tribeName: currentTribe?.name ?? null,
-          draftedBy: contestantDraftedBy.get(c.id) ?? null,
-          events: [],
-        }
-      })
-    )
+      return {
+        id: c.id,
+        name: c.name,
+        nickname: c.nickname ?? null,
+        displayName: getContestantDisplayName(c),
+        imageUrl: c.imageUrl,
+        isEliminated: c.isEliminated,
+        totalPoints,
+        tribeColor: currentTribe?.color ?? null,
+        tribeName: currentTribe?.name ?? null,
+        draftedBy: contestantDraftedBy.get(c.id) ?? null,
+        events: [],
+      }
+    })
     .sort((a, b) => b.totalPoints - a.totalPoints)
-
-  // Deduplicate contestants (in case same contestant on multiple teams - shouldn't happen but be safe)
-  const seenIds = new Set<string>()
-  const uniqueContestants = allContestants.filter((c) => {
-    if (seenIds.has(c.id)) return false
-    seenIds.add(c.id)
-    return true
-  })
 
   // Build activity feed
   const feedEvents: ApprovedEvent[] = recentEvents.map((e) => ({
