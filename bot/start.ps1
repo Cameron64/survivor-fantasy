@@ -1,11 +1,16 @@
 Set-Location $PSScriptRoot
 
-# Skip if already running
-$existing = Get-Process -Name "bun" -ErrorAction SilentlyContinue |
-    Where-Object { $_.CommandLine -match "survivor-fantasy.*bot" }
+# Skip if already running — test by trying to lock the log file
+$logFile = "$env:TEMP\survivor-bot.log"
 
-if ($existing) {
+try {
+    $stream = [System.IO.File]::Open($logFile, 'Open', 'ReadWrite', 'None')
+    $stream.Close()
+} catch [System.IO.IOException] {
+    # File is locked by another process — bot is already running
     exit 0
+} catch {
+    # File doesn't exist yet — first run, continue
 }
 
-& bun run src/index.ts >> "$env:TEMP\survivor-bot.log" 2>&1
+& bun run src/index.ts *>> $logFile
