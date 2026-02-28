@@ -11,7 +11,7 @@ export async function PATCH(
     await requireAdmin()
     const { id } = await params
     const body = await req.json()
-    const { name, color, isMerge } = body
+    const { name, color, isMerge, buffImage } = body
 
     const tribe = await db.tribe.update({
       where: { id },
@@ -19,6 +19,7 @@ export async function PATCH(
         ...(name !== undefined && { name }),
         ...(color !== undefined && { color }),
         ...(isMerge !== undefined && { isMerge }),
+        ...(buffImage !== undefined && { buffImage: buffImage || null }),
       },
     })
 

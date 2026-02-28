@@ -35,7 +35,7 @@ import {
 import { EventReview } from '@/components/events/event-review'
 
 interface TribeMembership {
-  tribe: { id: string; name: string; color: string }
+  tribe: { id: string; name: string; color: string; buffImage?: string | null }
 }
 
 interface RawContestant {
@@ -52,6 +52,7 @@ interface TribeGroup {
   id: string
   name: string
   color: string
+  buffImage?: string | null
   contestantIds: string[]
   contestantNames: string[]
 }
@@ -160,7 +161,7 @@ export default function SubmitEventPage() {
             if (!membership) continue
             const t = membership.tribe
             if (!tribeMap.has(t.id)) {
-              tribeMap.set(t.id, { id: t.id, name: t.name, color: t.color, contestantIds: [], contestantNames: [] })
+              tribeMap.set(t.id, { id: t.id, name: t.name, color: t.color, buffImage: t.buffImage, contestantIds: [], contestantNames: [] })
             }
             const group = tribeMap.get(t.id)!
             group.contestantIds.push(raw.id)

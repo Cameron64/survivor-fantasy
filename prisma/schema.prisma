@@ -175,6 +175,7 @@ model Tribe {
   id        String            @id @default(cuid())
   name      String
   color     String // Hex color, e.g. "#FF6B35"
+  buffImage String? // Path to buff pattern image, e.g. "/buffs/kalo.png"
   isMerge   Boolean           @default(false)
   league    League            @relation(fields: [leagueId], references: [id])
   leagueId  String

@@ -21,6 +21,7 @@ interface Tribe {
   id: string
   name: string
   color: string
+  buffImage: string | null
   isMerge: boolean
   _count: { members: number }
 }
@@ -34,6 +35,7 @@ export default function AdminTribesPage() {
 
   const [name, setName] = useState('')
   const [color, setColor] = useState('#FF6B35')
+  const [buffImage, setBuffImage] = useState('')
   const [isMerge, setIsMerge] = useState(false)
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export default function AdminTribesPage() {
   const resetForm = () => {
     setName('')
     setColor('#FF6B35')
+    setBuffImage('')
     setIsMerge(false)
     setEditingTribe(null)
   }
@@ -63,6 +66,7 @@ export default function AdminTribesPage() {
     setEditingTribe(tribe)
     setName(tribe.name)
     setColor(tribe.color)
+    setBuffImage(tribe.buffImage || '')
     setIsMerge(tribe.isMerge)
     setIsDialogOpen(true)
   }
@@ -76,7 +80,7 @@ export default function AdminTribesPage() {
         const res = await fetch(`/api/tribes/${editingTribe.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, color, isMerge }),
+          body: JSON.stringify({ name, color, buffImage, isMerge }),
         })
         if (res.ok) {
           setIsDialogOpen(false)
@@ -87,7 +91,7 @@ export default function AdminTribesPage() {
         const res = await fetch('/api/tribes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, color, isMerge }),
+          body: JSON.stringify({ name, color, buffImage, isMerge }),
         })
         if (res.ok) {
           setIsDialogOpen(false)
@@ -175,6 +179,18 @@ export default function AdminTribesPage() {
                     className="flex-1"
                   />
                 </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="tribe-buff-image">Buff Image Path</Label>
+                <Input
+                  id="tribe-buff-image"
+                  value={buffImage}
+                  onChange={(e) => setBuffImage(e.target.value)}
+                  placeholder="/buffs/kalo.png"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Path to the buff pattern image in /public
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <input

@@ -7,7 +7,7 @@ import { GameEventCard } from './game-event-card'
 import { StandaloneEventCard } from './standalone-event-card'
 import type { EventType } from '@prisma/client'
 
-export type ContestantAvatarMap = Record<string, { imageUrl?: string | null; tribeColor?: string | null }>
+export type ContestantAvatarMap = Record<string, { imageUrl?: string | null; tribeColor?: string | null; tribeBuffImage?: string | null }>
 
 interface TimelineGameEvent {
   kind: 'game-event'

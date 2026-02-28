@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
           include: {
             tribeMemberships: {
               where: { toWeek: null },
-              include: { tribe: { select: { id: true, name: true, color: true } } },
+              include: { tribe: { select: { id: true, name: true, color: true, buffImage: true } } },
               take: 1,
             },
           },

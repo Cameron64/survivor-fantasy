@@ -15,7 +15,7 @@ async function getContestants() {
         where: { toWeek: null },
         include: {
           tribe: {
-            select: { id: true, name: true, color: true },
+            select: { id: true, name: true, color: true, buffImage: true },
           },
         },
       },
@@ -50,12 +50,16 @@ export default async function ContestantsPage() {
     (acc, contestant) => {
       const tribeName = contestant.currentTribe?.name || contestant.tribe || 'Unknown'
       if (!acc[tribeName]) {
-        acc[tribeName] = { contestants: [], color: contestant.currentTribe?.color || null }
+        acc[tribeName] = {
+          contestants: [],
+          color: contestant.currentTribe?.color || null,
+          buffImage: contestant.currentTribe?.buffImage || null,
+        }
       }
       acc[tribeName].contestants.push(contestant)
       return acc
     },
-    {} as Record<string, { contestants: typeof contestants; color: string | null }>
+    {} as Record<string, { contestants: typeof contestants; color: string | null; buffImage: string | null }>
   )
 
   const activeCount = contestants.filter((c) => !c.isEliminated).length
@@ -70,22 +74,36 @@ export default async function ContestantsPage() {
         </p>
       </div>
 
-      {Object.entries(tribes).map(([tribeName, { contestants: tribeContestants, color }]) => (
+      {Object.entries(tribes).map(([tribeName, { contestants: tribeContestants, color, buffImage }]) => (
         <div key={tribeName} className="space-y-4">
-          <h2 className="text-xl font-semibold flex items-center gap-2">
+          <div className="relative overflow-hidden rounded-lg px-4 py-3">
+            {buffImage && (
+              <div
+                className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.08] dark:opacity-[0.06]"
+                style={{ backgroundImage: `url(${buffImage})` }}
+              />
+            )}
             {color && (
-              <span
-                className="inline-block h-4 w-4 rounded-full"
+              <div
+                className="absolute inset-0 z-0 opacity-[0.06]"
                 style={{ backgroundColor: color }}
               />
             )}
-            <Badge variant="outline" className="text-sm">
-              {tribeName}
-            </Badge>
-            <span className="text-sm text-muted-foreground">
-              ({tribeContestants.filter((c) => !c.isEliminated).length} remaining)
-            </span>
-          </h2>
+            <h2 className="relative z-10 text-xl font-semibold flex items-center gap-2">
+              {color && (
+                <span
+                  className="inline-block h-4 w-4 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+              )}
+              <Badge variant="outline" className="text-sm">
+                {tribeName}
+              </Badge>
+              <span className="text-sm text-muted-foreground">
+                ({tribeContestants.filter((c) => !c.isEliminated).length} remaining)
+              </span>
+            </h2>
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {tribeContestants.map((contestant) => (

@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, color, isMerge } = body
+    const { name, color, isMerge, buffImage } = body
 
     if (!name || !color) {
       return NextResponse.json({ error: 'Name and color are required' }, { status: 400 })
@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
       data: {
         name,
         color,
+        buffImage: buffImage || null,
         isMerge: isMerge || false,
         leagueId: league.id,
       },

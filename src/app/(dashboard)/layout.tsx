@@ -7,6 +7,7 @@ import { db } from '@/lib/db'
 import { Role } from '@prisma/client'
 import { checkSeasonReadiness } from '@/lib/season-readiness'
 import { SeasonSetupGate } from '@/components/shared/season-setup-gate'
+import Image from 'next/image'
 import {
   Trophy,
   Users,
@@ -119,8 +120,7 @@ export default async function DashboardLayout({
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
         <div className="flex h-14 items-center justify-between px-4">
           <Link href="/leaderboard" className="flex items-center gap-2">
-            <Trophy className="h-6 w-6 text-primary" />
-            <span className="font-bold">Survivor 50</span>
+            <Image src="/logo.png" alt="Survivor 50" width={120} height={32} className="h-8 w-auto" />
           </Link>
           <UserButton afterSignOutUrl="/" />
         </div>
@@ -131,8 +131,7 @@ export default async function DashboardLayout({
         <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r bg-background">
           <div className="flex flex-col flex-1 min-h-0 pt-5 pb-4">
             <div className="flex items-center flex-shrink-0 px-4 gap-2">
-              <Trophy className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold">Survivor 50</span>
+              <Image src="/logo.png" alt="Survivor 50" width={160} height={40} className="h-10 w-auto" />
             </div>
             <nav className="mt-8 flex-1 px-2 space-y-1">
               <NavLink href="/leaderboard" icon={Trophy}>

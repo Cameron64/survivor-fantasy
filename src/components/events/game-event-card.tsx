@@ -67,7 +67,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
       )
     : typeLabel
 
-  // Collect unique tribe colors from all contestants in this event
+  // Collect unique tribe colors and buff images from all contestants in this event
   const accentColors = contestantAvatars
     ? Array.from(
         new Set(
@@ -78,6 +78,13 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
       )
     : []
 
+  // Get buff image if this is a single-tribe event
+  const buffImage = accentColors.length === 1 && contestantAvatars
+    ? gameEvent.events
+        .map((e) => contestantAvatars[e.contestant.id]?.tribeBuffImage)
+        .find(Boolean) ?? null
+    : null
+
   return (
     <div
       className={cn(
@@ -85,9 +92,15 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
         isPending && 'border-yellow-300/50 bg-yellow-50/30 dark:bg-yellow-950/10'
       )}
     >
+      {buffImage && (
+        <div
+          className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.05] dark:opacity-[0.04]"
+          style={{ backgroundImage: `url(${buffImage})` }}
+        />
+      )}
       {accentColors.length > 0 && (
         <div
-          className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg"
+          className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg z-[1]"
           style={{
             background:
               accentColors.length === 1

@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
             where: { toWeek: null },
             include: {
               tribe: {
-                select: { id: true, name: true, color: true },
+                select: { id: true, name: true, color: true, buffImage: true },
               },
             },
           },

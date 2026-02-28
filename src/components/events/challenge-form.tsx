@@ -15,6 +15,7 @@ interface TribeGroup {
   id: string
   name: string
   color: string
+  buffImage?: string | null
   contestantIds: string[]
   contestantNames: string[]
 }
@@ -110,19 +111,27 @@ export function ImmunityChallengeForm({
                     data-testid={`immunity-tribe-${tribe.id}`}
                     aria-selected={isSelected}
                     onClick={() => toggleTribe(tribe)}
-                    className={`flex-1 flex items-center gap-3 p-4 text-left transition-colors ${
+                    className={`relative flex-1 flex items-center gap-3 p-4 text-left transition-colors overflow-hidden ${
                       isSelected ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
                     }`}
                   >
+                    {tribe.buffImage && (
+                      <div
+                        className={`absolute inset-0 z-0 bg-cover bg-center transition-opacity ${
+                          isSelected ? 'opacity-[0.12]' : 'opacity-[0.06]'
+                        }`}
+                        style={{ backgroundImage: `url(${tribe.buffImage})` }}
+                      />
+                    )}
                     <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${
+                      className={`relative z-10 w-6 h-6 rounded-full flex items-center justify-center border-2 ${
                         isSelected ? 'border-primary' : 'border-transparent'
                       }`}
                       style={{ backgroundColor: tribe.color }}
                     >
                       {isSelected && <Check className="h-3 w-3 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]" />}
                     </div>
-                    <div>
+                    <div className="relative z-10">
                       <span className="font-medium">{tribe.name}</span>
                       <span className="text-xs text-muted-foreground ml-2">
                         {tribe.contestantIds.length} members
@@ -315,21 +324,29 @@ export function RewardChallengeForm({ contestants, tribes = [], onSubmit, onBack
                     data-testid={`tribe-${tribe.id}`}
                     aria-selected={isSelected}
                     onClick={() => toggleTribe(tribe)}
-                    className={`flex-1 flex items-center gap-3 p-4 text-left transition-colors ${
+                    className={`relative flex-1 flex items-center gap-3 p-4 text-left transition-colors overflow-hidden ${
                       isSelected
                         ? 'border-primary bg-primary/5'
                         : 'hover:bg-muted/50'
                     }`}
                   >
+                    {tribe.buffImage && (
+                      <div
+                        className={`absolute inset-0 z-0 bg-cover bg-center transition-opacity ${
+                          isSelected ? 'opacity-[0.12]' : 'opacity-[0.06]'
+                        }`}
+                        style={{ backgroundImage: `url(${tribe.buffImage})` }}
+                      />
+                    )}
                     <div
-                      className={`w-6 h-6 rounded-full flex items-center justify-center border-2 ${
+                      className={`relative z-10 w-6 h-6 rounded-full flex items-center justify-center border-2 ${
                         isSelected ? 'border-primary' : 'border-transparent'
                       }`}
                       style={{ backgroundColor: tribe.color }}
                     >
                       {isSelected && <Check className="h-3 w-3 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]" />}
                     </div>
-                    <div>
+                    <div className="relative z-10">
                       <span className="font-medium">{tribe.name}</span>
                       <span className="text-xs text-muted-foreground ml-2">
                         {tribe.contestantIds.length} members

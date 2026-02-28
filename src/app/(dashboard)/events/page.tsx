@@ -13,7 +13,7 @@ import { StandaloneEventCard } from '@/components/events/standalone-event-card'
 import type { EventType } from '@prisma/client'
 
 interface TribeMembership {
-  tribe: { id: string; name: string; color: string }
+  tribe: { id: string; name: string; color: string; buffImage?: string | null }
 }
 
 interface Contestant {
@@ -101,7 +101,7 @@ export default function EventsPage() {
   // Build contestant name + avatar maps from all event data
   const { contestantNames, contestantAvatars } = useMemo(() => {
     const names: Record<string, string> = {}
-    const avatars: Record<string, { imageUrl?: string | null; tribeColor?: string | null }> = {}
+    const avatars: Record<string, { imageUrl?: string | null; tribeColor?: string | null; tribeBuffImage?: string | null }> = {}
 
     function collect(c: Contestant) {
       if (!names[c.id]) {
@@ -109,6 +109,7 @@ export default function EventsPage() {
         avatars[c.id] = {
           imageUrl: c.imageUrl,
           tribeColor: c.tribeMemberships?.[0]?.tribe.color ?? null,
+          tribeBuffImage: c.tribeMemberships?.[0]?.tribe.buffImage ?? null,
         }
       }
     }
