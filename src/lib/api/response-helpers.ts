@@ -99,8 +99,8 @@ export function handleApiError(error: unknown, message: string = 'Internal serve
  */
 export function withAuth(
   handler: (user: User, req?: Request) => Promise<NextResponse>
-): (req?: Request) => Promise<NextResponse> {
-  return async (req?: Request) => {
+): (req: Request) => Promise<NextResponse> {
+  return async (req: Request) => {
     try {
       const user = await requireUser()
       return await handler(user, req)
@@ -121,8 +121,8 @@ export function withAuth(
  */
 export function withAdmin(
   handler: (user: User, req?: Request) => Promise<NextResponse>
-): (req?: Request) => Promise<NextResponse> {
-  return async (req?: Request) => {
+): (req: Request) => Promise<NextResponse> {
+  return async (req: Request) => {
     try {
       const user = await requireAdmin()
       return await handler(user, req)
@@ -143,8 +143,8 @@ export function withAdmin(
  */
 export function withModerator(
   handler: (user: User, req?: Request) => Promise<NextResponse>
-): (req?: Request) => Promise<NextResponse> {
-  return async (req?: Request) => {
+): (req: Request) => Promise<NextResponse> {
+  return async (req: Request) => {
     try {
       const user = await requireModerator()
       return await handler(user, req)
