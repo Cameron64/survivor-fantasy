@@ -66,7 +66,7 @@ export default async function ContestantsPage() {
   const eliminatedCount = contestants.filter((c) => c.isEliminated).length
 
   return (
-    <div className="space-y-6 pb-20 lg:pb-6">
+    <div className="space-y-6 pb-20 lg:pb-6 overflow-hidden">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Contestants</h1>
         <p className="text-muted-foreground">
