@@ -53,12 +53,25 @@ const envSchema = z.object({
  * }
  * ```
  */
+function getEnv(): z.infer<typeof envSchema> {
+  const result = envSchema.safeParse(process.env)
+  if (!result.success) {
+    // During build, env vars may not be available — fall through to process.env
+    if (typeof window === 'undefined' && !process.env.DATABASE_URL) {
+      return process.env as unknown as z.infer<typeof envSchema>
+    }
+    console.error('Environment validation failed:', result.error.flatten().fieldErrors)
+    throw new Error('Missing required environment variables')
+  }
+  return result.data
+}
+
 let _env: z.infer<typeof envSchema> | undefined
 
 export const env: z.infer<typeof envSchema> = new Proxy({} as z.infer<typeof envSchema>, {
   get(_, prop: string) {
     if (!_env) {
-      _env = envSchema.parse(process.env)
+      _env = getEnv()
     }
     return _env[prop as keyof z.infer<typeof envSchema>]
   },
