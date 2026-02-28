@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireUser, requireAdmin } from '@/lib/auth'
+import { draftActionSchema, formatZodError } from '@/lib/validation'
 
 // GET /api/draft - Get draft status
 export async function GET(_req: NextRequest) {
@@ -78,15 +79,23 @@ export async function POST(req: NextRequest) {
     const user = await requireUser()
     const body = await req.json()
 
-    const { action, contestantId, draftOrder: newDraftOrder } = body
+    // Validate request body with Zod
+    const validationResult = draftActionSchema.safeParse(body)
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: formatZodError(validationResult.error) },
+        { status: 400 }
+      )
+    }
+
+    const action = validationResult.data
 
     // Initialize draft (admin only)
-    if (action === 'initialize') {
+    if (action.action === 'initialize') {
       await requireAdmin()
 
-      if (!newDraftOrder || !Array.isArray(newDraftOrder)) {
-        return NextResponse.json({ error: 'Draft order is required' }, { status: 400 })
-      }
+      const { draftOrder: newDraftOrder } = action
 
       // Delete any existing draft
       await db.draft.deleteMany()
@@ -104,10 +113,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Make a pick
-    if (action === 'pick') {
-      if (!contestantId) {
-        return NextResponse.json({ error: 'Contestant ID is required' }, { status: 400 })
-      }
+    if (action.action === 'pick') {
+      const { contestantId } = action
 
       const draft = await db.draft.findFirst({
         orderBy: { createdAt: 'desc' },

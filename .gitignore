@@ -74,3 +74,8 @@ slack-bot/dist
 # Recap agent
 recap-agent/node_modules
 recap-agent/dist
+
+# Telegram bot
+bot/node_modules
+bot/.env
+bot/mcp-config.ts

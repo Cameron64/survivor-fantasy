@@ -1,6 +1,7 @@
 import { EventType, GameEventType } from '@prisma/client'
 import { getEventTypeLabel, getEventPoints } from './scoring'
 import { getGameEventTypeLabel, getGameEventSummary, GameEventData } from './event-derivation'
+import { env } from './env'
 
 interface SlackMessage {
   text: string
@@ -22,7 +23,7 @@ interface SlackMessage {
  * Send a message to the configured Slack webhook
  */
 export async function sendSlackNotification(message: SlackMessage): Promise<boolean> {
-  const webhookUrl = process.env.SLACK_WEBHOOK_URL
+  const webhookUrl = env.SLACK_WEBHOOK_URL
   if (!webhookUrl) {
     console.log('Slack webhook not configured, skipping notification')
     return false

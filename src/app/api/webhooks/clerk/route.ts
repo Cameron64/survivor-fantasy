@@ -3,13 +3,10 @@ import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { Role } from '@prisma/client'
+import { env } from '@/lib/env'
 
 export async function POST(req: Request) {
-  const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
-
-  if (!WEBHOOK_SECRET) {
-    throw new Error('Please add CLERK_WEBHOOK_SECRET to .env')
-  }
+  const WEBHOOK_SECRET = env.CLERK_WEBHOOK_SECRET
 
   const headerPayload = await headers()
   const svix_id = headerPayload.get('svix-id')

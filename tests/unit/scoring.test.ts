@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import {
-  EVENT_POINTS,
   getEventPoints,
   calculateTotalPoints,
   calculatePointsByWeek,
@@ -9,6 +8,7 @@ import {
   getEventTypeLabel,
   validateEventPoints,
 } from '@/lib/scoring'
+import { EVENT_POINTS } from '@/lib/constants/scoring-constants'
 import { EventType } from '@prisma/client'
 
 describe('EVENT_POINTS', () => {

@@ -44,7 +44,7 @@ export function TopContestants({ contestants }: TopContestantsProps) {
           <Card
             key={c.id}
             className={cn(
-              'overflow-hidden',
+              'relative overflow-hidden',
               c.isEliminated && 'opacity-60'
             )}
             style={{
@@ -52,7 +52,19 @@ export function TopContestants({ contestants }: TopContestantsProps) {
               borderLeftColor: c.tribeColor || 'transparent',
             }}
           >
-            <CardContent className="p-3">
+            {c.tribeBuffImage && !c.tribeIsMerge && (
+              <div
+                className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10]"
+                style={{ backgroundImage: `url(${c.tribeBuffImage})` }}
+              />
+            )}
+            {c.tribeColor && !c.tribeIsMerge && (
+              <div
+                className="absolute inset-0 z-0 opacity-[0.10]"
+                style={{ backgroundColor: c.tribeColor }}
+              />
+            )}
+            <CardContent className="relative z-10 p-3">
               <div className="flex items-start gap-2">
                 <Avatar className="h-9 w-9 shrink-0"
                   style={c.tribeColor ? { boxShadow: `0 0 0 2px ${c.tribeColor}` } : undefined}

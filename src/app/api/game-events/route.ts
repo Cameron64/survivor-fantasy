@@ -5,6 +5,7 @@ import { GameEventType } from '@prisma/client'
 import { deriveEvents, GameEventData } from '@/lib/event-derivation'
 import { getLeagueScoringConfig } from '@/lib/scoring'
 import { notifyGameEventSubmitted } from '@/lib/slack'
+import { createGameEventSchema, formatZodError } from '@/lib/validation'
 
 // GET /api/game-events - List game events
 export async function GET(req: NextRequest) {
@@ -62,23 +63,17 @@ export async function POST(req: NextRequest) {
     const user = await requireUser()
     const body = await req.json()
 
-    const { type, week, data } = body as {
-      type: GameEventType
-      week: number
-      data: GameEventData
-    }
+    // Validate request body with Zod
+    const validationResult = createGameEventSchema.safeParse(body)
 
-    if (!type || !week || !data) {
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Missing required fields: type, week, data' },
+        { error: formatZodError(validationResult.error) },
         { status: 400 }
       )
     }
 
-    // Validate game event type
-    if (!Object.values(GameEventType).includes(type)) {
-      return NextResponse.json({ error: 'Invalid game event type' }, { status: 400 })
-    }
+    const { type, week, data } = validationResult.data
 
     // Read league scoring config for dynamic point values
     const pointValues = await getLeagueScoringConfig()

@@ -9,6 +9,8 @@ export interface ContestantScore {
   isEliminated: boolean
   totalPoints: number
   tribeColor: string | null
+  tribeBuffImage: string | null
+  tribeIsMerge: boolean | null
   tribeName: string | null
   draftedBy: string | null
   events: ApprovedEvent[]

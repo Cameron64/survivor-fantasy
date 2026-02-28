@@ -35,15 +35,28 @@ export function StandaloneEventCard({ event, contestantNames, contestantAvatars,
   const displayName = contestantNames[event.contestant.id] || event.contestant.name
   const avatar = contestantAvatars?.[event.contestant.id]
   const accentColor = avatar?.tribeColor ?? null
+  const showTribeBg = !avatar?.tribeIsMerge
 
   return (
     <div
       className={cn(
-        'flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors',
+        'relative overflow-hidden flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors',
         isPending && 'border-yellow-300/50 bg-yellow-50/30 dark:bg-yellow-950/10'
       )}
       style={accentColor ? { borderLeftWidth: '3px', borderLeftColor: accentColor } : undefined}
     >
+      {avatar?.tribeBuffImage && showTribeBg && (
+        <div
+          className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10]"
+          style={{ backgroundImage: `url(${avatar.tribeBuffImage})` }}
+        />
+      )}
+      {accentColor && showTribeBg && (
+        <div
+          className="absolute inset-0 z-0 opacity-[0.10]"
+          style={{ backgroundColor: accentColor }}
+        />
+      )}
       {isPending ? (
         <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
           <Clock className="h-4 w-4" />

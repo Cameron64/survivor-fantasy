@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireUser, requireAdmin } from '@/lib/auth'
-import { EVENT_POINTS, getEffectivePoints } from '@/lib/scoring'
+import { getEffectivePoints } from '@/lib/scoring'
+import { EVENT_POINTS } from '@/lib/constants/scoring-constants'
 import { EventType, Prisma } from '@prisma/client'
 
 // GET /api/league/scoring - Returns effective point values (merged defaults + overrides)

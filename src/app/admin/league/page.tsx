@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Settings, Trophy } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
-import { EVENT_POINTS } from '@/lib/scoring'
+import { EVENT_POINTS } from '@/lib/constants/scoring-constants'
 import { EventType } from '@prisma/client'
 import { ScoringConfigForm } from '@/components/admin/scoring-config-form'
 

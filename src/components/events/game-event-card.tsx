@@ -78,8 +78,13 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
       )
     : []
 
-  // Get buff image if this is a single-tribe event
-  const buffImage = accentColors.length === 1 && contestantAvatars
+  // Check if any contestant is on a merge tribe
+  const hasMergeTribe = contestantAvatars
+    ? gameEvent.events.some((e) => contestantAvatars[e.contestant.id]?.tribeIsMerge)
+    : false
+
+  // Get buff image if this is a single-tribe event (skip merge tribes)
+  const buffImage = accentColors.length === 1 && contestantAvatars && !hasMergeTribe
     ? gameEvent.events
         .map((e) => contestantAvatars[e.contestant.id]?.tribeBuffImage)
         .find(Boolean) ?? null
@@ -94,7 +99,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
     >
       {buffImage && (
         <div
-          className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.05] dark:opacity-[0.04]"
+          className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10]"
           style={{ backgroundImage: `url(${buffImage})` }}
         />
       )}

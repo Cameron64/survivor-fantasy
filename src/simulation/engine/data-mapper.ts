@@ -7,29 +7,13 @@ import type {
   RawCastaway,
   RawBootMapping,
 } from './types'
+import { EVENT_POINTS } from '../../lib/constants/scoring-constants'
 
 /**
- * Default point values matching EVENT_POINTS in src/lib/scoring.ts.
- * Duplicated here so the simulation engine has zero Next.js/Prisma deps.
+ * Point values imported from the shared constants file.
+ * This ensures the simulation engine uses the same scoring as the app.
  */
-export const BASE_EVENT_POINTS: Record<SimEventType, number> = {
-  INDIVIDUAL_IMMUNITY_WIN: 5,
-  REWARD_CHALLENGE_WIN: 3,
-  TEAM_CHALLENGE_WIN: 1,
-  CORRECT_VOTE: 2,
-  IDOL_PLAY_SUCCESS: 5,
-  IDOL_FIND: 3,
-  FIRE_MAKING_WIN: 5,
-  ZERO_VOTES_RECEIVED: 1,
-  SURVIVED_WITH_VOTES: 2,
-  CAUSED_BLINDSIDE: 2,
-  MADE_JURY: 5,
-  FINALIST: 10,
-  WINNER: 20,
-  VOTED_OUT_WITH_IDOL: -3,
-  QUIT: -10,
-  MEDEVAC: 0,
-}
+export const BASE_EVENT_POINTS: Record<SimEventType, number> = EVENT_POINTS
 
 interface MapperInput {
   season: number

@@ -15,7 +15,7 @@ async function getContestants() {
         where: { toWeek: null },
         include: {
           tribe: {
-            select: { id: true, name: true, color: true, buffImage: true },
+            select: { id: true, name: true, color: true, buffImage: true, isMerge: true },
           },
         },
       },
@@ -54,12 +54,13 @@ export default async function ContestantsPage() {
           contestants: [],
           color: contestant.currentTribe?.color || null,
           buffImage: contestant.currentTribe?.buffImage || null,
+          isMerge: contestant.currentTribe?.isMerge || false,
         }
       }
       acc[tribeName].contestants.push(contestant)
       return acc
     },
-    {} as Record<string, { contestants: typeof contestants; color: string | null; buffImage: string | null }>
+    {} as Record<string, { contestants: typeof contestants; color: string | null; buffImage: string | null; isMerge: boolean }>
   )
 
   const activeCount = contestants.filter((c) => !c.isEliminated).length
@@ -74,18 +75,18 @@ export default async function ContestantsPage() {
         </p>
       </div>
 
-      {Object.entries(tribes).map(([tribeName, { contestants: tribeContestants, color, buffImage }]) => (
+      {Object.entries(tribes).map(([tribeName, { contestants: tribeContestants, color, buffImage, isMerge }]) => (
         <div key={tribeName} className="space-y-4">
           <div className="relative overflow-hidden rounded-lg px-4 py-3">
-            {buffImage && (
+            {buffImage && !isMerge && (
               <div
-                className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.08] dark:opacity-[0.06]"
+                className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10]"
                 style={{ backgroundImage: `url(${buffImage})` }}
               />
             )}
-            {color && (
+            {color && !isMerge && (
               <div
-                className="absolute inset-0 z-0 opacity-[0.06]"
+                className="absolute inset-0 z-0 opacity-[0.10]"
                 style={{ backgroundColor: color }}
               />
             )}
@@ -111,15 +112,15 @@ export default async function ContestantsPage() {
                 key={contestant.id}
                 className={`relative overflow-hidden ${contestant.isEliminated ? 'opacity-60' : ''}`}
               >
-                {buffImage && (
+                {buffImage && !isMerge && (
                   <div
-                    className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.08] dark:opacity-[0.06]"
+                    className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10]"
                     style={{ backgroundImage: `url(${buffImage})` }}
                   />
                 )}
-                {color && (
+                {color && !isMerge && (
                   <div
-                    className="absolute inset-0 z-0 opacity-[0.06]"
+                    className="absolute inset-0 z-0 opacity-[0.10]"
                     style={{ backgroundColor: color }}
                   />
                 )}

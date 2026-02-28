@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { ClerkProvider } from '@clerk/nextjs'
 import './globals.css'
 import { PWAUpdateNotification } from '@/components/shared/pwa-update-notification'
+import { ErrorBoundary } from '@/components/shared/error-boundary'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -43,7 +44,9 @@ export default function RootLayout({
           <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         </head>
         <body className={`${inter.className} antialiased`}>
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
           <PWAUpdateNotification />
         </body>
       </html>

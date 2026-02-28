@@ -30,7 +30,7 @@ async function getOverviewData() {
                 tribeMemberships: {
                   where: { toWeek: null },
                   include: {
-                    tribe: { select: { name: true, color: true } },
+                    tribe: { select: { name: true, color: true, buffImage: true, isMerge: true } },
                   },
                   take: 1,
                 },
@@ -56,7 +56,7 @@ async function getOverviewData() {
         tribeMemberships: {
           where: { toWeek: null },
           include: {
-            tribe: { select: { name: true, color: true } },
+            tribe: { select: { name: true, color: true, buffImage: true, isMerge: true } },
           },
           take: 1,
         },
@@ -89,6 +89,8 @@ async function getOverviewData() {
           isEliminated: c.isEliminated,
           totalPoints,
           tribeColor: currentTribe?.color ?? null,
+          tribeBuffImage: currentTribe?.buffImage ?? null,
+          tribeIsMerge: currentTribe?.isMerge ?? null,
           tribeName: currentTribe?.name ?? null,
           draftedBy: team.user.name,
           events: c.events.map((e) => ({
@@ -135,6 +137,8 @@ async function getOverviewData() {
         isEliminated: c.isEliminated,
         totalPoints,
         tribeColor: currentTribe?.color ?? null,
+        tribeBuffImage: currentTribe?.buffImage ?? null,
+        tribeIsMerge: currentTribe?.isMerge ?? null,
         tribeName: currentTribe?.name ?? null,
         draftedBy: contestantDraftedBy.get(c.id) ?? null,
         events: [],

@@ -23,7 +23,7 @@ import { StandaloneEventCard } from '@/components/events/standalone-event-card'
 import type { ContestantAvatarMap } from '@/components/events/week-group'
 
 interface TribeMembership {
-  tribe: { id: string; name: string; color: string; buffImage?: string | null }
+  tribe: { id: string; name: string; color: string; buffImage?: string | null; isMerge?: boolean }
 }
 
 interface Contestant {
@@ -113,6 +113,7 @@ export default function AdminEventsPage() {
           imageUrl: c.imageUrl,
           tribeColor: c.tribeMemberships?.[0]?.tribe.color ?? null,
           tribeBuffImage: c.tribeMemberships?.[0]?.tribe.buffImage ?? null,
+          tribeIsMerge: c.tribeMemberships?.[0]?.tribe.isMerge ?? null,
         }
       }
     }

@@ -23,7 +23,7 @@ async function getUserTeam(userId: string) {
                 where: { toWeek: null },
                 include: {
                   tribe: {
-                    select: { id: true, name: true, color: true },
+                    select: { id: true, name: true, color: true, buffImage: true, isMerge: true },
                   },
                 },
               },
@@ -109,8 +109,28 @@ export default async function MyTeamPage() {
             const weeklyPoints = calculatePointsByWeek(tc.contestant.events)
 
             return (
-              <Card key={tc.id}>
-                <CardHeader>
+              <Card key={tc.id} className="relative overflow-hidden">
+                {(() => {
+                  const tribe = tc.contestant.tribeMemberships?.[0]?.tribe
+                  if (!tribe || tribe.isMerge) return null
+                  return (
+                    <>
+                      {tribe.buffImage && (
+                        <div
+                          className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10]"
+                          style={{ backgroundImage: `url(${tribe.buffImage})` }}
+                        />
+                      )}
+                      {tribe.color && (
+                        <div
+                          className="absolute inset-0 z-0 opacity-[0.10]"
+                          style={{ backgroundColor: tribe.color }}
+                        />
+                      )}
+                    </>
+                  )
+                })()}
+                <CardHeader className="relative z-10">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-12 w-12"
@@ -157,7 +177,7 @@ export default async function MyTeamPage() {
                     <Badge variant="outline">Pick #{index + 1}</Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="relative z-10 space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Total Points</span>
                     <span className="text-2xl font-bold">{contestantPoints}</span>

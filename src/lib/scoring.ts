@@ -1,40 +1,6 @@
 import { EventType, Event } from '@prisma/client'
 import { db } from './db'
-
-/**
- * Points mapping for each event type
- * CRITICAL: All score calculations derive from this mapping
- * Test thoroughly when modifying
- */
-export const EVENT_POINTS: Record<EventType, number> = {
-  // Challenge Performance
-  INDIVIDUAL_IMMUNITY_WIN: 5,
-  REWARD_CHALLENGE_WIN: 3,
-  TEAM_CHALLENGE_WIN: 1,
-
-  // Tribal Council & Strategy
-  CORRECT_VOTE: 2,
-  IDOL_PLAY_SUCCESS: 5,
-  IDOL_FIND: 3,
-  FIRE_MAKING_WIN: 5,
-
-  // Social & Game
-  ZERO_VOTES_RECEIVED: 1,
-  SURVIVED_WITH_VOTES: 2,
-  CAUSED_BLINDSIDE: 2,
-
-  // Endgame
-  MADE_JURY: 5,
-  FINALIST: 10,
-  WINNER: 20,
-
-  // Deductions
-  VOTED_OUT_WITH_IDOL: -3,
-  QUIT: -10,
-
-  // Neutral
-  MEDEVAC: 0,
-}
+import { EVENT_POINTS } from './constants/scoring-constants'
 
 /**
  * Get the point value for an event type (uses hardcoded defaults)

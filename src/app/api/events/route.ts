@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/auth'
 import { getLeagueScoringConfig } from '@/lib/scoring'
 import { EventType } from '@prisma/client'
 import { notifyEventSubmitted } from '@/lib/slack'
+import { createEventSchema, eventQuerySchema, formatZodError } from '@/lib/validation'
 
 // GET /api/events - List events
 export async function GET(req: NextRequest) {
@@ -11,17 +12,29 @@ export async function GET(req: NextRequest) {
     await requireUser()
     const searchParams = req.nextUrl.searchParams
 
-    const week = searchParams.get('week')
-    const contestantId = searchParams.get('contestantId')
-    const approvedOnly = searchParams.get('approved') === 'true'
-    const pendingOnly = searchParams.get('pending') === 'true'
+    // Validate query parameters
+    const queryResult = eventQuerySchema.safeParse({
+      week: searchParams.get('week'),
+      contestantId: searchParams.get('contestantId'),
+      approved: searchParams.get('approved') as 'true' | 'false' | undefined,
+      pending: searchParams.get('pending') as 'true' | 'false' | undefined,
+    })
+
+    if (!queryResult.success) {
+      return NextResponse.json(
+        { error: formatZodError(queryResult.error) },
+        { status: 400 }
+      )
+    }
+
+    const { week, contestantId, approved, pending } = queryResult.data
 
     const events = await db.event.findMany({
       where: {
-        ...(week && { week: parseInt(week) }),
+        ...(week && { week }),
         ...(contestantId && { contestantId }),
-        ...(approvedOnly && { isApproved: true }),
-        ...(pendingOnly && { isApproved: false }),
+        ...(approved === 'true' && { isApproved: true }),
+        ...(pending === 'true' && { isApproved: false }),
       },
       include: {
         contestant: {
@@ -59,19 +72,17 @@ export async function POST(req: NextRequest) {
     const user = await requireUser()
     const body = await req.json()
 
-    const { type, contestantId, week, description } = body
+    // Validate request body with Zod
+    const validationResult = createEventSchema.safeParse(body)
 
-    if (!type || !contestantId || !week) {
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: 'Missing required fields: type, contestantId, week' },
+        { error: formatZodError(validationResult.error) },
         { status: 400 }
       )
     }
 
-    // Validate event type
-    if (!Object.values(EventType).includes(type)) {
-      return NextResponse.json({ error: 'Invalid event type' }, { status: 400 })
-    }
+    const { type, contestantId, week, description } = validationResult.data
 
     // Validate contestant exists
     const contestant = await db.contestant.findUnique({
@@ -88,9 +99,9 @@ export async function POST(req: NextRequest) {
 
     const event = await db.event.create({
       data: {
-        type: type as EventType,
+        type,
         contestantId,
-        week: parseInt(week),
+        week,
         description,
         points,
         isApproved: false,
@@ -107,8 +118,8 @@ export async function POST(req: NextRequest) {
     // Send Slack notification
     await notifyEventSubmitted({
       contestantName: contestant.name,
-      eventType: type as EventType,
-      week: parseInt(week),
+      eventType: type,
+      week,
       submittedBy: user.name,
     })
 

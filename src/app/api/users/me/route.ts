@@ -1,37 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
-import { requireUser, getCurrentUser } from '@/lib/auth'
+import { getCurrentUser } from '@/lib/auth'
 import { generateInviteCode } from '@/lib/utils'
+import { env } from '@/lib/env'
+import { withAuth, successResponse, errorResponse, handleApiError } from '@/lib/api/response-helpers'
 
 // GET /api/users/me - Get current user
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     const user = await getCurrentUser()
 
     if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+      return errorResponse('Not authenticated', 401)
     }
 
-    return NextResponse.json(user)
+    return successResponse(user)
   } catch (error) {
-    console.error('Error fetching current user:', error)
-    return NextResponse.json({ error: 'Failed to fetch user' }, { status: 500 })
+    return handleApiError(error, 'Failed to fetch user')
   }
 }
 
 // PATCH /api/users/me - Update current user (generate invite code)
-export async function PATCH(req: NextRequest) {
+export const PATCH = withAuth(async (user, req) => {
   try {
-    const user = await requireUser()
-    const body = await req.json()
-
+    const body = await req!.json()
     const { generateInvite } = body
 
     // Dev-only: switch user role
-    if (body.devRole && process.env.NODE_ENV === 'development') {
+    if (body.devRole && env.NODE_ENV === 'development') {
       const validRoles = ['USER', 'MODERATOR', 'ADMIN']
       if (!validRoles.includes(body.devRole)) {
-        return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+        return errorResponse('Invalid role', 400)
       }
 
       const updatedUser = await db.user.update({
@@ -50,7 +49,7 @@ export async function PATCH(req: NextRequest) {
         },
       })
 
-      return NextResponse.json(updatedUser)
+      return successResponse(updatedUser)
     }
 
     if (generateInvite) {
@@ -84,12 +83,11 @@ export async function PATCH(req: NextRequest) {
         },
       })
 
-      return NextResponse.json(updatedUser)
+      return successResponse(updatedUser)
     }
 
-    return NextResponse.json(user)
+    return successResponse(user)
   } catch (error) {
-    console.error('Error updating user:', error)
-    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 })
+    return handleApiError(error, 'Failed to update user')
   }
-}
+})

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireUser, requireAdmin } from '@/lib/auth'
+import { createContestantSchema, contestantQuerySchema, formatZodError } from '@/lib/validation'
 
 // GET /api/contestants - List all contestants
 export async function GET(req: NextRequest) {
@@ -8,22 +9,35 @@ export async function GET(req: NextRequest) {
     await requireUser()
 
     const searchParams = req.nextUrl.searchParams
-    const includeEvents = searchParams.get('includeEvents') === 'true'
-    const includeMemberships = searchParams.get('includeMemberships') === 'true'
-    const activeOnly = searchParams.get('activeOnly') === 'true'
+
+    // Validate query parameters
+    const queryResult = contestantQuerySchema.safeParse({
+      includeEvents: searchParams.get('includeEvents') as 'true' | 'false' | undefined,
+      includeMemberships: searchParams.get('includeMemberships') as 'true' | 'false' | undefined,
+      activeOnly: searchParams.get('activeOnly') as 'true' | 'false' | undefined,
+    })
+
+    if (!queryResult.success) {
+      return NextResponse.json(
+        { error: formatZodError(queryResult.error) },
+        { status: 400 }
+      )
+    }
+
+    const { includeEvents, includeMemberships, activeOnly } = queryResult.data
 
     const contestants = await db.contestant.findMany({
       where: {
-        ...(activeOnly && { isEliminated: false }),
+        ...(activeOnly === 'true' && { isEliminated: false }),
       },
       include: {
-        ...(includeEvents && {
+        ...(includeEvents === 'true' && {
           events: {
             where: { isApproved: true },
             orderBy: { week: 'desc' },
           },
         }),
-        ...(includeMemberships && {
+        ...(includeMemberships === 'true' && {
           tribeMemberships: {
             where: { toWeek: null },
             include: {
@@ -64,11 +78,17 @@ export async function POST(req: NextRequest) {
     await requireAdmin()
     const body = await req.json()
 
-    const { name, nickname, tribe, imageUrl, originalSeasons } = body
+    // Validate request body with Zod
+    const validationResult = createContestantSchema.safeParse(body)
 
-    if (!name) {
-      return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: formatZodError(validationResult.error) },
+        { status: 400 }
+      )
     }
+
+    const { name, nickname, tribe, imageUrl, originalSeasons } = validationResult.data
 
     const contestant = await db.contestant.create({
       data: {

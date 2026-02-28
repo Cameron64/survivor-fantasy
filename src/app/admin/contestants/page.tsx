@@ -30,6 +30,8 @@ interface Tribe {
   id: string
   name: string
   color: string
+  buffImage?: string | null
+  isMerge?: boolean
 }
 
 interface Contestant {
@@ -416,9 +418,23 @@ function ContestantCard({
   onEdit: () => void
   onDelete: () => void
 }) {
+  const currentTribe = contestant.tribeMemberships?.find((m) => m.toWeek === null)?.tribe
+
   return (
-    <Card className={contestant.isEliminated ? 'opacity-60' : ''}>
-      <CardContent className="flex items-center gap-4 p-4">
+    <Card className={`relative overflow-hidden ${contestant.isEliminated ? 'opacity-60' : ''}`}>
+      {currentTribe?.buffImage && !currentTribe.isMerge && (
+        <div
+          className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10]"
+          style={{ backgroundImage: `url(${currentTribe.buffImage})` }}
+        />
+      )}
+      {currentTribe?.color && !currentTribe.isMerge && (
+        <div
+          className="absolute inset-0 z-0 opacity-[0.10]"
+          style={{ backgroundColor: currentTribe.color }}
+        />
+      )}
+      <CardContent className="relative z-10 flex items-center gap-4 p-4">
         <Avatar className="h-12 w-12">
           {contestant.imageUrl && (
             <AvatarImage src={contestant.imageUrl} alt={contestant.name} />
