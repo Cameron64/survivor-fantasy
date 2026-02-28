@@ -109,9 +109,21 @@ export default async function ContestantsPage() {
             {tribeContestants.map((contestant) => (
               <Card
                 key={contestant.id}
-                className={contestant.isEliminated ? 'opacity-60' : ''}
+                className={`relative overflow-hidden ${contestant.isEliminated ? 'opacity-60' : ''}`}
               >
-                <CardContent className="flex items-center gap-4 p-4">
+                {buffImage && (
+                  <div
+                    className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.08] dark:opacity-[0.06]"
+                    style={{ backgroundImage: `url(${buffImage})` }}
+                  />
+                )}
+                {color && (
+                  <div
+                    className="absolute inset-0 z-0 opacity-[0.06]"
+                    style={{ backgroundColor: color }}
+                  />
+                )}
+                <CardContent className="relative z-10 flex items-center gap-4 p-4">
                   <Avatar className="h-12 w-12">
                     {contestant.imageUrl && (
                       <AvatarImage src={contestant.imageUrl} alt={contestant.name} />
