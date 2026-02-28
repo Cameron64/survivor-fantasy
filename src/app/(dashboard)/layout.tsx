@@ -119,8 +119,8 @@ export default async function DashboardLayout({
       {/* Mobile Header */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
         <div className="flex h-14 items-center justify-between px-4">
-          <Link href="/leaderboard" className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Survivor 50" width={120} height={32} className="h-8 w-auto" />
+          <Link href="/leaderboard" className="flex items-center">
+            <Image src="/logo.png" alt="Survivor Fantasy League" width={180} height={120} className="h-11 w-auto" />
           </Link>
           <UserButton afterSignOutUrl="/" />
         </div>
@@ -130,10 +130,10 @@ export default async function DashboardLayout({
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r bg-background">
           <div className="flex flex-col flex-1 min-h-0 pt-5 pb-4">
-            <div className="flex items-center flex-shrink-0 px-4 gap-2">
-              <Image src="/logo.png" alt="Survivor 50" width={160} height={40} className="h-10 w-auto" />
+            <div className="flex justify-center flex-shrink-0 px-4">
+              <Image src="/logo.png" alt="Survivor Fantasy League" width={224} height={150} className="h-24 w-auto" />
             </div>
-            <nav className="mt-8 flex-1 px-2 space-y-1">
+            <nav className="mt-4 flex-1 px-2 space-y-1">
               <NavLink href="/leaderboard" icon={Trophy}>
                 Overview
               </NavLink>
