@@ -115,7 +115,7 @@ export default async function DashboardLayout({
   const isModerator = user?.role === 'MODERATOR' || isAdmin
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Mobile Header */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
         <div className="flex h-14 items-center justify-between px-4">
@@ -171,7 +171,7 @@ export default async function DashboardLayout({
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 lg:pl-64">
+        <main className="flex-1 min-w-0 lg:pl-64">
           <div className="py-6 px-4 sm:px-6 lg:px-8">
             <SeasonSetupGate readiness={readiness} isAdmin={isAdmin}>
               {children}
