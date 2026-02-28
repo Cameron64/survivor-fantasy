@@ -54,14 +54,28 @@ const envSchema = z.object({
  * ```
  */
 function getEnv(): z.infer<typeof envSchema> {
+  // Skip validation during build time or when no DATABASE_URL is present
+  if (typeof window === 'undefined' && !process.env.DATABASE_URL) {
+    return process.env as unknown as z.infer<typeof envSchema>
+  }
+
   const result = envSchema.safeParse(process.env)
   if (!result.success) {
-    // During build, env vars may not be available — fall through to process.env
-    if (typeof window === 'undefined' && !process.env.DATABASE_URL) {
+    console.error('❌ Environment validation failed!')
+    console.error('Missing or invalid environment variables:')
+    const errors = result.error.flatten().fieldErrors
+    Object.entries(errors).forEach(([key, messages]) => {
+      console.error(`  - ${key}: ${messages?.join(', ')}`)
+    })
+
+    // In development, be lenient and fall through
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️  Running in development mode with invalid env vars')
       return process.env as unknown as z.infer<typeof envSchema>
     }
-    console.error('Environment validation failed:', result.error.flatten().fieldErrors)
-    throw new Error('Missing required environment variables')
+
+    // In production, throw the error
+    throw new Error('Missing required environment variables. Check Railway dashboard.')
   }
   return result.data
 }
