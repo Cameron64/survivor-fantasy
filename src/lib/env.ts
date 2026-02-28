@@ -53,7 +53,16 @@ const envSchema = z.object({
  * }
  * ```
  */
-export const env = envSchema.parse(process.env)
+let _env: z.infer<typeof envSchema> | undefined
+
+export const env: z.infer<typeof envSchema> = new Proxy({} as z.infer<typeof envSchema>, {
+  get(_, prop: string) {
+    if (!_env) {
+      _env = envSchema.parse(process.env)
+    }
+    return _env[prop as keyof z.infer<typeof envSchema>]
+  },
+})
 
 /**
  * Type of the validated environment object.
