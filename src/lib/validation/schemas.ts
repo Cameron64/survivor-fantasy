@@ -27,9 +27,7 @@ const optionalStringSchema = z.string().optional()
  * Schema for creating a standalone scoring event (direct submission).
  */
 export const createEventSchema = z.object({
-  type: z.nativeEnum(EventType, {
-    errorMap: () => ({ message: 'Invalid event type' }),
-  }),
+  type: z.nativeEnum(EventType),
   contestantId: idSchema,
   week: weekSchema,
   description: optionalStringSchema,
@@ -401,6 +399,6 @@ export function safeValidate<T>(schema: z.ZodSchema<T>, data: unknown) {
 /**
  * Helper to format Zod errors into user-friendly messages.
  */
-export function formatZodError(error: z.ZodError): string {
-  return error.errors.map((err) => `${err.path.join('.')}: ${err.message}`).join(', ')
+export function formatZodError(error: z.ZodError<unknown>): string {
+  return error.issues.map((err: z.ZodIssue) => `${err.path.join('.')}: ${err.message}`).join(', ')
 }
