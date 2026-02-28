@@ -110,7 +110,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
             background:
               accentColors.length === 1
                 ? accentColors[0]
-                : `linear-gradient(to bottom, ${accentColors.map((c, i) => `${c} ${(i / accentColors.length) * 100}%, ${c} ${((i + 1) / accentColors.length) * 100}%`).join(', ')})`,
+                : `linear-gradient(to bottom, ${accentColors.slice(0, 5).map((c, i, arr) => `${c} ${(i / arr.length) * 100}%, ${c} ${((i + 1) / arr.length) * 100}%`).join(', ')})`,
           }}
         />
       )}
