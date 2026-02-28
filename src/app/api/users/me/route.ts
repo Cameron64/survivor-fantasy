@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
 import { generateInviteCode } from '@/lib/utils'

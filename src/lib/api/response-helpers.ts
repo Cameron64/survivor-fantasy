@@ -12,7 +12,7 @@
  */
 
 import { NextResponse } from 'next/server'
-import { getCurrentUser, requireUser, requireAdmin, requireModerator } from '@/lib/auth'
+import { requireUser, requireAdmin, requireModerator } from '@/lib/auth'
 import type { User } from '@prisma/client'
 
 /**
@@ -190,7 +190,7 @@ export async function validateRequestBody<T>(
   try {
     const body = await req.json()
     return schema.parse(body)
-  } catch (error) {
+  } catch {
     throw new Error('Invalid request body')
   }
 }
