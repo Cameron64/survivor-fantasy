@@ -18,10 +18,12 @@ interface Area {
 
 interface ImageCropperProps {
   value?: string
+  originalValue?: string
   onChange: (url: string) => void
+  onOriginalChange?: (url: string) => void
 }
 
-export function ImageCropper({ value, onChange }: ImageCropperProps) {
+export function ImageCropper({ value, originalValue, onChange, onOriginalChange }: ImageCropperProps) {
   const [showCropDialog, setShowCropDialog] = useState(false)
   const [imageSrc, setImageSrc] = useState<string | null>(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
@@ -36,6 +38,10 @@ export function ImageCropper({ value, onChange }: ImageCropperProps) {
   const handleUrlLoad = () => {
     if (urlInput) {
       setImageSrc(urlInput)
+      // Save the original URL when loading a new image
+      if (onOriginalChange && !originalValue) {
+        onOriginalChange(urlInput)
+      }
       setShowCropDialog(true)
     }
   }
@@ -124,7 +130,9 @@ export function ImageCropper({ value, onChange }: ImageCropperProps) {
             variant="outline"
             size="sm"
             onClick={() => {
-              setImageSrc(value)
+              // Use original URL for re-cropping if available, otherwise use current value
+              const sourceUrl = originalValue || value
+              setImageSrc(sourceUrl)
               setShowCropDialog(true)
             }}
           >

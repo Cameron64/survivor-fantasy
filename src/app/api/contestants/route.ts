@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { name, nickname, tribe, imageUrl, originalSeasons } = validationResult.data
+    const { name, nickname, tribe, imageUrl, originalImageUrl, originalSeasons } = validationResult.data
 
     const contestant = await db.contestant.create({
       data: {
@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
         nickname,
         tribe,
         imageUrl,
+        originalImageUrl,
         originalSeasons,
       },
     })

@@ -45,6 +45,7 @@ model Contestant {
   nickname         String?           // e.g. "Coach", "Ozzy"
   tribe            String?
   imageUrl         String?
+  originalImageUrl String?           // Original high-quality image URL before cropping
   originalSeasons  String?           // Comma-separated season numbers, e.g. "13,16,23,34"
   isEliminated     Boolean           @default(false)
   eliminatedWeek   Int?

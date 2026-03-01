@@ -200,6 +200,7 @@ export const createContestantSchema = z.object({
   nickname: z.string().max(50).optional(),
   tribe: z.string().max(50).optional(),
   imageUrl: z.string().url('Invalid image URL').optional(),
+  originalImageUrl: z.string().url('Invalid image URL').optional(),
   originalSeasons: z.string().optional(),
 })
 
@@ -213,6 +214,7 @@ export const updateContestantSchema = z.object({
   nickname: z.string().max(50).optional(),
   tribe: z.string().max(50).optional(),
   imageUrl: z.string().url('Invalid image URL').optional(),
+  originalImageUrl: z.string().url('Invalid image URL').optional(),
   originalSeasons: z.string().optional(),
   isEliminated: z.boolean().optional(),
   eliminatedWeek: z.number().int().min(1).max(20).nullable().optional(),

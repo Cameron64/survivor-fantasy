@@ -41,6 +41,7 @@ interface Contestant {
   nickname: string | null
   tribe: string | null
   imageUrl: string | null
+  originalImageUrl: string | null
   originalSeasons: string | null
   isEliminated: boolean
   eliminatedWeek: number | null
@@ -64,6 +65,7 @@ export default function AdminContestantsPage() {
   const [nickname, setNickname] = useState('')
   const [tribeId, setTribeId] = useState('')
   const [imageUrl, setImageUrl] = useState('')
+  const [originalImageUrl, setOriginalImageUrl] = useState('')
   const [originalSeasons, setOriginalSeasons] = useState('')
   const [isEliminated, setIsEliminated] = useState(false)
   const [eliminatedWeek, setEliminatedWeek] = useState('')
@@ -112,6 +114,7 @@ export default function AdminContestantsPage() {
     setNickname('')
     setTribeId('')
     setImageUrl('')
+    setOriginalImageUrl('')
     setOriginalSeasons('')
     setIsEliminated(false)
     setEliminatedWeek('')
@@ -125,6 +128,7 @@ export default function AdminContestantsPage() {
     const currentMembership = contestant.tribeMemberships?.find((m) => m.toWeek === null)
     setTribeId(currentMembership?.tribe.id || '')
     setImageUrl(contestant.imageUrl || '')
+    setOriginalImageUrl(contestant.originalImageUrl || '')
     setOriginalSeasons(contestant.originalSeasons || '')
     setIsEliminated(contestant.isEliminated)
     setEliminatedWeek(contestant.eliminatedWeek?.toString() || '')
@@ -148,6 +152,7 @@ export default function AdminContestantsPage() {
             nickname: nickname || null,
             tribe: selectedTribe?.name || null,
             imageUrl: imageUrl || null,
+            originalImageUrl: originalImageUrl || null,
             originalSeasons: originalSeasons || null,
             isEliminated,
             eliminatedWeek: isEliminated && eliminatedWeek ? parseInt(eliminatedWeek) : null,
@@ -186,6 +191,7 @@ export default function AdminContestantsPage() {
             nickname: nickname || null,
             tribe: selectedTribe?.name || null,
             imageUrl: imageUrl || null,
+            originalImageUrl: originalImageUrl || null,
             originalSeasons: originalSeasons || null,
           }),
         })
@@ -324,7 +330,9 @@ export default function AdminContestantsPage() {
               </div>
               <ImageCropper
                 value={imageUrl}
+                originalValue={originalImageUrl}
                 onChange={setImageUrl}
+                onOriginalChange={setOriginalImageUrl}
               />
               {editingContestant && (
                 <div className="grid gap-2">

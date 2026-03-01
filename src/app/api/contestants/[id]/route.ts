@@ -51,7 +51,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const { id } = await params
     const body = await req.json()
 
-    const { name, nickname, tribe, imageUrl, originalSeasons, isEliminated, eliminatedWeek } = body
+    const { name, nickname, tribe, imageUrl, originalImageUrl, originalSeasons, isEliminated, eliminatedWeek } = body
 
     const existingContestant = await db.contestant.findUnique({
       where: { id },
@@ -68,6 +68,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         ...(nickname !== undefined && { nickname }),
         ...(tribe !== undefined && { tribe }),
         ...(imageUrl !== undefined && { imageUrl }),
+        ...(originalImageUrl !== undefined && { originalImageUrl }),
         ...(originalSeasons !== undefined && { originalSeasons }),
         ...(isEliminated !== undefined && { isEliminated }),
         ...(eliminatedWeek !== undefined && { eliminatedWeek }),

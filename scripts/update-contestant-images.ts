@@ -35,12 +35,14 @@ async function updateContestantImages() {
       // Try exact match first
       let contestant = await prisma.contestant.findFirst({
         where: { name: { equals: name, mode: 'insensitive' } },
+        select: { id: true, name: true, originalImageUrl: true }
       })
 
       // If not found, try partial match
       if (!contestant) {
         contestant = await prisma.contestant.findFirst({
           where: { name: { contains: name, mode: 'insensitive' } },
+          select: { id: true, name: true, originalImageUrl: true }
         })
       }
 
@@ -50,10 +52,14 @@ async function updateContestantImages() {
         continue
       }
 
-      // Update the image URL
+      // Update the image URL and preserve original
       await prisma.contestant.update({
         where: { id: contestant.id },
-        data: { imageUrl },
+        data: {
+          imageUrl,
+          // Only set originalImageUrl if it's not already set
+          ...(contestant.originalImageUrl ? {} : { originalImageUrl: imageUrl })
+        },
       })
 
       console.log(`✅ Updated: ${contestant.name}`)
