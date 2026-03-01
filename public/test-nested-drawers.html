@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nested Drawer Test</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div id="root" class="p-8 max-w-4xl mx-auto"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Child card component (mimics GameEventCard)
+        function GameEventCard({ event, index }) {
+            const [expanded, setExpanded] = useState(false);
+
+            return (
+                <div className="rounded-lg border border-gray-700 bg-gray-800 overflow-hidden mb-2">
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log(`Child ${index} clicked, expanded:`, !expanded);
+                            setExpanded(!expanded);
+                        }}
+                        className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-700 transition-colors"
+                    >
+                        <span className="text-sm">Game Event {index}</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-green-600 text-sm">+{event.points}</span>
+                            <svg
+                                className={`h-4 w-4 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </button>
+
+                    {expanded && (
+                        <div className="border-t border-gray-700 px-3 pb-3 pt-2 bg-gray-900">
+                            <div className="text-xs text-gray-400">
+                                Event details for Game Event {index}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">
+                                Points breakdown: +{event.points}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        // Parent week component (mimics WeekGroup)
+        function WeekGroup({ week, events }) {
+            const [isExpanded, setIsExpanded] = useState(false);
+
+            return (
+                <div className="rounded-lg border border-gray-700 bg-gray-900 overflow-hidden mb-3">
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log(`Week ${week} clicked, expanded:`, !isExpanded);
+                            setIsExpanded(!isExpanded);
+                        }}
+                        className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-800 transition-colors"
+                    >
+                        <span className="font-semibold text-sm">Week {week}</span>
+                        <div className="flex items-center gap-2">
+                            <span className="px-2 py-1 bg-gray-800 rounded text-xs">
+                                {events.length} events
+                            </span>
+                            <svg
+                                className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </button>
+
+                    {isExpanded && (
+                        <div className="border-t border-gray-700 px-3 pb-3 pt-2">
+                            {events.map((event, index) => (
+                                <GameEventCard key={index} event={event} index={index + 1} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function TestApp() {
+            const weekData = [
+                {
+                    week: 3,
+                    events: [
+                        { points: 5 },
+                        { points: 3 },
+                        { points: 4 },
+                    ]
+                },
+                {
+                    week: 2,
+                    events: [
+                        { points: 2 },
+                        { points: 6 },
+                    ]
+                },
+            ];
+
+            return (
+                <div>
+                    <h1 className="text-3xl font-bold mb-6">Nested Drawer Test</h1>
+                    <p className="mb-4 text-gray-400">
+                        This reproduces the actual Events page structure with nested drawers.
+                        Open console (F12) to see click logs.
+                    </p>
+                    <div className="mb-4 p-4 bg-blue-900/20 border border-blue-800 rounded">
+                        <strong>Instructions:</strong>
+                        <ol className="list-decimal ml-5 mt-2 space-y-1 text-sm">
+                            <li>Click "Week 3" to expand the week</li>
+                            <li>Click "Game Event 1" to expand (should work)</li>
+                            <li>Click "Game Event 2" to expand (does this work?)</li>
+                            <li>Click "Game Event 3" to expand (does this work?)</li>
+                        </ol>
+                    </div>
+                    <div className="space-y-3">
+                        {weekData.map((week) => (
+                            <WeekGroup key={week.week} week={week.week} events={week.events} />
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TestApp />);
+    </script>
+</body>
+</html>
