@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/dialog'
 import { Switch } from '@/components/ui/switch'
 import { Users, Plus, Edit2, Trash2 } from 'lucide-react'
+import { ImageCropper } from '@/components/admin/image-cropper'
 
 interface Tribe {
   id: string
@@ -321,15 +322,10 @@ export default function AdminContestantsPage() {
                   </p>
                 )}
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="imageUrl">Image URL</Label>
-                <Input
-                  id="imageUrl"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
+              <ImageCropper
+                value={imageUrl}
+                onChange={setImageUrl}
+              />
               {editingContestant && (
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between">
