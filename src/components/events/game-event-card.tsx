@@ -116,7 +116,12 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
       )}
       <div className="flex items-center">
         <button
-          onClick={() => setExpanded(!expanded)}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setExpanded(!expanded)
+          }}
           className="flex items-center gap-3 flex-1 min-w-0 text-left p-3 hover:bg-accent/50 transition-colors rounded-lg"
         >
           <div
