@@ -76,9 +76,15 @@ export default function AdminContestantsPage() {
     try {
       const res = await fetch('/api/contestants?includeMemberships=true')
       const data = await res.json()
-      setContestants(data)
+      if (Array.isArray(data)) {
+        setContestants(data)
+      } else {
+        console.error('Invalid response format:', data)
+        setContestants([])
+      }
     } catch (error) {
       console.error('Failed to fetch contestants:', error)
+      setContestants([])
     } finally {
       setIsLoading(false)
     }
@@ -88,9 +94,15 @@ export default function AdminContestantsPage() {
     try {
       const res = await fetch('/api/tribes')
       const data = await res.json()
-      setTribes(data)
+      if (Array.isArray(data)) {
+        setTribes(data)
+      } else {
+        console.error('Invalid response format:', data)
+        setTribes([])
+      }
     } catch (error) {
       console.error('Failed to fetch tribes:', error)
+      setTribes([])
     }
   }
 
