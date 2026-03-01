@@ -65,7 +65,7 @@ export default function EventsPage() {
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([])
   const [episodes, setEpisodes] = useState<Episode[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set())
+  const [expandedWeeks, setExpandedWeeks] = useState<number[]>([])
 
   useEffect(() => {
     fetchData()
@@ -222,20 +222,18 @@ export default function EventsPage() {
 
   // Auto-expand most recent week on first load
   useEffect(() => {
-    if (weekGroups.length > 0 && expandedWeeks.size === 0) {
-      setExpandedWeeks(new Set([weekGroups[0].week]))
+    if (weekGroups.length > 0 && expandedWeeks.length === 0) {
+      setExpandedWeeks([weekGroups[0].week])
     }
   }, [weekGroups]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleWeek = (week: number) => {
     setExpandedWeeks((prev) => {
-      const next = new Set(prev)
-      if (next.has(week)) {
-        next.delete(week)
-      } else {
-        next.add(week)
-      }
-      console.log('Toggling week', week, 'Expanded weeks:', Array.from(next))
+      const isExpanded = prev.includes(week)
+      const next = isExpanded
+        ? prev.filter(w => w !== week)
+        : [...prev, week]
+      console.log('Toggling week', week, 'Was expanded:', isExpanded, 'Now expanded:', next)
       return next
     })
   }
@@ -288,7 +286,7 @@ export default function EventsPage() {
                 <WeekGroup
                   key={wd.week}
                   weekData={wd}
-                  isExpanded={expandedWeeks.has(wd.week)}
+                  isExpanded={expandedWeeks.includes(wd.week)}
                   onToggle={() => toggleWeek(wd.week)}
                   contestantNames={contestantNames}
                   contestantAvatars={contestantAvatars}
