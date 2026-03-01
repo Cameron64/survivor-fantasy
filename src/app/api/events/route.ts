@@ -12,12 +12,12 @@ export async function GET(req: NextRequest) {
     await requireUser()
     const searchParams = req.nextUrl.searchParams
 
-    // Validate query parameters
+    // Validate query parameters (convert null to undefined for Zod)
     const queryResult = eventQuerySchema.safeParse({
-      week: searchParams.get('week'),
-      contestantId: searchParams.get('contestantId'),
-      approved: searchParams.get('approved') as 'true' | 'false' | undefined,
-      pending: searchParams.get('pending') as 'true' | 'false' | undefined,
+      week: searchParams.get('week') || undefined,
+      contestantId: searchParams.get('contestantId') || undefined,
+      approved: searchParams.get('approved') || undefined,
+      pending: searchParams.get('pending') || undefined,
     })
 
     if (!queryResult.success) {

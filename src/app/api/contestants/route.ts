@@ -10,11 +10,11 @@ export async function GET(req: NextRequest) {
 
     const searchParams = req.nextUrl.searchParams
 
-    // Validate query parameters
+    // Validate query parameters (convert null to undefined for Zod)
     const queryResult = contestantQuerySchema.safeParse({
-      includeEvents: searchParams.get('includeEvents') as 'true' | 'false' | undefined,
-      includeMemberships: searchParams.get('includeMemberships') as 'true' | 'false' | undefined,
-      activeOnly: searchParams.get('activeOnly') as 'true' | 'false' | undefined,
+      includeEvents: searchParams.get('includeEvents') || undefined,
+      includeMemberships: searchParams.get('includeMemberships') || undefined,
+      activeOnly: searchParams.get('activeOnly') || undefined,
     })
 
     if (!queryResult.success) {
