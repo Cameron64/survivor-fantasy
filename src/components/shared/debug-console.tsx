@@ -31,7 +31,7 @@ export function DebugConsole() {
     const originalError = console.error
     const originalInfo = console.info
 
-    const addEntry = (type: ConsoleEntry['type'], args: any[]) => {
+    const addEntry = (type: ConsoleEntry['type'], args: unknown[]) => {
       const message = args.map(arg =>
         typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
       ).join(' ')
