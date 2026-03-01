@@ -77,6 +77,18 @@ const withPWA = withPWAInit({
 })
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {}
+const nextConfig = {
+  // Exclude bot folder from Next.js builds (separate Bun app)
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals = [...(config.externals || []), 'bot/**']
+    }
+    return config
+  },
+  // Speed up builds by excluding bot from file watching
+  watchOptions: {
+    ignored: ['**/bot/**', '**/node_modules/**', '**/.git/**'],
+  },
+}
 
 export default withPWA(nextConfig)
