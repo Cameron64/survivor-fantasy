@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -66,6 +66,7 @@ export default function EventsPage() {
   const [episodes, setEpisodes] = useState<Episode[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([])
+  const hasInitialized = useRef(false)
 
   useEffect(() => {
     fetchData()
@@ -222,10 +223,11 @@ export default function EventsPage() {
 
   // Auto-expand most recent week on first load
   useEffect(() => {
-    if (weekGroups.length > 0 && expandedWeeks.length === 0) {
+    if (!hasInitialized.current && weekGroups.length > 0) {
       setExpandedWeeks([weekGroups[0].week])
+      hasInitialized.current = true
     }
-  }, [weekGroups]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [weekGroups])
 
   const toggleWeek = (week: number) => {
     setExpandedWeeks((prev) => {
