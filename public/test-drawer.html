@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drawer Test - Minimal Reproduction</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div id="root" class="p-8 max-w-4xl mx-auto"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        function WeekGroup({ weekData, isExpanded, onToggle }) {
+            const { week, totalPoints, eventCount } = weekData;
+
+            return (
+                <div className="rounded-lg border border-gray-700 bg-gray-900 overflow-hidden mb-3">
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onToggle();
+                        }}
+                        className="w-full flex items-center justify-between p-3 text-left hover:bg-gray-800 transition-colors"
+                    >
+                        <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm">Week {week}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <span className="px-2 py-1 bg-gray-800 rounded text-xs">
+                                {eventCount} events
+                            </span>
+                            <span className={`text-sm font-semibold ${totalPoints >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {totalPoints > 0 ? '+' : ''}{totalPoints}
+                            </span>
+                            <svg
+                                className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
+                    </button>
+
+                    {isExpanded && (
+                        <div className="border-t border-gray-700 px-3 pb-3 pt-2 space-y-2">
+                            <div className="bg-gray-800 p-3 rounded">
+                                Event 1 for Week {week}
+                            </div>
+                            <div className="bg-gray-800 p-3 rounded">
+                                Event 2 for Week {week}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        function TestApp() {
+            const [expandedWeeks, setExpandedWeeks] = useState([]);
+            const hasInitialized = useRef(false);
+
+            const weekGroups = [
+                { week: 3, totalPoints: 12, eventCount: 4 },
+                { week: 2, totalPoints: 8, eventCount: 3 },
+                { week: 1, totalPoints: 5, eventCount: 2 },
+            ];
+
+            // Auto-expand most recent week on first load
+            useEffect(() => {
+                if (!hasInitialized.current && weekGroups.length > 0) {
+                    setExpandedWeeks([weekGroups[0].week]);
+                    hasInitialized.current = true;
+                }
+            }, [weekGroups]);
+
+            const toggleWeek = (week) => {
+                setExpandedWeeks((prev) => {
+                    const isExpanded = prev.includes(week);
+                    const next = isExpanded
+                        ? prev.filter(w => w !== week)
+                        : [...prev, week];
+                    console.log('Toggling week', week, 'Was expanded:', isExpanded, 'Now expanded:', next);
+                    return next;
+                });
+            };
+
+            return (
+                <div>
+                    <h1 className="text-3xl font-bold mb-6">Drawer Test - Minimal Reproduction</h1>
+                    <p className="mb-4 text-gray-400">
+                        This is a minimal reproduction of the Events page drawer functionality.
+                        Open your browser console (F12) to see state changes.
+                    </p>
+                    <div className="mb-4 p-4 bg-blue-900/20 border border-blue-800 rounded">
+                        <strong>Current expanded weeks:</strong> [{expandedWeeks.join(', ')}]
+                    </div>
+                    <div className="space-y-3">
+                        {weekGroups.map((wd) => (
+                            <WeekGroup
+                                key={wd.week}
+                                weekData={wd}
+                                isExpanded={expandedWeeks.includes(wd.week)}
+                                onToggle={() => toggleWeek(wd.week)}
+                            />
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TestApp />);
+    </script>
+</body>
+</html>
