@@ -460,23 +460,23 @@ function ContestantCard({
         </Avatar>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             <p className="font-medium truncate">
               {contestant.nickname
                 ? `${contestant.name} "${contestant.nickname}"`
                 : contestant.name}
             </p>
             {contestant.isEliminated && (
-              <Badge variant="destructive">
+              <Badge variant="destructive" className="shrink-0">
                 Out (Week {contestant.eliminatedWeek})
               </Badge>
             )}
           </div>
-          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+          <p className="text-sm text-muted-foreground flex items-center gap-1.5 min-w-0 overflow-hidden">
             {contestant.originalSeasons && (
-              <span>S{contestant.originalSeasons.replace(/,/g, ', S')}</span>
+              <span className="shrink-0">S{contestant.originalSeasons.replace(/,/g, ', S')}</span>
             )}
-            {contestant.originalSeasons && ' · '}
+            {contestant.originalSeasons && <span className="shrink-0">·</span>}
             {(() => {
               const currentMembership = contestant.tribeMemberships?.find(
                 (m) => m.toWeek === null
@@ -485,14 +485,14 @@ function ContestantCard({
                 return (
                   <>
                     <span
-                      className="inline-block h-2.5 w-2.5 rounded-full"
+                      className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
                       style={{ backgroundColor: currentMembership.tribe.color }}
                     />
-                    {currentMembership.tribe.name}
+                    <span className="truncate">{currentMembership.tribe.name}</span>
                   </>
                 )
               }
-              return contestant.tribe || 'No tribe'
+              return <span className="truncate">{contestant.tribe || 'No tribe'}</span>
             })()}
           </p>
         </div>
