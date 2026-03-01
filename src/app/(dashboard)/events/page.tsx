@@ -235,6 +235,7 @@ export default function EventsPage() {
       } else {
         next.add(week)
       }
+      console.log('Toggling week', week, 'Expanded weeks:', Array.from(next))
       return next
     })
   }

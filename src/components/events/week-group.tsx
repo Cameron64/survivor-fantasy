@@ -64,7 +64,12 @@ export function WeekGroup({ weekData, isExpanded, onToggle, contestantNames, con
   return (
     <div className="rounded-lg border bg-card overflow-hidden">
       <button
-        onClick={onToggle}
+        type="button"
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          onToggle()
+        }}
         className="w-full flex items-center justify-between p-3 text-left hover:bg-accent/50 transition-colors"
       >
         <div className="flex items-center gap-2 min-w-0">
