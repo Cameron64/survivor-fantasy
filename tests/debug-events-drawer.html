@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events Drawer Debug Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #fff;
+        }
+        h1 {
+            color: #10b981;
+        }
+        .test-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #059669;
+        }
+        .log {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 3px 0;
+            border-bottom: 1px solid #222;
+        }
+        .error {
+            color: #ef4444;
+        }
+        .success {
+            color: #10b981;
+        }
+        .info {
+            color: #3b82f6;
+        }
+        .warning {
+            color: #f59e0b;
+        }
+        .status {
+            padding: 8px 16px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .status.pass {
+            background: #10b981;
+            color: white;
+        }
+        .status.fail {
+            background: #ef4444;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Events Page Drawer Debug</h1>
+    <p>This tool will test the events page drawer functionality and capture any errors.</p>
+
+    <div class="test-section">
+        <h2>Test Controls</h2>
+        <button onclick="runTests()">▶️ Run All Tests</button>
+        <button onclick="clearLog()">🗑️ Clear Log</button>
+        <button onclick="openEventsPage()">🔗 Open Events Page</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Log</h2>
+        <div id="log" class="log"></div>
+    </div>
+
+    <script>
+        const log = document.getElementById('log');
+        const results = document.getElementById('results');
+
+        function addLog(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearLog() {
+            log.innerHTML = '';
+            results.innerHTML = '';
+        }
+
+        function openEventsPage() {
+            window.open('/events', '_blank');
+        }
+
+        async function runTests() {
+            clearLog();
+            addLog('Starting tests...', 'info');
+            results.innerHTML = '<p>Running tests...</p>';
+
+            try {
+                // Test 1: Open events page in iframe
+                addLog('Test 1: Loading events page', 'info');
+                const testResults = [];
+
+                // Create iframe to load events page
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = '/events';
+                document.body.appendChild(iframe);
+
+                // Wait for iframe to load
+                await new Promise((resolve, reject) => {
+                    iframe.onload = resolve;
+                    iframe.onerror = reject;
+                    setTimeout(() => reject(new Error('Iframe load timeout')), 10000);
+                });
+
+                addLog('Events page loaded successfully', 'success');
+
+                // Get iframe document
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const iframeWindow = iframe.contentWindow;
+
+                // Capture console logs from iframe
+                const originalConsoleLog = iframeWindow.console.log;
+                const originalConsoleError = iframeWindow.console.error;
+                const originalConsoleWarn = iframeWindow.console.warn;
+
+                iframeWindow.console.log = function(...args) {
+                    addLog('LOG: ' + args.join(' '), 'info');
+                    originalConsoleLog.apply(console, args);
+                };
+
+                iframeWindow.console.error = function(...args) {
+                    addLog('ERROR: ' + args.join(' '), 'error');
+                    originalConsoleError.apply(console, args);
+                };
+
+                iframeWindow.console.warn = function(...args) {
+                    addLog('WARN: ' + args.join(' '), 'warning');
+                    originalConsoleWarn.apply(console, args);
+                };
+
+                // Test 2: Find week buttons
+                await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for React to render
+
+                const weekButtons = iframeDoc.querySelectorAll('button');
+                addLog(`Found ${weekButtons.length} total buttons`, 'info');
+
+                let weekGroupButton = null;
+                for (const btn of weekButtons) {
+                    if (btn.textContent && btn.textContent.includes('Week ')) {
+                        weekGroupButton = btn;
+                        addLog(`Found week button: ${btn.textContent.substring(0, 50)}`, 'success');
+                        break;
+                    }
+                }
+
+                if (!weekGroupButton) {
+                    addLog('No week group buttons found!', 'error');
+                    testResults.push({ test: 'Find Week Buttons', status: 'fail', message: 'No week buttons found' });
+                } else {
+                    testResults.push({ test: 'Find Week Buttons', status: 'pass' });
+
+                    // Test 3: Check initial state
+                    const container = weekGroupButton.closest('div.rounded-lg');
+                    const contentDiv = container.querySelector('div.border-t');
+
+                    if (!contentDiv) {
+                        addLog('Could not find content div!', 'error');
+                        testResults.push({ test: 'Find Content Div', status: 'fail' });
+                    } else {
+                        testResults.push({ test: 'Find Content Div', status: 'pass' });
+
+                        const initialDisplay = window.getComputedStyle(contentDiv).display;
+                        addLog(`Initial content display: ${initialDisplay}`, 'info');
+
+                        // Test 4: Click the button
+                        addLog('Clicking week button...', 'info');
+                        weekGroupButton.click();
+
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+
+                        const afterClickDisplay = window.getComputedStyle(contentDiv).display;
+                        addLog(`After click display: ${afterClickDisplay}`, 'info');
+
+                        if (initialDisplay !== afterClickDisplay) {
+                            addLog('✓ Display state changed after click', 'success');
+                            testResults.push({ test: 'Toggle Changes State', status: 'pass' });
+                        } else {
+                            addLog('✗ Display state did NOT change after click', 'error');
+                            testResults.push({ test: 'Toggle Changes State', status: 'fail', message: 'No display change' });
+                        }
+
+                        // Test 5: Click again
+                        addLog('Clicking again...', 'info');
+                        weekGroupButton.click();
+
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+
+                        const afterSecondClickDisplay = window.getComputedStyle(contentDiv).display;
+                        addLog(`After second click display: ${afterSecondClickDisplay}`, 'info');
+
+                        if (afterSecondClickDisplay === initialDisplay) {
+                            addLog('✓ Display state returned to initial state', 'success');
+                            testResults.push({ test: 'Toggle Returns to Initial', status: 'pass' });
+                        } else {
+                            addLog('✗ Display state did NOT return to initial state', 'error');
+                            testResults.push({ test: 'Toggle Returns to Initial', status: 'fail' });
+                        }
+                    }
+                }
+
+                // Display results
+                let resultsHTML = '<h3>Test Summary</h3>';
+                const passed = testResults.filter(r => r.status === 'pass').length;
+                const failed = testResults.filter(r => r.status === 'fail').length;
+
+                resultsHTML += `<p><strong>${passed} passed</strong>, <strong>${failed} failed</strong></p>`;
+                resultsHTML += '<ul>';
+                testResults.forEach(r => {
+                    const statusClass = r.status === 'pass' ? 'success' : 'error';
+                    resultsHTML += `<li class="${statusClass}">
+                        <strong>${r.test}:</strong>
+                        <span class="status ${r.status}">${r.status.toUpperCase()}</span>
+                        ${r.message ? ` - ${r.message}` : ''}
+                    </li>`;
+                });
+                resultsHTML += '</ul>';
+
+                results.innerHTML = resultsHTML;
+
+                // Cleanup
+                document.body.removeChild(iframe);
+                addLog('Tests completed', 'info');
+
+            } catch (error) {
+                addLog(`Test error: ${error.message}`, 'error');
+                results.innerHTML = `<div class="status fail">Tests failed: ${error.message}</div>`;
+            }
+        }
+
+        addLog('Debug tool ready. Click "Run All Tests" to start.', 'info');
+    </script>
+</body>
+</html>
