@@ -4,6 +4,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import './globals.css'
 import { PWAUpdateNotification } from '@/components/shared/pwa-update-notification'
 import { ErrorBoundary } from '@/components/shared/error-boundary'
+import { AdminDebugWrapper } from '@/components/shared/admin-debug-wrapper'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -48,6 +49,7 @@ export default function RootLayout({
             {children}
           </ErrorBoundary>
           <PWAUpdateNotification />
+          <AdminDebugWrapper />
         </body>
       </html>
     </ClerkProvider>
