@@ -235,8 +235,8 @@ export default function AdminContestantsPage() {
   const eliminatedContestants = contestants.filter((c) => c.isEliminated)
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 pb-20 lg:pb-6">
+      <div className="flex items-center justify-between min-w-0">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Contestants</h1>
           <p className="text-muted-foreground">
@@ -256,7 +256,7 @@ export default function AdminContestantsPage() {
               Add Contestant
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingContestant ? 'Edit Contestant' : 'Add Contestant'}
@@ -267,7 +267,7 @@ export default function AdminContestantsPage() {
                   : 'Add a new contestant to the season'}
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 overflow-x-hidden">
               <div className="grid gap-2">
                 <Label htmlFor="name">Name *</Label>
                 <Input

@@ -89,8 +89,8 @@ export default async function AdminLayout({
         </div>
 
         {/* Main content */}
-        <main className="flex-1 md:pl-56">
-          <div className="py-6 px-4 sm:px-6 lg:px-8 pb-20 md:pb-6">{children}</div>
+        <main className="flex-1 md:pl-56 min-w-0">
+          <div className="py-6 px-4 sm:px-6 lg:px-8 pb-20 md:pb-6 max-w-full overflow-x-hidden">{children}</div>
         </main>
       </div>
     </div>

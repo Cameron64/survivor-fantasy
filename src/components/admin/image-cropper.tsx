@@ -104,19 +104,32 @@ export function ImageCropper({ value, onChange }: ImageCropperProps) {
       <Label>Contestant Image</Label>
 
       {value && (
-        <div className="relative inline-block">
-          <img
-            src={value}
-            alt="Contestant preview"
-            className="h-24 w-24 rounded-full object-cover border-2 border-border"
-          />
-          <button
+        <div className="flex items-center gap-3">
+          <div className="relative inline-block">
+            <img
+              src={value}
+              alt="Contestant preview"
+              className="h-24 w-24 rounded-full object-cover border-2 border-border"
+            />
+            <button
+              type="button"
+              onClick={clearImage}
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center hover:bg-destructive/90"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <Button
             type="button"
-            onClick={clearImage}
-            className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center hover:bg-destructive/90"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setImageSrc(value)
+              setShowCropDialog(true)
+            }}
           >
-            <X className="h-4 w-4" />
-          </button>
+            Re-crop Image
+          </Button>
         </div>
       )}
 
