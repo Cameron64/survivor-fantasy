@@ -1,16 +1,22 @@
 Set-Location $PSScriptRoot
 
-# Skip if already running — test by trying to lock the log file
-$logFile = "$env:TEMP\survivor-bot.log"
+$pidFile = "$env:TEMP\survivor-bot.pid"
+$bunExe = "$env:APPDATA\npm\node_modules\bun\bin\bun.exe"
 
-try {
-    $stream = [System.IO.File]::Open($logFile, 'Open', 'ReadWrite', 'None')
-    $stream.Close()
-} catch [System.IO.IOException] {
-    # File is locked by another process — bot is already running
-    exit 0
-} catch {
-    # File doesn't exist yet — first run, continue
+# Check if already running via PID file
+if (Test-Path $pidFile) {
+    $savedPid = Get-Content $pidFile -ErrorAction SilentlyContinue
+    if ($savedPid -and (Get-Process -Id $savedPid -ErrorAction SilentlyContinue)) {
+        exit 0
+    }
+    Remove-Item $pidFile -Force
 }
 
-& bun run src/index.ts *>> $logFile
+# Start bot and record PID
+$proc = Start-Process -FilePath $bunExe -ArgumentList "run", "src/index.ts" `
+    -RedirectStandardOutput "$env:TEMP\survivor-bot.log" `
+    -RedirectStandardError "$env:TEMP\survivor-bot-err.log" `
+    -NoNewWindow -PassThru
+
+$proc.Id | Out-File $pidFile -NoNewline
+Write-Host "Bot started (PID: $($proc.Id))"

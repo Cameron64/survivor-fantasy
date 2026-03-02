@@ -99,7 +99,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
     >
       {buffImage && (
         <div
-          className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10]"
+          className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10] pointer-events-none"
           style={{ backgroundImage: `url(${buffImage})` }}
         />
       )}
