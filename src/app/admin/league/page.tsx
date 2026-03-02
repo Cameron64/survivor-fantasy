@@ -3,11 +3,12 @@ export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Trophy } from 'lucide-react'
+import { Settings, Trophy, Eye } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { EVENT_POINTS } from '@/lib/constants/scoring-constants'
 import { EventType } from '@prisma/client'
 import { ScoringConfigForm } from '@/components/admin/scoring-config-form'
+import { PrivacySettingsForm } from '@/components/admin/privacy-settings-form'
 
 async function getLeague() {
   const league = await db.league.findFirst({
@@ -79,6 +80,24 @@ export default async function AdminLeaguePage() {
               No league configured. Run the seed script to create one.
             </p>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye className="h-5 w-5" />
+            Privacy
+          </CardTitle>
+          <CardDescription>
+            Control who can view and interact with the league
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PrivacySettingsForm
+            initialIsPublic={league?.isPublic ?? false}
+            initialAllowGuestEvents={league?.allowGuestEvents ?? false}
+          />
         </CardContent>
       </Card>
 

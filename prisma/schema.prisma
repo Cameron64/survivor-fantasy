@@ -165,6 +165,8 @@ model League {
   isActive       Boolean   @default(true)
   paymentInfo    String? // Admin's preferred payment method
   slackWebhook   String?
+  isPublic         Boolean @default(false) // Allow unauthenticated viewing
+  allowGuestEvents Boolean @default(false) // Let guests submit events (requires isPublic)
   scoringConfig  Json? // Partial<Record<EventType, number>> overrides, null = all defaults
   tribes         Tribe[]
   episodes       Episode[]

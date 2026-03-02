@@ -1,11 +1,13 @@
 import { getCurrentUser } from '@/lib/auth'
+import { auth } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import { calculateTotalPoints, calculatePointsByWeek, getEventTypeLabel } from '@/lib/scoring'
 import { getContestantDisplayName, getValidImageUrl } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Users, Trophy, TrendingUp } from 'lucide-react'
+import { Users, Trophy, TrendingUp, LogIn } from 'lucide-react'
+import Link from 'next/link'
 
 async function getUserTeam(userId: string) {
   const team = await db.team.findUnique({
@@ -39,7 +41,37 @@ async function getUserTeam(userId: string) {
 }
 
 export default async function MyTeamPage() {
-  const user = await getCurrentUser()
+  const { userId } = await auth()
+  const user = userId ? await getCurrentUser() : null
+
+  if (!userId) {
+    return (
+      <div className="space-y-6 pb-20 lg:pb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">My Team</h1>
+          <p className="text-muted-foreground">
+            Your drafted contestants and their scores
+          </p>
+        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <LogIn className="h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-lg font-medium">Sign in to view your team</p>
+            <p className="text-sm text-muted-foreground text-center mb-4">
+              You need an account to see your drafted contestants and scores.
+            </p>
+            <Link
+              href="/sign-in"
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              <LogIn className="h-4 w-4" />
+              Sign In
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   if (!user) {
     return (

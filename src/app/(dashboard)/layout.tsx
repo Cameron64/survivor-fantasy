@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { UserButton } from '@clerk/nextjs'
+import { UserButton, SignInButton } from '@clerk/nextjs'
 import { auth, clerkClient } from '@clerk/nextjs/server'
 import Link from 'next/link'
 import { getCurrentUser } from '@/lib/auth'
@@ -7,6 +7,7 @@ import { db } from '@/lib/db'
 import { Role } from '@prisma/client'
 import { checkSeasonReadiness } from '@/lib/season-readiness'
 import { SeasonSetupGate } from '@/components/shared/season-setup-gate'
+import { getLeagueSettings } from '@/lib/league-settings'
 import Image from 'next/image'
 import {
   Trophy,
@@ -16,6 +17,7 @@ import {
   Shield,
   FlaskConical,
   DatabaseZap,
+  LogIn,
 } from 'lucide-react'
 import { SimulationNavGate } from '@/components/shared/simulation-nav-gate'
 
@@ -64,10 +66,28 @@ export default async function DashboardLayout({
 }) {
   const { userId } = await auth()
 
-  if (!userId) {
+  // Check league privacy settings to decide if guests can view
+  let leagueSettings = { isPublic: false, allowGuestEvents: false }
+  try {
+    leagueSettings = await getLeagueSettings()
+  } catch (error) {
+    if (isDbConnectionError(error)) {
+      return <DatabaseDownPage />
+    }
+    throw error
+  }
+
+  // No user and not public → redirect to sign-in (original behavior)
+  if (!userId && !leagueSettings.isPublic) {
     redirect('/sign-in')
   }
 
+  // Guest mode: no userId but league is public
+  if (!userId) {
+    return <GuestLayout>{children}</GuestLayout>
+  }
+
+  // Authenticated flow (unchanged)
   let user;
   let readiness;
 
@@ -196,6 +216,73 @@ export default async function DashboardLayout({
           {isModerator && (
             <MobileNavLink href="/admin" icon={Shield} label="Admin" />
           )}
+        </div>
+      </nav>
+    </div>
+  )
+}
+
+function GuestLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-background overflow-x-hidden">
+      {/* Mobile Header */}
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
+        <div className="flex h-14 items-center justify-between px-4">
+          <Link href="/leaderboard" className="flex items-center">
+            <Image src="/logo.png" alt="Survivor Fantasy League" width={180} height={120} className="h-11 w-auto" />
+          </Link>
+          <SignInButton mode="modal">
+            <button className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              <LogIn className="h-4 w-4" />
+              Sign In
+            </button>
+          </SignInButton>
+        </div>
+      </header>
+
+      <div className="flex">
+        {/* Desktop Sidebar */}
+        <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r bg-background">
+          <div className="flex flex-col flex-1 min-h-0 pt-5 pb-4">
+            <div className="flex justify-center flex-shrink-0 px-4">
+              <Image src="/logo.png" alt="Survivor Fantasy League" width={224} height={150} className="h-24 w-auto" />
+            </div>
+            <nav className="mt-4 flex-1 px-2 space-y-1">
+              <NavLink href="/leaderboard" icon={Trophy}>
+                Overview
+              </NavLink>
+              <NavLink href="/contestants" icon={Users}>
+                Contestants
+              </NavLink>
+              <NavLink href="/events" icon={Calendar}>
+                Events
+              </NavLink>
+            </nav>
+          </div>
+          <div className="flex-shrink-0 flex border-t p-4">
+            <SignInButton mode="modal">
+              <button className="flex items-center gap-3 w-full rounded-lg px-3 py-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
+                <LogIn className="h-5 w-5" />
+                <span className="text-sm font-medium">Sign In</span>
+              </button>
+            </SignInButton>
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 min-w-0 lg:pl-64">
+          <div className="py-6 px-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* Mobile Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 border-t bg-background lg:hidden z-50">
+        <div className="flex items-center justify-around h-16">
+          <MobileNavLink href="/leaderboard" icon={Trophy} label="Overview" />
+          <MobileNavLink href="/contestants" icon={Users} label="Players" />
+          <MobileNavLink href="/events" icon={Calendar} label="Events" />
         </div>
       </nav>
     </div>

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Send } from 'lucide-react'
 import { getEventTypeLabel } from '@/lib/scoring'
 import type { DerivedEvent } from '@/lib/event-derivation'
-import type { EventTypeTheme } from '@/app/(dashboard)/events/submit/page'
+import type { EventTypeTheme } from '@/app/(dashboard)/events/submit/submit-event-form'
 
 interface EventReviewProps {
   events: DerivedEvent[]

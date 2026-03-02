@@ -242,18 +242,22 @@ export default function EventsPage() {
 
   return (
     <div className="space-y-6 pb-20 lg:pb-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Events</h1>
-          <p className="text-muted-foreground">
-            Game events and scoring history
-          </p>
-        </div>
-        <Button data-testid="log-event-button" onClick={() => router.push('/events/submit')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Log Event
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Events</h1>
+        <p className="text-muted-foreground">
+          Game events and scoring history
+        </p>
       </div>
+
+      {/* Floating action button */}
+      <Button
+        data-testid="log-event-button"
+        onClick={() => router.push('/events/submit')}
+        className="fixed bottom-24 right-5 lg:bottom-8 z-50 h-14 w-14 rounded-full shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 hover:scale-105 transition-all duration-200 p-0"
+      >
+        <Plus className="h-6 w-6" />
+        <span className="sr-only">Log Event</span>
+      </Button>
 
       <Tabs defaultValue="approved">
         <TabsList>
