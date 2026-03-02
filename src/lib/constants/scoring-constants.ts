@@ -33,7 +33,7 @@ export const EVENT_POINTS = {
   // Social & Game
   ZERO_VOTES_RECEIVED: 1,
   SURVIVED_WITH_VOTES: 2,
-  CAUSED_BLINDSIDE: 2,
+  CAUSED_BLINDSIDE: 0, // deprecated — no longer awarded
 
   // Endgame
   MADE_JURY: 5,

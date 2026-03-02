@@ -299,10 +299,5 @@ export function mapSeasonEvents(input: MapperInput): MapperOutput {
     }
   }
 
-  // Note: CAUSED_BLINDSIDE cannot be derived from data
-  warnings.push(
-    'CAUSED_BLINDSIDE events are not included (requires subjective judgment). Simulated scores will slightly undercount.'
-  )
-
   return { events, warnings }
 }

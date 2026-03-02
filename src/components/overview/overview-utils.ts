@@ -13,7 +13,7 @@ export const EVENT_CATEGORIES: Record<
   tribal: {
     label: 'Tribal',
     color: '#d97706',
-    types: ['CORRECT_VOTE', 'ZERO_VOTES_RECEIVED', 'SURVIVED_WITH_VOTES', 'CAUSED_BLINDSIDE'],
+    types: ['CORRECT_VOTE', 'ZERO_VOTES_RECEIVED', 'SURVIVED_WITH_VOTES'],
   },
   idols: {
     label: 'Idols',

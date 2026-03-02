@@ -123,7 +123,7 @@ export function getEventTypesByCategory(): Record<string, EventType[]> {
       'IDOL_FIND',
       'FIRE_MAKING_WIN',
     ],
-    'Social & Game': ['ZERO_VOTES_RECEIVED', 'SURVIVED_WITH_VOTES', 'CAUSED_BLINDSIDE'],
+    'Social & Game': ['ZERO_VOTES_RECEIVED', 'SURVIVED_WITH_VOTES'],
     Endgame: ['MADE_JURY', 'FINALIST', 'WINNER'],
     Deductions: ['VOTED_OUT_WITH_IDOL', 'QUIT'],
     Neutral: ['MEDEVAC'],

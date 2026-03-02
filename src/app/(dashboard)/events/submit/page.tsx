@@ -68,7 +68,7 @@ const EVENT_TYPE_OPTIONS: {
   {
     type: 'TRIBAL_COUNCIL',
     label: 'Tribal Council',
-    description: 'Votes, elimination, blindsides',
+    description: 'Votes, elimination, idols, jury',
     icon: Flame,
   },
   {

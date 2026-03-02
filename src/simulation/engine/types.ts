@@ -12,7 +12,6 @@ export type SimEventType =
   | 'FIRE_MAKING_WIN'
   | 'ZERO_VOTES_RECEIVED'
   | 'SURVIVED_WITH_VOTES'
-  | 'CAUSED_BLINDSIDE'
   | 'MADE_JURY'
   | 'FINALIST'
   | 'WINNER'

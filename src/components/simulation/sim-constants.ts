@@ -14,7 +14,6 @@ export const DEFAULT_BASE_POINTS: Record<SimEventType, number> = {
   FIRE_MAKING_WIN: 5,
   ZERO_VOTES_RECEIVED: 1,
   SURVIVED_WITH_VOTES: 2,
-  CAUSED_BLINDSIDE: 2,
   MADE_JURY: 5,
   FINALIST: 10,
   WINNER: 20,
@@ -33,7 +32,6 @@ export const SIM_EVENT_LABELS: Record<SimEventType, string> = {
   FIRE_MAKING_WIN: 'Fire Making Win',
   ZERO_VOTES_RECEIVED: 'Zero Votes Received',
   SURVIVED_WITH_VOTES: 'Survived with Votes',
-  CAUSED_BLINDSIDE: 'Caused Blindside',
   MADE_JURY: 'Made Jury',
   FINALIST: 'Finalist',
   WINNER: 'Winner',
@@ -44,7 +42,7 @@ export const SIM_EVENT_LABELS: Record<SimEventType, string> = {
 
 export const EVENT_CATEGORIES: Record<string, SimEventType[]> = {
   Challenges: ['INDIVIDUAL_IMMUNITY_WIN', 'REWARD_CHALLENGE_WIN', 'TEAM_CHALLENGE_WIN', 'FIRE_MAKING_WIN'],
-  Tribal: ['CORRECT_VOTE', 'ZERO_VOTES_RECEIVED', 'SURVIVED_WITH_VOTES', 'CAUSED_BLINDSIDE'],
+  Tribal: ['CORRECT_VOTE', 'ZERO_VOTES_RECEIVED', 'SURVIVED_WITH_VOTES'],
   Idols: ['IDOL_FIND', 'IDOL_PLAY_SUCCESS'],
   Endgame: ['MADE_JURY', 'FINALIST', 'WINNER'],
   Penalties: ['VOTED_OUT_WITH_IDOL', 'QUIT'],

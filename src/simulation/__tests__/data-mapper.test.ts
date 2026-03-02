@@ -41,10 +41,9 @@ describe('data-mapper', () => {
   })
 
   describe('mapSeasonEvents', () => {
-    it('returns warning about CAUSED_BLINDSIDE', () => {
+    it('returns no warnings for empty input', () => {
       const { warnings } = mapSeasonEvents(makeInput({}))
-      expect(warnings).toHaveLength(1)
-      expect(warnings[0]).toContain('CAUSED_BLINDSIDE')
+      expect(warnings).toHaveLength(0)
     })
 
     it('maps CORRECT_VOTE when voter target matches voted-out person', () => {

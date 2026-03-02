@@ -63,7 +63,8 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
     ? getGameEventSummary(
         gameEvent.type as GameEventType,
         gameEvent.data as GameEventData,
-        contestantNames
+        contestantNames,
+        gameEvent.events
       )
     : typeLabel
 

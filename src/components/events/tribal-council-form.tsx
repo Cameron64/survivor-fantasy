@@ -33,8 +33,6 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
   const [selectedAttendees, setSelectedAttendees] = useState<Set<string>>(new Set())
   const [votes, setVotes] = useState<Record<string, string>>({})
   const [eliminated, setEliminated] = useState('')
-  const [isBlindside, setIsBlindside] = useState(false)
-  const [blindsideLeader, setBlindsideLeader] = useState('')
   const [idolPlayed, setIdolPlayed] = useState(false)
   const [idolPlayedBy, setIdolPlayedBy] = useState('')
   const [idolSuccessful, setIdolSuccessful] = useState(true)
@@ -121,8 +119,6 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
       attendees: Array.from(selectedAttendees),
       votes,
       eliminated,
-      isBlindside,
-      blindsideLeader: isBlindside ? blindsideLeader : undefined,
       idolPlayed: idolPlayed ? { by: idolPlayedBy, successful: idolSuccessful } : null,
       sentToJury,
     })
@@ -377,42 +373,6 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
             </p>
           </div>
 
-          {/* Blindside */}
-          <Card>
-            <CardContent className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="blindside" className="text-sm font-medium">
-                  Was this a blindside?
-                </Label>
-                <Switch
-                  id="blindside"
-                  data-testid="switch-blindside"
-                  checked={isBlindside}
-                  onCheckedChange={setIsBlindside}
-                />
-              </div>
-              {isBlindside && (
-                <div>
-                  <Label className="text-sm text-muted-foreground">Who led it?</Label>
-                  <Select value={blindsideLeader} onValueChange={setBlindsideLeader}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select blindside leader..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {attendeeList
-                        .filter((c) => c.id !== eliminated)
-                        .map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {getDisplayName(c)}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Idol play */}
           <Card>
             <CardContent className="p-4 space-y-3">
@@ -474,7 +434,6 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
             <Button
               className="flex-1"
               onClick={handleSubmit}
-              disabled={isBlindside && !blindsideLeader}
             >
               Review Events
             </Button>

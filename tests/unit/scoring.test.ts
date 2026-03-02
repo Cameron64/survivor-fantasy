@@ -28,7 +28,7 @@ describe('EVENT_POINTS', () => {
   it('should have correct points for social game events', () => {
     expect(EVENT_POINTS.ZERO_VOTES_RECEIVED).toBe(1)
     expect(EVENT_POINTS.SURVIVED_WITH_VOTES).toBe(2)
-    expect(EVENT_POINTS.CAUSED_BLINDSIDE).toBe(2)
+    expect(EVENT_POINTS.CAUSED_BLINDSIDE).toBe(0) // deprecated
   })
 
   it('should have correct points for endgame events', () => {

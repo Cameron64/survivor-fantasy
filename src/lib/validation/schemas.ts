@@ -68,8 +68,8 @@ const tribalCouncilDataSchema = z.object({
   attendees: z.array(idSchema).min(1, 'At least one attendee required'),
   votes: z.record(z.string(), idSchema),
   eliminated: idSchema,
-  isBlindside: z.boolean(),
-  blindsideLeader: idSchema.optional(),
+  isBlindside: z.boolean().optional(), // deprecated, kept for backward compat
+  blindsideLeader: idSchema.optional(),  // deprecated
   idolPlayed: z
     .object({
       by: idSchema,

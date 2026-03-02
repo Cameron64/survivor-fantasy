@@ -17,8 +17,8 @@ export interface TribalCouncilData {
   attendees: string[] // contestant IDs
   votes: Record<string, string> // voterId -> votedForId
   eliminated: string // contestant ID
-  isBlindside: boolean
-  blindsideLeader?: string // contestant ID
+  isBlindside?: boolean // deprecated, kept for backward compat with existing data
+  blindsideLeader?: string // deprecated
   idolPlayed?: { by: string; successful: boolean } | null
   sentToJury: boolean
 }
@@ -107,7 +107,7 @@ export function deriveEvents(
 
 function deriveTribalCouncil(data: TribalCouncilData, pv?: Record<EventType, number>): DerivedEvent[] {
   const events: DerivedEvent[] = []
-  const { attendees, votes, eliminated, isBlindside, blindsideLeader, idolPlayed, sentToJury } =
+  const { attendees, votes, eliminated, idolPlayed, sentToJury } =
     data
 
   // Count votes received by each attendee
@@ -155,16 +155,6 @@ function deriveTribalCouncil(data: TribalCouncilData, pv?: Record<EventType, num
         description: `Survived tribal council with ${votesReceived[id]} vote(s)`,
       })
     }
-  }
-
-  // CAUSED_BLINDSIDE
-  if (isBlindside && blindsideLeader) {
-    events.push({
-      type: 'CAUSED_BLINDSIDE',
-      contestantId: blindsideLeader,
-      points: resolvePoints('CAUSED_BLINDSIDE', pv),
-      description: 'Led a blindside at tribal council',
-    })
   }
 
   // IDOL_PLAY_SUCCESS
@@ -294,20 +284,35 @@ export function getGameEventTypeLabel(type: GameEventType): string {
 }
 
 /**
- * Get a summary description of a game event from its data
+ * Get a summary description of a game event from its data.
+ *
+ * @param events Optional derived events array — used to resolve contestant names
+ *   when they don't appear in the contestantNames map (e.g. eliminated contestants
+ *   with no scoring events of their own).
  */
 export function getGameEventSummary(
   type: GameEventType,
   data: GameEventData,
-  contestantNames: Record<string, string>
+  contestantNames: Record<string, string>,
+  events?: Array<{ contestant: { id: string; name: string; nickname?: string | null } }>
 ): string {
-  const name = (id: string) => contestantNames[id] || 'Unknown'
+  const name = (id: string) => {
+    if (contestantNames[id]) return contestantNames[id]
+    // Fall back to the derived events' embedded contestant data
+    const found = events?.find((e) => e.contestant.id === id)
+    if (found) {
+      return found.contestant.nickname
+        ? `${found.contestant.nickname} (${found.contestant.name.split(' ')[0]})`
+        : found.contestant.name
+    }
+    return 'Unknown'
+  }
 
   switch (type) {
     case 'TRIBAL_COUNCIL': {
       const d = data as TribalCouncilData
       const eliminatedName = name(d.eliminated)
-      return `${eliminatedName} voted out${d.isBlindside ? ' (blindside)' : ''}${d.sentToJury ? ', sent to jury' : ''}`
+      return `${eliminatedName} voted out${d.sentToJury ? ', sent to jury' : ''}`
     }
     case 'IMMUNITY_CHALLENGE': {
       const d = data as ImmunityChallengeData
