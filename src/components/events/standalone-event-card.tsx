@@ -24,6 +24,7 @@ interface StandaloneEventCardProps {
   contestantNames: Record<string, string>
   contestantAvatars?: ContestantAvatarMap
   isPending?: boolean
+  compact?: boolean
   actions?: ReactNode
 }
 
@@ -31,7 +32,7 @@ function getInitials(name: string): string {
   return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
 }
 
-export function StandaloneEventCard({ event, contestantNames, contestantAvatars, isPending, actions }: StandaloneEventCardProps) {
+export function StandaloneEventCard({ event, contestantNames, contestantAvatars, isPending, compact, actions }: StandaloneEventCardProps) {
   const displayName = contestantNames[event.contestant.id] || event.contestant.name
   const avatar = contestantAvatars?.[event.contestant.id]
   const accentColor = avatar?.tribeColor ?? null
@@ -61,7 +62,7 @@ export function StandaloneEventCard({ event, contestantNames, contestantAvatars,
         <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
           <Clock className="h-4 w-4" />
         </div>
-      ) : (
+      ) : !compact ? (
         <Avatar
           className="h-7 w-7 shrink-0"
           style={avatar?.tribeColor ? { boxShadow: `0 0 0 2px ${avatar.tribeColor}` } : undefined}
@@ -73,7 +74,7 @@ export function StandaloneEventCard({ event, contestantNames, contestantAvatars,
             {getInitials(event.contestant.name)}
           </AvatarFallback>
         </Avatar>
-      )}
+      ) : null}
 
       <div className="flex-1 min-w-0">
         <p className="text-sm leading-snug">

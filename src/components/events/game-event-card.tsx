@@ -88,6 +88,11 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
   const [expanded, setExpanded] = useState(false)
   const totalPoints = gameEvent.events.reduce((sum, e) => sum + e.points, 0)
 
+  // Multi-person events still need a drawer even in compact mode
+  const uniqueContestants = new Set(gameEvent.events.map((e) => e.contestant.id))
+  const isMultiPerson = uniqueContestants.size > 1
+  const suppressDrawer = compact && !isMultiPerson
+
   const Icon = TYPE_ICONS[gameEvent.type] || Flame
   const typeLabel = getGameEventTypeLabel(gameEvent.type as GameEventType)
 
@@ -155,23 +160,11 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
         />
       )}
       <div className="flex items-center">
-        {compact ? (
+        {suppressDrawer ? (
           <div className="flex items-center gap-3 flex-1 min-w-0 p-3">
-            {primaryAvatar?.imageUrl ? (
-              <Avatar
-                className="h-8 w-8 shrink-0"
-                style={primaryAvatar.tribeColor ? { boxShadow: `0 0 0 2px ${primaryAvatar.tribeColor}` } : undefined}
-              >
-                <AvatarImage src={primaryAvatar.imageUrl} alt={primaryName || ''} />
-                <AvatarFallback className="text-[10px]">
-                  {primaryName ? getInitials(primaryName) : <Icon className="h-4 w-4" />}
-                </AvatarFallback>
-              </Avatar>
-            ) : (
-              <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
-                <Icon className="h-4 w-4" />
-              </div>
-            )}
+            <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
+              <Icon className="h-4 w-4" />
+            </div>
 
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm leading-snug">{summary}</p>
@@ -203,6 +196,10 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
                 <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
                   <Clock className="h-4 w-4" />
                 </div>
+              ) : compact ? (
+                <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
+                  <Icon className="h-4 w-4" />
+                </div>
               ) : primaryAvatar?.imageUrl ? (
                 <Avatar
                   className="h-8 w-8 shrink-0"
@@ -220,7 +217,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
               )}
 
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm leading-snug truncate">{summary}</p>
+                <p className={cn('font-medium text-sm leading-snug', !compact && 'truncate')}>{summary}</p>
                 <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}</p>
               </div>
 
@@ -252,7 +249,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
         )}
       </div>
 
-      {!compact && expanded && (
+      {!suppressDrawer && expanded && (
         <div className="border-t px-3 pb-3 pt-2 space-y-1.5 animate-in slide-in-from-top-1 duration-200">
           {gameEvent.events.map((event) => {
             const avatar = contestantAvatars?.[event.contestant.id]
@@ -260,17 +257,19 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
 
             return (
               <div key={event.id} className="flex items-center gap-2 text-sm px-1">
-                <Avatar
-                  className="h-6 w-6 shrink-0"
-                  style={avatar?.tribeColor ? { boxShadow: `0 0 0 2px ${avatar.tribeColor}` } : undefined}
-                >
-                  {avatar?.imageUrl && (
-                    <AvatarImage src={avatar.imageUrl} alt={displayName} />
-                  )}
-                  <AvatarFallback className="text-[10px]">
-                    {getInitials(event.contestant.name)}
-                  </AvatarFallback>
-                </Avatar>
+                {!compact && (
+                  <Avatar
+                    className="h-6 w-6 shrink-0"
+                    style={avatar?.tribeColor ? { boxShadow: `0 0 0 2px ${avatar.tribeColor}` } : undefined}
+                  >
+                    {avatar?.imageUrl && (
+                      <AvatarImage src={avatar.imageUrl} alt={displayName} />
+                    )}
+                    <AvatarFallback className="text-[10px]">
+                      {getInitials(event.contestant.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
                 <span className="text-muted-foreground flex-1 truncate">
                   <span className="font-medium text-foreground">{displayName}</span>
                   {' — '}
@@ -288,9 +287,11 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
               </div>
             )
           })}
-          <p className="text-xs text-muted-foreground pt-1 px-1">
-            Submitted by {gameEvent.submittedBy.name} • {formatRelativeTime(gameEvent.createdAt)}
-          </p>
+          {!compact && (
+            <p className="text-xs text-muted-foreground pt-1 px-1">
+              Submitted by {gameEvent.submittedBy.name} • {formatRelativeTime(gameEvent.createdAt)}
+            </p>
+          )}
         </div>
       )}
     </div>

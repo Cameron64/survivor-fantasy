@@ -72,6 +72,7 @@ export function ThisWeeksEvents({ data }: ThisWeeksEventsProps) {
               event={event}
               contestantNames={contestantNames}
               contestantAvatars={contestantAvatars}
+              compact
             />
           ))}
         </CardContent>
