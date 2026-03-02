@@ -97,6 +97,7 @@ export default async function AdminLeaguePage() {
           <PrivacySettingsForm
             initialIsPublic={league?.isPublic ?? false}
             initialAllowGuestEvents={league?.allowGuestEvents ?? false}
+            initialAllowUserEvents={league?.allowUserEvents ?? true}
           />
         </CardContent>
       </Card>

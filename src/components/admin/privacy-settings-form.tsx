@@ -7,17 +7,20 @@ import { Label } from '@/components/ui/label'
 interface PrivacySettingsFormProps {
   initialIsPublic: boolean
   initialAllowGuestEvents: boolean
+  initialAllowUserEvents: boolean
 }
 
 export function PrivacySettingsForm({
   initialIsPublic,
   initialAllowGuestEvents,
+  initialAllowUserEvents,
 }: PrivacySettingsFormProps) {
   const [isPublic, setIsPublic] = useState(initialIsPublic)
   const [allowGuestEvents, setAllowGuestEvents] = useState(initialAllowGuestEvents)
+  const [allowUserEvents, setAllowUserEvents] = useState(initialAllowUserEvents)
   const [isSaving, setIsSaving] = useState(false)
 
-  const save = async (data: { isPublic?: boolean; allowGuestEvents?: boolean }) => {
+  const save = async (data: { isPublic?: boolean; allowGuestEvents?: boolean; allowUserEvents?: boolean }) => {
     setIsSaving(true)
     try {
       const res = await fetch('/api/league', {
@@ -29,6 +32,7 @@ export function PrivacySettingsForm({
         const result = await res.json()
         setIsPublic(result.isPublic)
         setAllowGuestEvents(result.allowGuestEvents)
+        setAllowUserEvents(result.allowUserEvents)
       }
     } catch (error) {
       console.error('Failed to update privacy settings:', error)
@@ -46,6 +50,11 @@ export function PrivacySettingsForm({
   const handleGuestEventsToggle = (checked: boolean) => {
     setAllowGuestEvents(checked)
     save({ allowGuestEvents: checked })
+  }
+
+  const handleUserEventsToggle = (checked: boolean) => {
+    setAllowUserEvents(checked)
+    save({ allowUserEvents: checked })
   }
 
   return (
@@ -85,6 +94,23 @@ export function PrivacySettingsForm({
           />
         </div>
       )}
+
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <Label htmlFor="user-events" className="text-base font-medium">
+            Allow User Event Submissions
+          </Label>
+          <p className="text-sm text-muted-foreground">
+            Let registered users submit game events. When off, only admins and moderators can submit.
+          </p>
+        </div>
+        <Switch
+          id="user-events"
+          checked={allowUserEvents}
+          onCheckedChange={handleUserEventsToggle}
+          disabled={isSaving}
+        />
+      </div>
     </div>
   )
 }

@@ -3,13 +3,13 @@
 import { StandingsOverview } from './standings-overview'
 import { TopContestants } from './top-contestants'
 import { PlayerDetailCards } from './player-detail-cards'
-import { ActivityFeed } from './activity-feed'
-import type { PlayerStanding, ContestantScore, ApprovedEvent } from './overview-types'
+import { ThisWeeksEvents } from './this-weeks-events'
+import type { PlayerStanding, ContestantScore, WeekEventsData } from './overview-types'
 
 interface OverviewClientProps {
   standings: PlayerStanding[]
   contestants: ContestantScore[]
-  feedEvents: ApprovedEvent[]
+  weekEventsData: WeekEventsData | null
   currentUserId: string | null
   maxScore: number
 }
@@ -17,7 +17,7 @@ interface OverviewClientProps {
 export function OverviewClient({
   standings,
   contestants,
-  feedEvents,
+  weekEventsData,
   currentUserId,
   maxScore,
 }: OverviewClientProps) {
@@ -36,7 +36,7 @@ export function OverviewClient({
           <PlayerDetailCards players={standings} currentUserId={currentUserId} />
         </div>
         <div className="lg:w-1/3">
-          <ActivityFeed events={feedEvents} />
+          <ThisWeeksEvents data={weekEventsData} />
         </div>
       </div>
     </div>

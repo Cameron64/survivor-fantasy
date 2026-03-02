@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireUser, requireUserOrPublic } from '@/lib/auth'
 import { getLeagueScoringConfig } from '@/lib/scoring'
+import { getLeagueSettings } from '@/lib/league-settings'
 import { EventType } from '@prisma/client'
 import { notifyEventSubmitted } from '@/lib/slack'
 import { createEventSchema, eventQuerySchema, formatZodError } from '@/lib/validation'
@@ -70,6 +71,13 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const user = await requireUser()
+
+    // Check if regular users are allowed to submit events
+    const { allowUserEvents } = await getLeagueSettings()
+    if (!allowUserEvents && user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
+      return NextResponse.json({ error: 'Event submissions are currently disabled' }, { status: 403 })
+    }
+
     const body = await req.json()
 
     // Validate request body with Zod

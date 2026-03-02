@@ -9,11 +9,11 @@ import { ScoringInfoDialog } from '@/components/overview/scoring-info-dialog'
 import type {
   PlayerStanding,
   ContestantScore,
-  ApprovedEvent,
+  WeekEventsData,
 } from '@/components/overview/overview-types'
 
 async function getOverviewData() {
-  const [currentUser, teams, recentEvents, allDbContestants] = await Promise.all([
+  const [currentUser, teams, allDbContestants] = await Promise.all([
     getCurrentUser(),
     db.team.findMany({
       include: {
@@ -39,14 +39,6 @@ async function getOverviewData() {
             },
           },
         },
-      },
-    }),
-    db.event.findMany({
-      where: { isApproved: true },
-      orderBy: { createdAt: 'desc' },
-      take: 30,
-      include: {
-        contestant: { select: { name: true, nickname: true } },
       },
     }),
     db.contestant.findMany({
@@ -147,16 +139,115 @@ async function getOverviewData() {
     })
     .sort((a, b) => b.totalPoints - a.totalPoints)
 
-  // Build activity feed
-  const feedEvents: ApprovedEvent[] = recentEvents.map((e) => ({
-    id: e.id,
-    type: e.type,
-    contestantId: e.contestantId,
-    contestantName: getContestantDisplayName(e.contestant),
-    week: e.week,
-    points: e.points,
-    createdAt: e.createdAt.toISOString(),
-  }))
+  // Build "This Week's Events" data — find most recent approved week
+  let weekEventsData: WeekEventsData | null = null
+
+  const latestWeekRow = await db.event.findFirst({
+    where: { isApproved: true },
+    orderBy: { week: 'desc' },
+    select: { week: true },
+  })
+
+  if (latestWeekRow) {
+    const latestWeek = latestWeekRow.week
+
+    const [gameEvents, standaloneEvents, episode] = await Promise.all([
+      db.gameEvent.findMany({
+        where: { isApproved: true, week: latestWeek },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          events: {
+            include: {
+              contestant: { select: { id: true, name: true, nickname: true } },
+            },
+          },
+          submittedBy: { select: { id: true, name: true } },
+          approvedBy: { select: { id: true, name: true } },
+        },
+      }),
+      db.event.findMany({
+        where: { isApproved: true, week: latestWeek, gameEventId: null },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          contestant: {
+            select: {
+              id: true,
+              name: true,
+              nickname: true,
+              imageUrl: true,
+              originalImageUrl: true,
+              tribeMemberships: {
+                where: { toWeek: null },
+                include: { tribe: { select: { name: true, color: true, buffImage: true, isMerge: true } } },
+                take: 1,
+              },
+            },
+          },
+          submittedBy: { select: { id: true, name: true } },
+        },
+      }),
+      db.episode.findFirst({
+        where: { number: latestWeek },
+        select: { title: true },
+      }),
+    ])
+
+    // Build contestant maps from allDbContestants
+    const contestantNames: Record<string, string> = {}
+    const contestantAvatars: WeekEventsData['contestantAvatars'] = {}
+    for (const c of allDbContestants) {
+      const currentTribe = c.tribeMemberships[0]?.tribe ?? null
+      contestantNames[c.id] = getContestantDisplayName(c)
+      contestantAvatars[c.id] = {
+        imageUrl: getValidImageUrl(c.imageUrl, c.originalImageUrl),
+        tribeColor: currentTribe?.color ?? null,
+        tribeBuffImage: currentTribe?.buffImage ?? null,
+        tribeIsMerge: currentTribe?.isMerge ?? null,
+      }
+    }
+
+    // Serialize game events for client
+    const serializedGameEvents = gameEvents.map((ge) => ({
+      kind: 'game-event' as const,
+      id: ge.id,
+      type: ge.type,
+      week: ge.week,
+      data: ge.data,
+      isApproved: ge.isApproved,
+      createdAt: ge.createdAt.toISOString(),
+      events: ge.events.map((e) => ({
+        id: e.id,
+        type: e.type,
+        points: e.points,
+        contestant: { id: e.contestant.id, name: e.contestant.name, nickname: e.contestant.nickname },
+      })),
+      submittedBy: ge.submittedBy,
+      approvedBy: ge.approvedBy,
+    }))
+
+    // Serialize standalone events for client
+    const serializedStandaloneEvents = standaloneEvents.map((e) => ({
+      kind: 'standalone' as const,
+      id: e.id,
+      type: e.type,
+      week: e.week,
+      points: e.points,
+      description: e.description,
+      isApproved: e.isApproved,
+      createdAt: e.createdAt.toISOString(),
+      contestant: { id: e.contestant.id, name: e.contestant.name, nickname: e.contestant.nickname },
+      submittedBy: e.submittedBy,
+    }))
+
+    weekEventsData = {
+      week: latestWeek,
+      episodeTitle: episode?.title ?? null,
+      gameEvents: serializedGameEvents,
+      standaloneEvents: serializedStandaloneEvents,
+      contestantNames,
+      contestantAvatars,
+    }
+  }
 
   const maxScore = standings.length > 0 ? standings[0].totalScore : 0
 
@@ -164,13 +255,13 @@ async function getOverviewData() {
     currentUserId: currentUser?.id ?? null,
     standings,
     contestants: uniqueContestants,
-    feedEvents,
+    weekEventsData,
     maxScore,
   }
 }
 
 export default async function LeaderboardPage() {
-  const { currentUserId, standings, contestants, feedEvents, maxScore } =
+  const { currentUserId, standings, contestants, weekEventsData, maxScore } =
     await getOverviewData()
 
   if (standings.length === 0) {
@@ -213,7 +304,7 @@ export default async function LeaderboardPage() {
       <OverviewClient
         standings={standings}
         contestants={contestants}
-        feedEvents={feedEvents}
+        weekEventsData={weekEventsData}
         currentUserId={currentUserId}
         maxScore={maxScore}
       />

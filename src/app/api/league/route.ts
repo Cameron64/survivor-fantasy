@@ -10,7 +10,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { isPublic, allowGuestEvents } = body
+  const { isPublic, allowGuestEvents, allowUserEvents } = body
 
   const league = await db.league.findFirst()
   if (!league) {
@@ -20,6 +20,7 @@ export async function PATCH(req: NextRequest) {
   const data: Record<string, boolean> = {}
   if (typeof isPublic === 'boolean') data.isPublic = isPublic
   if (typeof allowGuestEvents === 'boolean') data.allowGuestEvents = allowGuestEvents
+  if (typeof allowUserEvents === 'boolean') data.allowUserEvents = allowUserEvents
 
   // If turning off public mode, also disable guest events
   if (isPublic === false) data.allowGuestEvents = false
@@ -32,5 +33,6 @@ export async function PATCH(req: NextRequest) {
   return NextResponse.json({
     isPublic: updated.isPublic,
     allowGuestEvents: updated.allowGuestEvents,
+    allowUserEvents: updated.allowUserEvents,
   })
 }
