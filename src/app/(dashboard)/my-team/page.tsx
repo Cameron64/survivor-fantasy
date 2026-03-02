@@ -1,7 +1,7 @@
 import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { calculateTotalPoints, calculatePointsByWeek, getEventTypeLabel } from '@/lib/scoring'
-import { getContestantDisplayName } from '@/lib/utils'
+import { getContestantDisplayName, getValidImageUrl } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -139,8 +139,8 @@ export default async function MyTeamPage() {
                           return color ? { boxShadow: `0 0 0 2px ${color}` } : undefined
                         })()}
                       >
-                        {tc.contestant.imageUrl && (
-                          <AvatarImage src={tc.contestant.imageUrl} alt={getContestantDisplayName(tc.contestant)} />
+                        {getValidImageUrl(tc.contestant.imageUrl, tc.contestant.originalImageUrl) && (
+                          <AvatarImage src={getValidImageUrl(tc.contestant.imageUrl, tc.contestant.originalImageUrl)!} alt={getContestantDisplayName(tc.contestant)} />
                         )}
                         <AvatarFallback className="text-lg">
                           {tc.contestant.name.split(' ').map(n => n[0]).join('')}

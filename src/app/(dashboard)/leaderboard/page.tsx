@@ -1,7 +1,7 @@
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
 import { calculateTotalPoints } from '@/lib/scoring'
-import { getContestantDisplayName } from '@/lib/utils'
+import { getContestantDisplayName, getValidImageUrl } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Trophy } from 'lucide-react'
 import { OverviewClient } from '@/components/overview/overview-client'
@@ -85,7 +85,7 @@ async function getOverviewData() {
           name: c.name,
           nickname: c.nickname ?? null,
           displayName: getContestantDisplayName(c),
-          imageUrl: c.imageUrl,
+          imageUrl: getValidImageUrl(c.imageUrl, c.originalImageUrl),
           isEliminated: c.isEliminated,
           totalPoints,
           tribeColor: currentTribe?.color ?? null,
@@ -133,7 +133,7 @@ async function getOverviewData() {
         name: c.name,
         nickname: c.nickname ?? null,
         displayName: getContestantDisplayName(c),
-        imageUrl: c.imageUrl,
+        imageUrl: getValidImageUrl(c.imageUrl, c.originalImageUrl),
         isEliminated: c.isEliminated,
         totalPoints,
         tribeColor: currentTribe?.color ?? null,

@@ -40,6 +40,16 @@ export function getContestantDisplayName(c: { name: string; nickname?: string | 
   return c.name
 }
 
+/** Returns a usable image URL, filtering out ephemeral blob: URLs */
+export function getValidImageUrl(
+  imageUrl?: string | null,
+  originalImageUrl?: string | null
+): string | null {
+  if (imageUrl && !imageUrl.startsWith('blob:')) return imageUrl
+  if (originalImageUrl && !originalImageUrl.startsWith('blob:')) return originalImageUrl
+  return null
+}
+
 export function slugify(text: string): string {
   return text
     .trim()

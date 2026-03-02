@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireUser, requireAdmin } from '@/lib/auth'
+import { getValidImageUrl } from '@/lib/utils'
 import { createContestantSchema, contestantQuerySchema, formatZodError } from '@/lib/validation'
 
 // GET /api/contestants - List all contestants
@@ -62,7 +63,13 @@ export async function GET(req: NextRequest) {
       orderBy: { name: 'asc' },
     })
 
-    return NextResponse.json(contestants)
+    // Sanitize blob: URLs that are no longer valid
+    const sanitized = contestants.map((c) => ({
+      ...c,
+      imageUrl: getValidImageUrl(c.imageUrl, c.originalImageUrl),
+    }))
+
+    return NextResponse.json(sanitized)
   } catch (error) {
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

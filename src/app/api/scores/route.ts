@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireUser } from '@/lib/auth'
+import { getValidImageUrl } from '@/lib/utils'
 import { calculateTotalPoints, calculatePointsByWeek } from '@/lib/scoring'
 
 // GET /api/scores - Get leaderboard with scores
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
             id: tc.contestant.id,
             name: tc.contestant.name,
             tribe: tc.contestant.tribe,
-            imageUrl: tc.contestant.imageUrl,
+            imageUrl: getValidImageUrl(tc.contestant.imageUrl, tc.contestant.originalImageUrl),
             isEliminated: tc.contestant.isEliminated,
           },
           draftOrder: tc.draftOrder,

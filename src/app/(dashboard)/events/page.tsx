@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Calendar, Plus, Clock } from 'lucide-react'
-import { getContestantDisplayName } from '@/lib/utils'
+import { getContestantDisplayName, getValidImageUrl } from '@/lib/utils'
 import { WeekGroup, type TimelineItem, type WeekData } from '@/components/events/week-group'
 import { GameEventCard } from '@/components/events/game-event-card'
 import { StandaloneEventCard } from '@/components/events/standalone-event-card'
@@ -108,7 +108,7 @@ export default function EventsPage() {
       if (!names[c.id]) {
         names[c.id] = getContestantDisplayName(c)
         avatars[c.id] = {
-          imageUrl: c.imageUrl,
+          imageUrl: getValidImageUrl(c.imageUrl),
           tribeColor: c.tribeMemberships?.[0]?.tribe.color ?? null,
           tribeBuffImage: c.tribeMemberships?.[0]?.tribe.buffImage ?? null,
           tribeIsMerge: c.tribeMemberships?.[0]?.tribe.isMerge ?? null,

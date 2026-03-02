@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import { calculateTotalPoints } from '@/lib/scoring'
+import { getValidImageUrl } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -36,6 +37,7 @@ async function getContestants() {
 
   return contestants.map((c) => ({
     ...c,
+    imageUrl: getValidImageUrl(c.imageUrl, c.originalImageUrl),
     totalPoints: calculateTotalPoints(c.events),
     draftedBy: c.teams[0]?.team.user || null,
     currentTribe: c.tribeMemberships[0]?.tribe || null,

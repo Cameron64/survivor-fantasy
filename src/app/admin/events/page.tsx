@@ -17,7 +17,7 @@ import { Check, Trash2 } from 'lucide-react'
 import { getEventTypeLabel } from '@/lib/scoring'
 import { getGameEventTypeLabel } from '@/lib/event-derivation'
 import { EventType, GameEventType } from '@prisma/client'
-import { getContestantDisplayName } from '@/lib/utils'
+import { getContestantDisplayName, getValidImageUrl } from '@/lib/utils'
 import { GameEventCard } from '@/components/events/game-event-card'
 import { StandaloneEventCard } from '@/components/events/standalone-event-card'
 import type { ContestantAvatarMap } from '@/components/events/week-group'
@@ -110,7 +110,7 @@ export default function AdminEventsPage() {
       if (!names[c.id]) {
         names[c.id] = getContestantDisplayName(c)
         avatars[c.id] = {
-          imageUrl: c.imageUrl,
+          imageUrl: getValidImageUrl(c.imageUrl),
           tribeColor: c.tribeMemberships?.[0]?.tribe.color ?? null,
           tribeBuffImage: c.tribeMemberships?.[0]?.tribe.buffImage ?? null,
           tribeIsMerge: c.tribeMemberships?.[0]?.tribe.isMerge ?? null,
