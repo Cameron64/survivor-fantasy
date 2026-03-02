@@ -5,6 +5,7 @@ import { getContestantDisplayName, getValidImageUrl } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Trophy } from 'lucide-react'
 import { OverviewClient } from '@/components/overview/overview-client'
+import { ScoringInfoDialog } from '@/components/overview/scoring-info-dialog'
 import type {
   PlayerStanding,
   ContestantScore,
@@ -175,11 +176,14 @@ export default async function LeaderboardPage() {
   if (standings.length === 0) {
     return (
       <div className="space-y-6 pb-20 lg:pb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
-          <p className="text-muted-foreground">
-            Season 50 Fantasy League
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
+            <p className="text-muted-foreground">
+              Season 50 Fantasy League
+            </p>
+          </div>
+          <ScoringInfoDialog />
         </div>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
@@ -196,11 +200,14 @@ export default async function LeaderboardPage() {
 
   return (
     <div className="space-y-6 pb-20 lg:pb-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
-        <p className="text-muted-foreground">
-          Season 50 Fantasy League
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
+          <p className="text-muted-foreground">
+            Season 50 Fantasy League
+          </p>
+        </div>
+        <ScoringInfoDialog />
       </div>
 
       <OverviewClient
