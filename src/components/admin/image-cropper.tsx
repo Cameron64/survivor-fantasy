@@ -85,17 +85,13 @@ export function ImageCropper({ value, originalValue, onChange, onOriginalChange 
         croppedAreaPixels.height
       )
 
-      // Convert to blob and create URL
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const croppedUrl = URL.createObjectURL(blob)
-          onChange(croppedUrl)
-          setShowCropDialog(false)
-          setImageSrc(null)
-          setCrop({ x: 0, y: 0 })
-          setZoom(1)
-        }
-      }, 'image/jpeg', 0.95)
+      // Convert to data URL so it persists across sessions
+      const croppedUrl = canvas.toDataURL('image/jpeg', 0.95)
+      onChange(croppedUrl)
+      setShowCropDialog(false)
+      setImageSrc(null)
+      setCrop({ x: 0, y: 0 })
+      setZoom(1)
     } catch (error) {
       console.error('Error creating cropped image:', error)
     }
