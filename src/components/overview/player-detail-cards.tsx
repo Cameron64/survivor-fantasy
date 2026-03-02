@@ -122,12 +122,31 @@ export function PlayerDetailCards({ players, currentUserId }: PlayerDetailCardsP
                     </div>
                   </div>
                 </div>
-                <ChevronDown
-                  className={cn(
-                    'h-4 w-4 text-muted-foreground transition-transform duration-200',
-                    isExpanded && 'rotate-180'
-                  )}
-                />
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-1.5">
+                    {player.contestants
+                      .slice()
+                      .sort((a, b) => (a.isEliminated === b.isEliminated ? 0 : a.isEliminated ? 1 : -1))
+                      .map((c) => (
+                        <img
+                          key={c.id}
+                          src={c.imageUrl || '/placeholder-avatar.png'}
+                          alt={c.displayName}
+                          title={c.displayName}
+                          className={cn(
+                            'h-7 w-7 rounded-full object-cover ring-1 ring-background',
+                            c.isEliminated && 'grayscale opacity-40',
+                          )}
+                        />
+                      ))}
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      'h-4 w-4 text-muted-foreground transition-transform duration-200',
+                      isExpanded && 'rotate-180'
+                    )}
+                  />
+                </div>
               </button>
 
               {isExpanded && (
