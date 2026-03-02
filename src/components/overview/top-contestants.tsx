@@ -44,10 +44,11 @@ export function TopContestants({ contestants }: TopContestantsProps) {
           <Card
             key={c.id}
             className={cn(
-              'relative overflow-hidden',
+              'relative overflow-hidden animate-card-enter',
               c.isEliminated && 'opacity-60'
             )}
             style={{
+              animationDelay: `${idx * 60}ms`,
               borderLeftWidth: '3px',
               borderLeftColor: c.tribeColor || 'transparent',
             }}
@@ -75,7 +76,7 @@ export function TopContestants({ contestants }: TopContestantsProps) {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1">
                     {idx < 3 && <Star className="h-3 w-3 text-yellow-500 shrink-0" />}
-                    <p className="font-medium text-sm truncate">{c.displayName}</p>
+                    <p className="font-medium text-sm truncate">{c.nickname || c.name.split(' ')[0]}</p>
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="text-lg font-bold tabular-nums">{c.totalPoints}</span>
@@ -88,7 +89,7 @@ export function TopContestants({ contestants }: TopContestantsProps) {
                   )}
                   {c.draftedBy && (
                     <p className="text-[11px] text-muted-foreground mt-1 truncate">
-                      {c.draftedBy}
+                      {c.draftedBy.split(' ')[0]}
                     </p>
                   )}
                 </div>
