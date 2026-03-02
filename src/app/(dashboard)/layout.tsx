@@ -17,6 +17,7 @@ import {
   FlaskConical,
   DatabaseZap,
 } from 'lucide-react'
+import { SimulationNavGate } from '@/components/shared/simulation-nav-gate'
 
 function DatabaseDownPage() {
   return (
@@ -154,9 +155,11 @@ export default async function DashboardLayout({
                   Admin
                 </NavLink>
               )}
-              <NavLink href="/simulation" icon={FlaskConical}>
-                Simulation
-              </NavLink>
+              <SimulationNavGate>
+                <NavLink href="/simulation" icon={FlaskConical}>
+                  Simulation
+                </NavLink>
+              </SimulationNavGate>
             </nav>
           </div>
           <div className="flex-shrink-0 flex border-t p-4">
@@ -186,7 +189,9 @@ export default async function DashboardLayout({
           <MobileNavLink href="/leaderboard" icon={Trophy} label="Overview" />
           <MobileNavLink href="/my-team" icon={Users} label="Team" />
           <MobileNavLink href="/events" icon={Calendar} label="Events" />
-          <MobileNavLink href="/simulation" icon={FlaskConical} label="Sim" />
+          <SimulationNavGate>
+            <MobileNavLink href="/simulation" icon={FlaskConical} label="Sim" />
+          </SimulationNavGate>
           <MobileNavLink href="/settings" icon={Settings} label="Settings" />
           {isModerator && (
             <MobileNavLink href="/admin" icon={Shield} label="Admin" />

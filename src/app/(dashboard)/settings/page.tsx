@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Settings, Share2, Trash2, RefreshCw, Copy, Check, Bug } from 'lucide-react'
+import { Switch } from '@/components/ui/switch'
+import { Settings, Share2, Trash2, RefreshCw, Copy, Check, Bug, FlaskConical } from 'lucide-react'
 
 interface UserData {
   id: string
@@ -23,10 +24,12 @@ export default function SettingsPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isSwitchingRole, setIsSwitchingRole] = useState(false)
+  const [showSimulation, setShowSimulation] = useState(false)
   const isDev = process.env.NODE_ENV === 'development'
 
   useEffect(() => {
     fetchUser()
+    setShowSimulation(localStorage.getItem('showSimulation') === 'true')
   }, [])
 
   const fetchUser = async () => {
@@ -65,6 +68,21 @@ export default function SettingsPage() {
     await navigator.clipboard.writeText(inviteUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const toggleSimulation = (checked: boolean) => {
+    setShowSimulation(checked)
+    if (checked) {
+      localStorage.setItem('showSimulation', 'true')
+    } else {
+      localStorage.removeItem('showSimulation')
+    }
+    window.dispatchEvent(
+      new StorageEvent('storage', {
+        key: 'showSimulation',
+        newValue: checked ? 'true' : null,
+      })
+    )
   }
 
   const clearCache = async () => {
@@ -209,6 +227,31 @@ export default function SettingsPage() {
               <Trash2 className="h-4 w-4 mr-2" />
               Clear Cache
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Preferences */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FlaskConical className="h-5 w-5" />
+            Preferences
+          </CardTitle>
+          <CardDescription>Customize your experience</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Show Simulation Tools</p>
+              <p className="text-sm text-muted-foreground">
+                Enable simulation tools in the navigation
+              </p>
+            </div>
+            <Switch
+              checked={showSimulation}
+              onCheckedChange={toggleSimulation}
+            />
           </div>
         </CardContent>
       </Card>
