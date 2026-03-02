@@ -57,13 +57,17 @@ let _env: z.infer<typeof envSchema> | undefined
 let _validationAttempted = false
 
 function getEnv(): z.infer<typeof envSchema> {
+  // Skip validation in browser (client-side) - env vars don't exist there
+  if (typeof window !== 'undefined') {
+    return process.env as unknown as z.infer<typeof envSchema>
+  }
+
   // Skip validation during build/compile phase (Next.js build, tsc, etc.)
   // Railway doesn't make runtime env vars available during build
   const isBuildPhase =
-    typeof window === 'undefined' &&
-    (!process.env.DATABASE_URL ||
-      process.env.NEXT_PHASE === 'phase-production-build' ||
-      process.env.npm_lifecycle_event === 'build')
+    !process.env.DATABASE_URL ||
+    process.env.NEXT_PHASE === 'phase-production-build' ||
+    process.env.npm_lifecycle_event === 'build'
 
   if (isBuildPhase) {
     return process.env as unknown as z.infer<typeof envSchema>
