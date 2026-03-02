@@ -100,7 +100,7 @@ export function PlayerDetailCards({ players, currentUserId }: PlayerDetailCardsP
               <button
                 onClick={() => toggle(player.teamId)}
                 className={cn(
-                  'w-full flex items-center justify-between p-3 text-left transition-colors',
+                  'w-full flex text-left transition-colors',
                   isTopThree && !isCurrentUser
                     ? player.rank === 1
                       ? 'hover:bg-yellow-500/5'
@@ -110,35 +110,48 @@ export function PlayerDetailCards({ players, currentUserId }: PlayerDetailCardsP
                     : 'hover:bg-accent/50',
                 )}
               >
-                <div className="flex items-center gap-2.5">
-                  <RankBadge rank={player.rank} />
-                  <div>
-                    <span className="font-semibold text-sm">
-                      {player.userName.split(' ')[0]}
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-lg font-bold tabular-nums">{player.totalScore}</span>
-                      <span className="text-xs text-muted-foreground">pts</span>
-                    </div>
-                  </div>
+                {/* Contestant photo slivers */}
+                <div className="flex shrink-0 self-stretch">
+                  {player.contestants
+                    .slice()
+                    .sort((a, b) => (a.isEliminated === b.isEliminated ? 0 : a.isEliminated ? 1 : -1))
+                    .map((c) => (
+                      <div
+                        key={c.id}
+                        className={cn(
+                          'relative w-8 sm:w-10 bg-muted',
+                          c.isEliminated && 'grayscale opacity-40',
+                        )}
+                        title={c.displayName}
+                      >
+                        {c.imageUrl ? (
+                          <img
+                            src={c.imageUrl}
+                            alt={c.displayName}
+                            className="absolute inset-0 w-full h-full object-cover object-top"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground font-medium text-[10px]">
+                            {c.name.split(' ').map((w) => w[0]).join('').slice(0, 2)}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-1.5">
-                    {player.contestants
-                      .slice()
-                      .sort((a, b) => (a.isEliminated === b.isEliminated ? 0 : a.isEliminated ? 1 : -1))
-                      .map((c) => (
-                        <img
-                          key={c.id}
-                          src={c.imageUrl || '/placeholder-avatar.png'}
-                          alt={c.displayName}
-                          title={c.displayName}
-                          className={cn(
-                            'h-7 w-7 rounded-full object-cover ring-1 ring-background',
-                            c.isEliminated && 'grayscale opacity-40',
-                          )}
-                        />
-                      ))}
+
+                {/* Player info + chevron */}
+                <div className="flex-1 flex items-center justify-between p-3">
+                  <div className="flex items-center gap-2.5">
+                    <RankBadge rank={player.rank} />
+                    <div>
+                      <span className="font-semibold text-sm">
+                        {player.userName.split(' ')[0]}
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-lg font-bold tabular-nums">{player.totalScore}</span>
+                        <span className="text-xs text-muted-foreground">pts</span>
+                      </div>
+                    </div>
                   </div>
                   <ChevronDown
                     className={cn(

@@ -63,6 +63,7 @@ export function ThisWeeksEvents({ data }: ThisWeeksEventsProps) {
               gameEvent={ge}
               contestantNames={contestantNames}
               contestantAvatars={contestantAvatars}
+              compact
             />
           ))}
           {standaloneEvents.map((event) => (

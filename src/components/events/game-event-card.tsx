@@ -74,6 +74,8 @@ interface GameEventCardProps {
   contestantNames: Record<string, string>
   contestantAvatars?: ContestantAvatarMap
   isPending?: boolean
+  /** Hide expand drawer + submitted-by info (for overview cards) */
+  compact?: boolean
   /** Optional action buttons rendered in the header (e.g. approve/reject for admin) */
   actions?: ReactNode
 }
@@ -82,7 +84,7 @@ function getInitials(name: string): string {
   return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
 }
 
-export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, isPending, actions }: GameEventCardProps) {
+export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, isPending, compact, actions }: GameEventCardProps) {
   const [expanded, setExpanded] = useState(false)
   const totalPoints = gameEvent.events.reduce((sum, e) => sum + e.points, 0)
 
@@ -153,67 +155,104 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
         />
       )}
       <div className="flex items-center">
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setExpanded(!expanded)
-          }}
-          className="flex items-center gap-3 flex-1 min-w-0 text-left p-3 hover:bg-accent/50 transition-colors rounded-lg"
-        >
-          {isPending ? (
-            <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
-              <Clock className="h-4 w-4" />
-            </div>
-          ) : primaryAvatar?.imageUrl ? (
-            <Avatar
-              className="h-8 w-8 shrink-0"
-              style={primaryAvatar.tribeColor ? { boxShadow: `0 0 0 2px ${primaryAvatar.tribeColor}` } : undefined}
-            >
-              <AvatarImage src={primaryAvatar.imageUrl} alt={primaryName || ''} />
-              <AvatarFallback className="text-[10px]">
-                {primaryName ? getInitials(primaryName) : <Icon className="h-4 w-4" />}
-              </AvatarFallback>
-            </Avatar>
-          ) : (
-            <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
-              <Icon className="h-4 w-4" />
-            </div>
-          )}
+        {compact ? (
+          <div className="flex items-center gap-3 flex-1 min-w-0 p-3">
+            {primaryAvatar?.imageUrl ? (
+              <Avatar
+                className="h-8 w-8 shrink-0"
+                style={primaryAvatar.tribeColor ? { boxShadow: `0 0 0 2px ${primaryAvatar.tribeColor}` } : undefined}
+              >
+                <AvatarImage src={primaryAvatar.imageUrl} alt={primaryName || ''} />
+                <AvatarFallback className="text-[10px]">
+                  {primaryName ? getInitials(primaryName) : <Icon className="h-4 w-4" />}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
+                <Icon className="h-4 w-4" />
+              </div>
+            )}
 
-          <div className="flex-1 min-w-0">
-            <p className="font-medium text-sm leading-snug truncate">{summary}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}</p>
-          </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm leading-snug">{summary}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}</p>
+            </div>
 
-          <div className="flex items-center gap-2 shrink-0">
             <span
               className={cn(
-                'text-sm font-semibold tabular-nums',
+                'text-sm font-semibold tabular-nums shrink-0',
                 totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
               )}
             >
               {totalPoints > 0 ? '+' : ''}
               {totalPoints}
             </span>
-            <ChevronDown
-              className={cn(
-                'h-4 w-4 text-muted-foreground transition-transform duration-200',
-                expanded && 'rotate-180'
+          </div>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setExpanded(!expanded)
+              }}
+              className="flex items-center gap-3 flex-1 min-w-0 text-left p-3 hover:bg-accent/50 transition-colors rounded-lg"
+            >
+              {isPending ? (
+                <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
+                  <Clock className="h-4 w-4" />
+                </div>
+              ) : primaryAvatar?.imageUrl ? (
+                <Avatar
+                  className="h-8 w-8 shrink-0"
+                  style={primaryAvatar.tribeColor ? { boxShadow: `0 0 0 2px ${primaryAvatar.tribeColor}` } : undefined}
+                >
+                  <AvatarImage src={primaryAvatar.imageUrl} alt={primaryName || ''} />
+                  <AvatarFallback className="text-[10px]">
+                    {primaryName ? getInitials(primaryName) : <Icon className="h-4 w-4" />}
+                  </AvatarFallback>
+                </Avatar>
+              ) : (
+                <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
+                  <Icon className="h-4 w-4" />
+                </div>
               )}
-            />
-          </div>
-        </button>
 
-        {actions && (
-          <div className="flex items-center gap-1 pr-3 shrink-0">
-            {actions}
-          </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm leading-snug truncate">{summary}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}</p>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <span
+                  className={cn(
+                    'text-sm font-semibold tabular-nums',
+                    totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
+                  )}
+                >
+                  {totalPoints > 0 ? '+' : ''}
+                  {totalPoints}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    'h-4 w-4 text-muted-foreground transition-transform duration-200',
+                    expanded && 'rotate-180'
+                  )}
+                />
+              </div>
+            </button>
+
+            {actions && (
+              <div className="flex items-center gap-1 pr-3 shrink-0">
+                {actions}
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {expanded && (
+      {!compact && expanded && (
         <div className="border-t px-3 pb-3 pt-2 space-y-1.5 animate-in slide-in-from-top-1 duration-200">
           {gameEvent.events.map((event) => {
             const avatar = contestantAvatars?.[event.contestant.id]
