@@ -83,6 +83,8 @@ export default async function AdminLayout({
                 <MobileAdminNavLink href="/admin/contestants" icon={Users} label="Players" />
                 <MobileAdminNavLink href="/admin/tribes" icon={Palette} label="Tribes" />
                 <MobileAdminNavLink href="/admin/episodes" icon={CalendarDays} label="Episodes" />
+                <MobileAdminNavLink href="/admin/draft" icon={Trophy} label="Draft" />
+                <MobileAdminNavLink href="/admin/league" icon={Settings} label="League" />
               </>
             )}
           </div>
