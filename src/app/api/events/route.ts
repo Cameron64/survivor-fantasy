@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireUser } from '@/lib/auth'
+import { requireUser, requireUserOrPublic } from '@/lib/auth'
 import { getLeagueScoringConfig } from '@/lib/scoring'
 import { EventType } from '@prisma/client'
 import { notifyEventSubmitted } from '@/lib/slack'
@@ -9,7 +9,7 @@ import { createEventSchema, eventQuerySchema, formatZodError } from '@/lib/valid
 // GET /api/events - List events
 export async function GET(req: NextRequest) {
   try {
-    await requireUser()
+    await requireUserOrPublic()
     const searchParams = req.nextUrl.searchParams
 
     // Validate query parameters (convert null to undefined for Zod)

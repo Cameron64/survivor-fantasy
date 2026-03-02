@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireUser } from '@/lib/auth'
+import { requireUser, requireUserOrPublic } from '@/lib/auth'
 import { deriveEvents } from '@/lib/event-derivation'
 import { getLeagueScoringConfig } from '@/lib/scoring'
 import { notifyGameEventSubmitted } from '@/lib/slack'
@@ -9,7 +9,7 @@ import { createGameEventSchema, formatZodError } from '@/lib/validation'
 // GET /api/game-events - List game events
 export async function GET(req: NextRequest) {
   try {
-    await requireUser()
+    await requireUserOrPublic()
     const searchParams = req.nextUrl.searchParams
 
     const week = searchParams.get('week')

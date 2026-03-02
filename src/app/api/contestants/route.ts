@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireUser, requireAdmin } from '@/lib/auth'
+import { requireUserOrPublic, requireAdmin } from '@/lib/auth'
 import { getValidImageUrl } from '@/lib/utils'
 import { createContestantSchema, contestantQuerySchema, formatZodError } from '@/lib/validation'
 
 // GET /api/contestants - List all contestants
 export async function GET(req: NextRequest) {
   try {
-    await requireUser()
+    await requireUserOrPublic()
 
     const searchParams = req.nextUrl.searchParams
 

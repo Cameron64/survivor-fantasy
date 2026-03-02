@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireUser, requireAdmin } from '@/lib/auth'
+import { requireUserOrPublic, requireAdmin } from '@/lib/auth'
 import { getEffectivePoints } from '@/lib/scoring'
 import { EVENT_POINTS } from '@/lib/constants/scoring-constants'
 import { EventType, Prisma } from '@prisma/client'
@@ -8,7 +8,7 @@ import { EventType, Prisma } from '@prisma/client'
 // GET /api/league/scoring - Returns effective point values (merged defaults + overrides)
 export async function GET() {
   try {
-    await requireUser()
+    await requireUserOrPublic()
 
     const league = await db.league.findFirst({
       where: { isActive: true },

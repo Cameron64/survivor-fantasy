@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireUser } from '@/lib/auth'
+import { requireUserOrPublic } from '@/lib/auth'
 import { getValidImageUrl } from '@/lib/utils'
 import { calculateTotalPoints, calculatePointsByWeek } from '@/lib/scoring'
 
 // GET /api/scores - Get leaderboard with scores
 export async function GET(req: NextRequest) {
   try {
-    await requireUser()
+    await requireUserOrPublic()
 
     const searchParams = req.nextUrl.searchParams
     const week = searchParams.get('week')

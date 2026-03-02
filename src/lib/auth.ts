@@ -80,6 +80,23 @@ export async function requireUser() {
 }
 
 /**
+ * Require a user OR allow access if the league is public.
+ * Returns the user if authenticated, or null for public guest access.
+ * Throws 'Unauthorized' if neither authenticated nor public.
+ */
+export async function requireUserOrPublic() {
+  const user = await getCurrentUser()
+  if (user) return user
+
+  const league = await db.league.findFirst({
+    select: { isPublic: true },
+  })
+  if (league?.isPublic) return null
+
+  throw new Error('Unauthorized')
+}
+
+/**
  * Check if the current user has admin role
  */
 export async function isAdmin(): Promise<boolean> {

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { requireUser, requireAdmin } from '@/lib/auth'
+import { requireUserOrPublic, requireAdmin } from '@/lib/auth'
 
 // GET /api/episodes - List episodes for active league
 export async function GET() {
   try {
-    await requireUser()
+    await requireUserOrPublic()
 
     const league = await db.league.findFirst({
       where: { isActive: true },
