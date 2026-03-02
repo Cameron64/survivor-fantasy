@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import Link from 'next/link'
-import { Shield, Users, Calendar, Settings, Trophy, ArrowLeft, Palette, CalendarDays } from 'lucide-react'
+import { Shield, Users, Calendar, Settings, Trophy, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default async function AdminLayout({
@@ -52,15 +52,6 @@ export default async function AdminLayout({
                 <AdminNavLink href="/admin/users" icon={Users}>
                   Users
                 </AdminNavLink>
-                <AdminNavLink href="/admin/contestants" icon={Users}>
-                  Contestants
-                </AdminNavLink>
-                <AdminNavLink href="/admin/tribes" icon={Palette}>
-                  Tribes
-                </AdminNavLink>
-                <AdminNavLink href="/admin/episodes" icon={CalendarDays}>
-                  Episodes
-                </AdminNavLink>
                 <AdminNavLink href="/admin/draft" icon={Trophy}>
                   Draft
                 </AdminNavLink>
@@ -80,9 +71,6 @@ export default async function AdminLayout({
             {isAdmin && (
               <>
                 <MobileAdminNavLink href="/admin/users" icon={Users} label="Users" />
-                <MobileAdminNavLink href="/admin/contestants" icon={Users} label="Players" />
-                <MobileAdminNavLink href="/admin/tribes" icon={Palette} label="Tribes" />
-                <MobileAdminNavLink href="/admin/episodes" icon={CalendarDays} label="Episodes" />
                 <MobileAdminNavLink href="/admin/draft" icon={Trophy} label="Draft" />
                 <MobileAdminNavLink href="/admin/league" icon={Settings} label="League" />
               </>
