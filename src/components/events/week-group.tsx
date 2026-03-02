@@ -112,6 +112,7 @@ export function WeekGroup({ weekData, isExpanded, onToggle, contestantNames, con
                 gameEvent={item}
                 contestantNames={contestantNames}
                 contestantAvatars={contestantAvatars}
+                compact
               />
             ) : (
               <StandaloneEventCard
@@ -119,6 +120,7 @@ export function WeekGroup({ weekData, isExpanded, onToggle, contestantNames, con
                 event={item}
                 contestantNames={contestantNames}
                 contestantAvatars={contestantAvatars}
+                compact
               />
             )
           )}

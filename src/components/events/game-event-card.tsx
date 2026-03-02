@@ -135,6 +135,9 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
         .find(Boolean) ?? null
     : null
 
+  // In compact mode, use a photo sliver instead of a circular avatar
+  const compactSliver = compact && primaryAvatar?.imageUrl ? primaryAvatar : null
+
   return (
     <div
       className={cn(
@@ -148,7 +151,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
           style={{ backgroundImage: `url(${buffImage})` }}
         />
       )}
-      {accentColors.length > 0 && (
+      {accentColors.length > 0 && !compactSliver && (
         <div
           className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg z-[1]"
           style={{
@@ -159,12 +162,28 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
           }}
         />
       )}
-      <div className="flex items-center">
+      <div className="relative z-10 flex">
+        {/* Compact photo sliver */}
+        {compactSliver && (
+          <div
+            className="relative w-12 shrink-0 bg-muted self-stretch"
+            style={compactSliver.tribeColor ? { borderBottom: `3px solid ${compactSliver.tribeColor}` } : undefined}
+          >
+            <img
+              src={compactSliver.imageUrl!}
+              alt={primaryName || ''}
+              className="absolute inset-0 w-full h-full object-cover object-top"
+            />
+          </div>
+        )}
+
         {suppressDrawer ? (
           <div className="flex items-center gap-3 flex-1 min-w-0 p-3">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
-              <Icon className="h-4 w-4" />
-            </div>
+            {!compactSliver && (
+              <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
+                <Icon className="h-4 w-4" />
+              </div>
+            )}
 
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm leading-snug">{summary}</p>
@@ -192,25 +211,28 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
               }}
               className="flex items-center gap-3 flex-1 min-w-0 text-left p-3 hover:bg-accent/50 transition-colors rounded-lg"
             >
-              {isPending ? (
-                <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
-                  <Clock className="h-4 w-4" />
-                </div>
-              ) : compact ? (
-                <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
-                  <Icon className="h-4 w-4" />
-                </div>
-              ) : primaryAvatar?.imageUrl ? (
-                <Avatar
-                  className="h-8 w-8 shrink-0"
-                  style={primaryAvatar.tribeColor ? { boxShadow: `0 0 0 2px ${primaryAvatar.tribeColor}` } : undefined}
-                >
-                  <AvatarImage src={primaryAvatar.imageUrl} alt={primaryName || ''} />
-                  <AvatarFallback className="text-[10px]">
-                    {primaryName ? getInitials(primaryName) : <Icon className="h-4 w-4" />}
-                  </AvatarFallback>
-                </Avatar>
-              ) : (
+              {!compact && (
+                isPending ? (
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                ) : primaryAvatar?.imageUrl ? (
+                  <Avatar
+                    className="h-8 w-8 shrink-0"
+                    style={primaryAvatar.tribeColor ? { boxShadow: `0 0 0 2px ${primaryAvatar.tribeColor}` } : undefined}
+                  >
+                    <AvatarImage src={primaryAvatar.imageUrl} alt={primaryName || ''} />
+                    <AvatarFallback className="text-[10px]">
+                      {primaryName ? getInitials(primaryName) : <Icon className="h-4 w-4" />}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                )
+              )}
+              {compact && !compactSliver && (
                 <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
                   <Icon className="h-4 w-4" />
                 </div>

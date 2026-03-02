@@ -106,7 +106,7 @@ export default function EventsPage() {
 
     function collect(c: Contestant) {
       if (!names[c.id]) {
-        names[c.id] = getContestantDisplayName(c)
+        names[c.id] = c.nickname || c.name.split(' ')[0]
         avatars[c.id] = {
           imageUrl: getValidImageUrl(c.imageUrl),
           tribeColor: c.tribeMemberships?.[0]?.tribe.color ?? null,

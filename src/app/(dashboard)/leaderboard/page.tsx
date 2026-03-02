@@ -197,7 +197,7 @@ async function getOverviewData() {
     const contestantAvatars: WeekEventsData['contestantAvatars'] = {}
     for (const c of allDbContestants) {
       const currentTribe = c.tribeMemberships[0]?.tribe ?? null
-      contestantNames[c.id] = getContestantDisplayName(c)
+      contestantNames[c.id] = c.nickname || c.name.split(' ')[0]
       contestantAvatars[c.id] = {
         imageUrl: getValidImageUrl(c.imageUrl, c.originalImageUrl),
         tribeColor: currentTribe?.color ?? null,

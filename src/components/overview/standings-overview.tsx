@@ -61,16 +61,13 @@ export function StandingsOverview({ standings, currentUserId, maxScore }: Standi
               )}
               style={{ animationDelay: `${idx * 80}ms` }}
             >
-              <div className={cn(
-                'flex items-center justify-center shrink-0',
-                isTopThree ? 'w-7' : 'w-6'
-              )}>
+              <div className="flex items-center justify-center w-7 shrink-0">
                 <RankIcon rank={player.rank} large={isTopThree} />
               </div>
 
               <span className={cn(
-                'truncate shrink-0',
-                isTopThree ? 'text-base w-24 sm:w-32' : 'text-sm w-20 sm:w-28',
+                'truncate shrink-0 w-24 sm:w-32',
+                isTopThree ? 'text-base' : 'text-sm',
                 isCurrentUser || isTopThree ? 'font-semibold' : 'font-medium'
               )}>
                 {getFirstName(player.userName)}
@@ -82,7 +79,7 @@ export function StandingsOverview({ standings, currentUserId, maxScore }: Standi
 
               <div className={cn(
                 'flex-1 rounded-full bg-muted overflow-hidden',
-                isTopThree ? 'h-4' : 'h-3'
+                isTopThree ? 'h-3.5' : 'h-3'
               )}>
                 <div
                   className={cn(
@@ -103,8 +100,8 @@ export function StandingsOverview({ standings, currentUserId, maxScore }: Standi
               </div>
 
               <span className={cn(
-                'font-bold tabular-nums text-right shrink-0',
-                isTopThree ? 'text-base w-9' : 'text-sm w-8'
+                'font-bold tabular-nums text-right w-9 shrink-0',
+                isTopThree ? 'text-base' : 'text-sm'
               )}>
                 {player.totalScore}
               </span>
