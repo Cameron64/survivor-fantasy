@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { ChevronDown, Trophy, Medal, Award } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { ChevronDown, ChevronRight, Trophy, Medal, Award } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { getEventTypeLabel } from '@/lib/scoring'
@@ -52,6 +52,24 @@ function getRankBorderColor(rank: number): string {
 
 export function PlayerDetailCards({ players, currentUserId }: PlayerDetailCardsProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [showAll, setShowAll] = useState(false)
+
+  const VISIBLE_COUNT = 5
+
+  const visiblePlayers = useMemo(() => {
+    if (showAll || players.length <= VISIBLE_COUNT) return players
+
+    const top = players.slice(0, VISIBLE_COUNT)
+    const currentUserInTop = currentUserId && top.some((p) => p.userId === currentUserId)
+
+    if (!currentUserId || currentUserInTop) return top
+
+    // Replace 5th slot with current user
+    const currentUser = players.find((p) => p.userId === currentUserId)
+    if (!currentUser) return top
+
+    return [...top.slice(0, VISIBLE_COUNT - 1), currentUser]
+  }, [players, currentUserId, showAll])
 
   function toggle(teamId: string) {
     setExpandedId((prev) => (prev === teamId ? null : teamId))
@@ -61,7 +79,7 @@ export function PlayerDetailCards({ players, currentUserId }: PlayerDetailCardsP
     <section>
       <h2 className="text-xl font-semibold mb-4">Player Breakdowns</h2>
       <div className="space-y-2">
-        {players.map((player, idx) => {
+        {visiblePlayers.map((player, idx) => {
           const isExpanded = expandedId === player.teamId
           const isCurrentUser = player.userId === currentUserId
           const isTopThree = player.rank <= 3
@@ -194,6 +212,16 @@ export function PlayerDetailCards({ players, currentUserId }: PlayerDetailCardsP
             </div>
           )
         })}
+
+        {!showAll && players.length > VISIBLE_COUNT && (
+          <button
+            onClick={() => setShowAll(true)}
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg border border-dashed hover:border-solid hover:bg-accent/50"
+          >
+            Show all {players.length} players
+            <ChevronRight className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
     </section>
   )
