@@ -15,6 +15,8 @@ import {
   Swords,
   LogOut,
   Trophy,
+  Calendar,
+  Check,
 } from 'lucide-react'
 import { GameEventType, EventType } from '@prisma/client'
 import { deriveEvents, type GameEventData } from '@/lib/event-derivation'
@@ -58,6 +60,113 @@ interface TribeGroup {
 }
 
 type WizardStep = 'type' | 'form' | 'review'
+
+const WIZARD_STEPS: { key: WizardStep; label: string }[] = [
+  { key: 'type', label: 'Select Type' },
+  { key: 'form', label: 'Details' },
+  { key: 'review', label: 'Review' },
+]
+
+function WizardStepIndicator({ currentStep }: { currentStep: WizardStep }) {
+  const currentIndex = WIZARD_STEPS.findIndex((s) => s.key === currentStep)
+
+  return (
+    <div className="flex items-center justify-between">
+      {WIZARD_STEPS.map((wizardStep, i) => {
+        const isCompleted = i < currentIndex
+        const isCurrent = i === currentIndex
+
+        return (
+          <div key={wizardStep.key} className="flex items-center flex-1 last:flex-none">
+            <div className="flex flex-col items-center gap-1">
+              <div
+                className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-200 ${
+                  isCompleted
+                    ? 'bg-primary border-primary text-primary-foreground'
+                    : isCurrent
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-muted-foreground/30 text-muted-foreground/50'
+                }`}
+              >
+                {isCompleted ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <span className="text-xs font-semibold">{i + 1}</span>
+                )}
+              </div>
+              <span
+                className={`text-xs font-medium transition-colors duration-200 ${
+                  isCompleted || isCurrent ? 'text-foreground' : 'text-muted-foreground/50'
+                }`}
+              >
+                {wizardStep.label}
+              </span>
+            </div>
+            {i < WIZARD_STEPS.length - 1 && (
+              <div
+                className={`flex-1 h-0.5 mx-2 mb-5 transition-colors duration-200 ${
+                  i < currentIndex ? 'bg-primary' : 'bg-muted-foreground/20'
+                }`}
+              />
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+export interface EventTypeTheme {
+  iconBg: string
+  iconText: string
+  borderColor: string
+  hoverBorder: string
+}
+
+const EVENT_TYPE_THEMES: Record<GameEventType, EventTypeTheme> = {
+  TRIBAL_COUNCIL: {
+    iconBg: 'bg-orange-500/10',
+    iconText: 'text-orange-500',
+    borderColor: 'border-l-orange-500',
+    hoverBorder: 'hover:border-orange-400',
+  },
+  IMMUNITY_CHALLENGE: {
+    iconBg: 'bg-blue-500/10',
+    iconText: 'text-blue-500',
+    borderColor: 'border-l-blue-500',
+    hoverBorder: 'hover:border-blue-400',
+  },
+  REWARD_CHALLENGE: {
+    iconBg: 'bg-emerald-500/10',
+    iconText: 'text-emerald-500',
+    borderColor: 'border-l-emerald-500',
+    hoverBorder: 'hover:border-emerald-400',
+  },
+  IDOL_FOUND: {
+    iconBg: 'bg-yellow-500/10',
+    iconText: 'text-yellow-500',
+    borderColor: 'border-l-yellow-500',
+    hoverBorder: 'hover:border-yellow-400',
+  },
+  FIRE_MAKING: {
+    iconBg: 'bg-red-500/10',
+    iconText: 'text-red-500',
+    borderColor: 'border-l-red-500',
+    hoverBorder: 'hover:border-red-400',
+  },
+  QUIT_MEDEVAC: {
+    iconBg: 'bg-slate-500/10',
+    iconText: 'text-slate-500',
+    borderColor: 'border-l-slate-500',
+    hoverBorder: 'hover:border-slate-400',
+  },
+  ENDGAME: {
+    iconBg: 'bg-yellow-400/10',
+    iconText: 'text-yellow-400',
+    borderColor: 'border-l-yellow-400',
+    hoverBorder: 'hover:border-yellow-300',
+  },
+}
 
 const EVENT_TYPE_OPTIONS: {
   type: GameEventType
@@ -261,21 +370,25 @@ export default function SubmitEventPage() {
         </div>
       </div>
 
+      {/* Wizard Step Indicator */}
+      <WizardStepIndicator currentStep={step} />
+
       {/* Step: Select Event Type */}
       {step === 'type' && (
         <div className="grid gap-3">
           {EVENT_TYPE_OPTIONS.map((option) => {
             const Icon = option.icon
+            const theme = EVENT_TYPE_THEMES[option.type]
             return (
               <Card
                 key={option.type}
                 data-testid={`event-type-${option.type}`}
-                className="cursor-pointer hover:border-primary transition-colors"
+                className={`cursor-pointer border-l-4 ${theme.borderColor} ${theme.hoverBorder} hover:shadow-md active:scale-[0.98] transition-all duration-200`}
                 onClick={() => handleTypeSelect(option.type)}
               >
                 <CardContent className="flex items-center gap-4 p-4">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
-                    <Icon className="h-5 w-5 text-primary" />
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-full ${theme.iconBg}`}>
+                    <Icon className={`h-5 w-5 ${theme.iconText}`} />
                   </div>
                   <div>
                     <p className="font-medium">{option.label}</p>
@@ -292,7 +405,8 @@ export default function SubmitEventPage() {
       {(step === 'form' || step === 'review') && (
         <div className="flex items-center gap-2">
           {isEditingWeek ? (
-            <>
+            <div className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-1.5">
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
               <Label htmlFor="week-edit" className="text-sm font-medium whitespace-nowrap">
                 Week
               </Label>
@@ -304,7 +418,7 @@ export default function SubmitEventPage() {
                 max="14"
                 value={week}
                 onChange={(e) => setWeek(e.target.value)}
-                className="w-20 h-8"
+                className="w-16 h-7 text-sm"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === 'Escape') {
@@ -319,15 +433,17 @@ export default function SubmitEventPage() {
                   setIsEditingWeek(false)
                 }}
               />
-            </>
+            </div>
           ) : (
             <button
               type="button"
               data-testid="week-edit-button"
               onClick={() => setIsEditingWeek(true)}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1.5 bg-muted/50 hover:bg-muted rounded-full px-3 py-1.5 text-sm font-medium text-foreground transition-colors"
             >
-              Week {week} <span className="text-xs">(edit)</span>
+              <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+              Week {week}
+              <span className="text-xs text-muted-foreground ml-0.5">tap to edit</span>
             </button>
           )}
         </div>
@@ -387,10 +503,14 @@ export default function SubmitEventPage() {
       )}
 
       {/* Step: Review */}
-      {step === 'review' && (
+      {step === 'review' && selectedType && (
         <EventReview
           events={derivedEvents}
           contestantNames={contestantNames}
+          eventType={selectedType}
+          eventTypeLabel={EVENT_TYPE_OPTIONS.find((o) => o.type === selectedType)?.label ?? ''}
+          eventTypeIcon={EVENT_TYPE_OPTIONS.find((o) => o.type === selectedType)?.icon ?? Flame}
+          eventTypeTheme={EVENT_TYPE_THEMES[selectedType]}
           onConfirm={handleConfirm}
           onBack={goBack}
           isSubmitting={isSubmitting}

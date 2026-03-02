@@ -3,12 +3,18 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Send } from 'lucide-react'
 import { getEventTypeLabel } from '@/lib/scoring'
 import type { DerivedEvent } from '@/lib/event-derivation'
+import type { EventTypeTheme } from '@/app/(dashboard)/events/submit/page'
 
 interface EventReviewProps {
   events: DerivedEvent[]
   contestantNames: Record<string, string>
+  eventType: string
+  eventTypeLabel: string
+  eventTypeIcon: React.ElementType
+  eventTypeTheme: EventTypeTheme
   onConfirm: () => void
   onBack: () => void
   isSubmitting: boolean
@@ -17,6 +23,9 @@ interface EventReviewProps {
 export function EventReview({
   events,
   contestantNames,
+  eventTypeLabel,
+  eventTypeIcon: Icon,
+  eventTypeTheme: theme,
   onConfirm,
   onBack,
   isSubmitting,
@@ -25,12 +34,17 @@ export function EventReview({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold">Review Scoring Events</h3>
-        <p className="text-sm text-muted-foreground">
-          The following {events.length} scoring events will be created. All require moderator
-          approval.
-        </p>
+      {/* Themed header */}
+      <div className={`flex items-center gap-3 p-3 rounded-lg border-l-4 ${theme.borderColor} bg-muted/30`}>
+        <div className={`flex items-center justify-center w-9 h-9 rounded-full ${theme.iconBg}`}>
+          <Icon className={`h-4.5 w-4.5 ${theme.iconText}`} />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold leading-tight">Review Scoring Events</h3>
+          <p className="text-sm text-muted-foreground">
+            {eventTypeLabel} &middot; {events.length} event{events.length !== 1 ? 's' : ''} pending approval
+          </p>
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -57,11 +71,15 @@ export function EventReview({
         ))}
       </div>
 
-      <Card>
-        <CardContent className="flex items-center justify-between p-3">
-          <p className="text-sm font-semibold">Total Points</p>
+      {/* Divider */}
+      <div className="border-t border-border" />
+
+      {/* Total points - more prominent */}
+      <Card className={`border-l-4 ${totalPoints >= 0 ? 'border-l-green-500' : 'border-l-red-500'}`}>
+        <CardContent className="flex items-center justify-between p-4">
+          <p className="text-sm font-semibold text-muted-foreground">Total Points</p>
           <p
-            className={`text-lg font-bold ${totalPoints >= 0 ? 'text-green-600' : 'text-red-600'}`}
+            className={`text-2xl font-bold ${totalPoints >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
           >
             {totalPoints > 0 ? '+' : ''}
             {totalPoints}
@@ -69,11 +87,17 @@ export function EventReview({
         </CardContent>
       </Card>
 
-      <div className="flex gap-2 pt-4">
+      <div className="flex gap-2 pt-2">
         <Button variant="outline" onClick={onBack} disabled={isSubmitting}>
           Back
         </Button>
-        <Button className="flex-1" onClick={onConfirm} disabled={isSubmitting}>
+        <Button
+          className="flex-1 gap-2"
+          size="lg"
+          onClick={onConfirm}
+          disabled={isSubmitting}
+        >
+          <Send className="h-4 w-4" />
           {isSubmitting ? 'Submitting...' : `Submit ${events.length} Events`}
         </Button>
       </div>
