@@ -22,6 +22,36 @@ const TYPE_ICONS: Record<string, typeof Flame> = {
   ENDGAME: Trophy,
 }
 
+/**
+ * Extract the primary contestant ID for event types where a single
+ * contestant photo should replace the icon.
+ */
+function getPrimaryContestantId(type: string, data: unknown): string | null {
+  if (!data || typeof data !== 'object') return null
+  const d = data as Record<string, unknown>
+
+  switch (type) {
+    case 'TRIBAL_COUNCIL':
+      return (d.eliminated as string) || null
+    case 'IMMUNITY_CHALLENGE':
+      // Only for individual challenges
+      if (d.isTeamChallenge) return null
+      return (d.winner as string) || null
+    case 'REWARD_CHALLENGE':
+      // Only for individual challenges
+      if (d.isTeamChallenge) return null
+      return Array.isArray(d.winners) && d.winners.length === 1
+        ? (d.winners[0] as string)
+        : null
+    case 'IDOL_FOUND':
+      return (d.finder as string) || null
+    case 'QUIT_MEDEVAC':
+      return (d.contestant as string) || null
+    default:
+      return null
+  }
+}
+
 interface GameEventCardEvent {
   id: string
   type: EventType
@@ -58,6 +88,13 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
 
   const Icon = TYPE_ICONS[gameEvent.type] || Flame
   const typeLabel = getGameEventTypeLabel(gameEvent.type as GameEventType)
+
+  // Try to find a primary contestant whose photo should replace the icon
+  const primaryContestantId = getPrimaryContestantId(gameEvent.type, gameEvent.data)
+  const primaryAvatar = primaryContestantId ? contestantAvatars?.[primaryContestantId] : null
+  const primaryName = primaryContestantId
+    ? contestantNames[primaryContestantId] || gameEvent.events.find(e => e.contestant.id === primaryContestantId)?.contestant.name
+    : null
 
   const summary = gameEvent.data
     ? getGameEventSummary(
@@ -125,16 +162,25 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
           }}
           className="flex items-center gap-3 flex-1 min-w-0 text-left p-3 hover:bg-accent/50 transition-colors rounded-lg"
         >
-          <div
-            className={cn(
-              'flex items-center justify-center w-8 h-8 rounded-full shrink-0',
-              isPending
-                ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400'
-                : 'bg-muted text-muted-foreground'
-            )}
-          >
-            {isPending ? <Clock className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-          </div>
+          {isPending ? (
+            <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
+              <Clock className="h-4 w-4" />
+            </div>
+          ) : primaryAvatar?.imageUrl ? (
+            <Avatar
+              className="h-8 w-8 shrink-0"
+              style={primaryAvatar.tribeColor ? { boxShadow: `0 0 0 2px ${primaryAvatar.tribeColor}` } : undefined}
+            >
+              <AvatarImage src={primaryAvatar.imageUrl} alt={primaryName || ''} />
+              <AvatarFallback className="text-[10px]">
+                {primaryName ? getInitials(primaryName) : <Icon className="h-4 w-4" />}
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
+              <Icon className="h-4 w-4" />
+            </div>
+          )}
 
           <div className="flex-1 min-w-0">
             <p className="font-medium text-sm leading-snug truncate">{summary}</p>
