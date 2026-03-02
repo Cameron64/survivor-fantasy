@@ -29,16 +29,11 @@ export function OverviewClient({
         maxScore={maxScore}
       />
 
+      <ThisWeeksEvents data={weekEventsData} />
+
       <TopContestants contestants={contestants} />
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="lg:w-2/3">
-          <PlayerDetailCards players={standings} currentUserId={currentUserId} />
-        </div>
-        <div className="lg:w-1/3">
-          <ThisWeeksEvents data={weekEventsData} />
-        </div>
-      </div>
+      <PlayerDetailCards players={standings} currentUserId={currentUserId} />
     </div>
   )
 }
