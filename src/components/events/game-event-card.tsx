@@ -136,7 +136,13 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
     : null
 
   // In compact mode, use a photo sliver instead of a circular avatar
-  const compactSliver = compact && primaryAvatar?.imageUrl ? primaryAvatar : null
+  // Fall back to the sole contestant's avatar when there's only one
+  const sliverContestantId = primaryContestantId ?? (!isMultiPerson ? Array.from(uniqueContestants)[0] : null)
+  const sliverAvatar = sliverContestantId ? contestantAvatars?.[sliverContestantId] : null
+  const sliverName = sliverContestantId
+    ? contestantNames[sliverContestantId] || gameEvent.events.find(e => e.contestant.id === sliverContestantId)?.contestant.name || null
+    : null
+  const compactSliver = compact && sliverAvatar?.imageUrl ? sliverAvatar : null
 
   return (
     <div
@@ -171,7 +177,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
           >
             <img
               src={compactSliver.imageUrl!}
-              alt={primaryName || ''}
+              alt={sliverName || ''}
               className="absolute inset-0 w-full h-full object-cover object-top"
             />
           </div>
