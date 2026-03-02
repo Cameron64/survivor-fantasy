@@ -4,7 +4,7 @@ import { ClerkProvider } from '@clerk/nextjs'
 import './globals.css'
 import { PWAUpdateNotification } from '@/components/shared/pwa-update-notification'
 import { ErrorBoundary } from '@/components/shared/error-boundary'
-import { AdminDebugWrapper } from '@/components/shared/admin-debug-wrapper'
+import { AdminDebugWrapper } from '@/components/shared/admin-debug-wrapper-server'
 
 const inter = Inter({ subsets: ['latin'] })
 
