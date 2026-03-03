@@ -277,51 +277,88 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
         )}
       </div>
 
-      {!suppressDrawer && expanded && (
-        <div className="border-t px-3 pb-3 pt-2 space-y-1.5 animate-in slide-in-from-top-1 duration-200">
-          {gameEvent.events.map((event) => {
-            const avatar = contestantAvatars?.[event.contestant.id]
-            const displayName = contestantNames[event.contestant.id] || event.contestant.name
+      {!suppressDrawer && expanded && (() => {
+        // Group events by contestant
+        const grouped = new Map<string, { events: GameEventCardEvent[]; subtotal: number }>()
+        for (const event of gameEvent.events) {
+          const cid = event.contestant.id
+          const existing = grouped.get(cid)
+          if (existing) {
+            existing.events.push(event)
+            existing.subtotal += event.points
+          } else {
+            grouped.set(cid, { events: [event], subtotal: event.points })
+          }
+        }
 
-            return (
-              <div key={event.id} className="flex items-center gap-2 text-sm px-1">
-                {!compact && (
-                  <Avatar
-                    className="h-6 w-6 shrink-0"
-                    style={avatar?.tribeColor ? { boxShadow: `0 0 0 2px ${avatar.tribeColor}` } : undefined}
-                  >
-                    {avatar?.imageUrl && (
-                      <AvatarImage src={avatar.imageUrl} alt={displayName} />
-                    )}
-                    <AvatarFallback className="text-[10px]">
-                      {getInitials(event.contestant.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                )}
-                <span className="text-muted-foreground flex-1 truncate">
-                  <span className="font-medium text-foreground">{displayName}</span>
-                  {' — '}
-                  {getEventTypeLabel(event.type)}
-                </span>
-                <span
-                  className={cn(
-                    'text-xs font-semibold tabular-nums',
-                    event.points >= 0 ? 'text-green-600' : 'text-red-600'
+        return (
+          <div className="border-t pb-2 pt-2 space-y-1 animate-in slide-in-from-top-1 duration-200">
+            {Array.from(grouped.entries()).map(([cid, { events: cEvents, subtotal }]) => {
+              const avatar = contestantAvatars?.[cid]
+              const displayName = contestantNames[cid] || cEvents[0].contestant.name
+
+              return (
+                <div key={cid} className="flex overflow-hidden">
+                  {/* Photo sliver */}
+                  {avatar?.imageUrl ? (
+                    <div
+                      className="relative w-10 shrink-0 bg-muted self-stretch"
+                      style={avatar.tribeColor ? { borderBottom: `2px solid ${avatar.tribeColor}` } : undefined}
+                    >
+                      <img
+                        src={avatar.imageUrl}
+                        alt={displayName}
+                        className="absolute inset-0 w-full h-full object-cover object-top"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-10 shrink-0 bg-muted self-stretch flex items-center justify-center">
+                      <span className="text-[10px] font-medium text-muted-foreground">
+                        {getInitials(cEvents[0].contestant.name)}
+                      </span>
+                    </div>
                   )}
-                >
-                  {event.points > 0 ? '+' : ''}
-                  {event.points}
-                </span>
-              </div>
-            )
-          })}
-          {!compact && (
-            <p className="text-xs text-muted-foreground pt-1 px-1">
-              Submitted by {gameEvent.submittedBy.name} • {formatRelativeTime(gameEvent.createdAt)}
-            </p>
-          )}
-        </div>
-      )}
+
+                  {/* Name + events */}
+                  <div className="flex-1 min-w-0 px-3 py-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-sm">{displayName}</span>
+                      <span
+                        className={cn(
+                          'text-xs font-semibold tabular-nums',
+                          subtotal >= 0 ? 'text-green-600' : 'text-red-600'
+                        )}
+                      >
+                        {subtotal > 0 ? '+' : ''}{subtotal}
+                      </span>
+                    </div>
+                    <div className="space-y-0.5 mt-0.5">
+                      {cEvents.map((event) => (
+                        <div key={event.id} className="flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{getEventTypeLabel(event.type)}</span>
+                          <span
+                            className={cn(
+                              'tabular-nums',
+                              event.points >= 0 ? 'text-green-600' : 'text-red-600'
+                            )}
+                          >
+                            {event.points > 0 ? '+' : ''}{event.points}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+            {!compact && (
+              <p className="text-xs text-muted-foreground pt-1 px-3">
+                Submitted by {gameEvent.submittedBy.name} • {formatRelativeTime(gameEvent.createdAt)}
+              </p>
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }
