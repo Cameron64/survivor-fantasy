@@ -64,6 +64,7 @@ export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([])
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([])
   const [episodes, setEpisodes] = useState<Episode[]>([])
+  const [allContestants, setAllContestants] = useState<Contestant[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([])
   const hasInitialized = useRef(false)
@@ -74,10 +75,11 @@ export default function EventsPage() {
 
   const fetchData = async () => {
     try {
-      const [eventsRes, gameEventsRes, episodesRes] = await Promise.all([
+      const [eventsRes, gameEventsRes, episodesRes, contestantsRes] = await Promise.all([
         fetch('/api/events'),
         fetch('/api/game-events'),
         fetch('/api/episodes'),
+        fetch('/api/contestants?includeMemberships=true'),
       ])
 
       if (eventsRes.ok) {
@@ -92,6 +94,10 @@ export default function EventsPage() {
         const data = await episodesRes.json()
         if (Array.isArray(data)) setEpisodes(data)
       }
+      if (contestantsRes.ok) {
+        const data = await contestantsRes.json()
+        if (Array.isArray(data)) setAllContestants(data)
+      }
     } catch (error) {
       console.error('Failed to fetch data:', error)
     } finally {
@@ -99,7 +105,7 @@ export default function EventsPage() {
     }
   }
 
-  // Build contestant name + avatar maps from all event data
+  // Build contestant name + avatar maps from all contestants
   const { contestantNames, contestantAvatars } = useMemo(() => {
     const names: Record<string, string> = {}
     const avatars: Record<string, { imageUrl?: string | null; tribeColor?: string | null; tribeBuffImage?: string | null; tribeIsMerge?: boolean | null }> = {}
@@ -116,13 +122,16 @@ export default function EventsPage() {
       }
     }
 
+    // All contestants first (complete map including non-scoring contestants)
+    for (const c of allContestants) collect(c)
+    // Supplement from event data as fallback
     for (const ge of gameEvents) {
       for (const e of ge.events) collect(e.contestant)
     }
     for (const e of events) collect(e.contestant)
 
     return { contestantNames: names, contestantAvatars: avatars }
-  }, [gameEvents, events])
+  }, [allContestants, gameEvents, events])
 
   // Episode number → title map
   const episodeTitles = useMemo(() => {
