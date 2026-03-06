@@ -38,9 +38,11 @@ import {
   UserRoundPen,
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
+import { UserSyncPanel, SyncStatusBadge } from '@/components/admin/user-sync-panel'
 
 interface User {
   id: string
+  clerkId: string
   name: string
   email: string
   role: 'ADMIN' | 'MODERATOR' | 'USER'
@@ -108,6 +110,9 @@ export default function AdminUsersPage() {
   const [replaceForm, setReplaceForm] = useState({ name: '', email: '' })
   const [replaceLoading, setReplaceLoading] = useState(false)
   const [replaceError, setReplaceError] = useState('')
+
+  // Sync panel
+  const [syncOpenId, setSyncOpenId] = useState<string | null>(null)
 
   // Invitations section
   const [showInvitations, setShowInvitations] = useState(false)
@@ -466,102 +471,124 @@ export default function AdminUsersPage() {
         <div className="space-y-3">
           {filteredUsers.map((user) => (
             <Card key={user.id}>
-              <CardContent className="flex items-center gap-4 p-4">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback>
-                    {user.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')}
-                  </AvatarFallback>
-                </Avatar>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback>
+                      {user.name
+                        .split(' ')
+                        .map((n) => n[0])
+                        .join('')}
+                    </AvatarFallback>
+                  </Avatar>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-medium truncate">{user.name}</p>
-                    <Badge
-                      variant={
-                        user.role === 'ADMIN'
-                          ? 'default'
-                          : user.role === 'MODERATOR'
-                            ? 'secondary'
-                            : 'outline'
-                      }
-                    >
-                      {user.role}
-                    </Badge>
-                    <Badge variant={user.isPaid ? 'success' : 'outline'}>
-                      {user.isPaid ? 'Paid' : 'Unpaid'}
-                    </Badge>
-                    {user.adminNotes && (
-                      <StickyNote className="h-3.5 w-3.5 text-muted-foreground" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-medium truncate">{user.name}</p>
+                      <Badge
+                        variant={
+                          user.role === 'ADMIN'
+                            ? 'default'
+                            : user.role === 'MODERATOR'
+                              ? 'secondary'
+                              : 'outline'
+                        }
+                      >
+                        {user.role}
+                      </Badge>
+                      <Badge variant={user.isPaid ? 'success' : 'outline'}>
+                        {user.isPaid ? 'Paid' : 'Unpaid'}
+                      </Badge>
+                      <SyncStatusBadge clerkId={user.clerkId} />
+                      {user.adminNotes && (
+                        <StickyNote className="h-3.5 w-3.5 text-muted-foreground" />
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                    {user.tags.length > 0 && (
+                      <div className="flex gap-1 mt-1 flex-wrap">
+                        {user.tags.map((tag) => (
+                          <Badge key={tag} variant="secondary" className="text-xs py-0">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Joined {formatDate(user.createdAt)}
+                      {user.invitedBy && ` \u00b7 Invited by ${user.invitedBy.name}`}
+                      {user._count.invitees > 0 && ` \u00b7 ${user._count.invitees} invites`}
+                    </p>
+                    {user.team && user.team.contestants.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Team: {user.team.contestants.map((tc) => tc.contestant.name).join(', ')}
+                      </p>
                     )}
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">{user.email}</p>
-                  {user.tags.length > 0 && (
-                    <div className="flex gap-1 mt-1 flex-wrap">
-                      {user.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-xs py-0">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Joined {formatDate(user.createdAt)}
-                    {user.invitedBy && ` \u00b7 Invited by ${user.invitedBy.name}`}
-                    {user._count.invitees > 0 && ` \u00b7 ${user._count.invitees} invites`}
-                  </p>
-                  {user.team && user.team.contestants.length > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Team: {user.team.contestants.map((tc) => tc.contestant.name).join(', ')}
-                    </p>
-                  )}
+
+                  <div className="flex gap-2 items-center">
+                    <Select
+                      value={user.role}
+                      onValueChange={(value) => handleChangeRole(user.id, value)}
+                      disabled={processingId === user.id}
+                    >
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USER">User</SelectItem>
+                        <SelectItem value="MODERATOR">Moderator</SelectItem>
+                        <SelectItem value="ADMIN">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Button
+                      size="sm"
+                      variant={user.isPaid ? 'outline' : 'default'}
+                      onClick={() => handleTogglePaid(user.id, !user.isPaid)}
+                      disabled={processingId === user.id}
+                    >
+                      <DollarSign className="h-4 w-4 mr-1" />
+                      {user.isPaid ? 'Mark Unpaid' : 'Mark Paid'}
+                    </Button>
+
+                    <Button size="icon" variant="ghost" onClick={() => openReplaceDialog(user)} title="Replace with real user">
+                      <UserRoundPen className="h-4 w-4" />
+                    </Button>
+
+                    <Button size="icon" variant="ghost" onClick={() => openEditDialog(user)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => openDeleteDialog(user)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="flex gap-2 items-center">
-                  <Select
-                    value={user.role}
-                    onValueChange={(value) => handleChangeRole(user.id, value)}
-                    disabled={processingId === user.id}
-                  >
-                    <SelectTrigger className="w-[120px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USER">User</SelectItem>
-                      <SelectItem value="MODERATOR">Moderator</SelectItem>
-                      <SelectItem value="ADMIN">Admin</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Button
-                    size="sm"
-                    variant={user.isPaid ? 'outline' : 'default'}
-                    onClick={() => handleTogglePaid(user.id, !user.isPaid)}
-                    disabled={processingId === user.id}
-                  >
-                    <DollarSign className="h-4 w-4 mr-1" />
-                    {user.isPaid ? 'Mark Unpaid' : 'Mark Paid'}
-                  </Button>
-
-                  <Button size="icon" variant="ghost" onClick={() => openReplaceDialog(user)} title="Replace with real user">
-                    <UserRoundPen className="h-4 w-4" />
-                  </Button>
-
-                  <Button size="icon" variant="ghost" onClick={() => openEditDialog(user)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => openDeleteDialog(user)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
+                {/* Sync panel — auto-open for pending users, expandable for others */}
+                {(syncOpenId === user.id || user.clerkId.startsWith('pending_')) && (
+                  <UserSyncPanel
+                    userId={user.id}
+                    userEmail={user.email}
+                    onRelinked={fetchUsers}
+                  />
+                )}
+                {syncOpenId !== user.id && !user.clerkId.startsWith('pending_') && (
+                  <div className="mt-2 pt-2 border-t">
+                    <button
+                      onClick={() => setSyncOpenId(syncOpenId === user.id ? null : user.id)}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      Check Clerk sync...
+                    </button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}

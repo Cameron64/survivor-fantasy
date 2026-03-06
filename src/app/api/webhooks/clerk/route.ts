@@ -58,18 +58,32 @@ export async function POST(req: Request) {
     // Check if user was invited
     const invitedById = unsafe_metadata?.invitedById as string | undefined
 
-    await db.user.create({
-      data: {
-        clerkId: id,
-        email,
-        name,
-        role: (public_metadata?.role as Role) || Role.USER,
-        isPaid: (public_metadata?.isPaid as boolean) || false,
-        invitedById: invitedById || null,
-      },
-    })
-
-    console.log(`User created: ${email}`)
+    // Check for a pending user waiting to be re-linked (e.g. from user replacement flow)
+    const pendingUser = await db.user.findUnique({ where: { email } })
+    if (pendingUser && pendingUser.clerkId.startsWith('pending_')) {
+      await db.user.update({
+        where: { id: pendingUser.id },
+        data: {
+          clerkId: id,
+          name,
+          role: (public_metadata?.role as Role) || pendingUser.role,
+          isPaid: (public_metadata?.isPaid as boolean) ?? pendingUser.isPaid,
+        },
+      })
+      console.log(`User re-linked: ${email} (was pending)`)
+    } else {
+      await db.user.create({
+        data: {
+          clerkId: id,
+          email,
+          name,
+          role: (public_metadata?.role as Role) || Role.USER,
+          isPaid: (public_metadata?.isPaid as boolean) || false,
+          invitedById: invitedById || null,
+        },
+      })
+      console.log(`User created: ${email}`)
+    }
   }
 
   if (eventType === 'user.updated') {
