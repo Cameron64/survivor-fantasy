@@ -308,14 +308,17 @@ export default function SubmitEventForm() {
 
     setIsSubmitting(true)
     try {
+      const payload = {
+        type: selectedType,
+        week: parseInt(week),
+        data: formData,
+      }
+      console.log('[SubmitEvent] Sending payload:', payload)
+
       const res = await fetch('/api/game-events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: selectedType,
-          week: parseInt(week),
-          data: formData,
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (res.ok) {
