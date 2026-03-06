@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Settings, Share2, Trash2, RefreshCw, Copy, Check, Bug, FlaskConical } from 'lucide-react'
+import { Settings, Share2, Trash2, RefreshCw, Copy, Check, Bug, FlaskConical, Rocket, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface UserData {
   id: string
@@ -18,6 +18,28 @@ interface UserData {
   inviteCode: string | null
 }
 
+const ROADMAP_ITEMS: { id: number; title: string; description: string; status: 'Planned' | 'In Progress' | 'Done' }[] = [
+  { id: 1, title: 'Player Pages', description: 'Detailed contestant profiles with events, draft info, and admin editing', status: 'Planned' },
+  { id: 2, title: 'Merge Functionality', description: 'End-to-end tribe merge workflow with correct app-wide display', status: 'Planned' },
+  { id: 3, title: 'Simplified Player Breakdowns', description: 'Show category rollups instead of per-week badges', status: 'Planned' },
+  { id: 4, title: 'Public Team Breakdowns', description: "View any player's team breakdown from the leaderboard", status: 'Planned' },
+  { id: 5, title: 'Larger Contestant Tiles', description: 'Bigger photos in event submission for faster face recognition', status: 'Planned' },
+  { id: 6, title: 'Routed Event Wizard', description: 'URL-based routing for event submission steps with browser navigation', status: 'Planned' },
+  { id: 7, title: 'Tribal Council Breakdown', description: 'View who voted for whom each week', status: 'Planned' },
+  { id: 8, title: 'Tribe-Styled Challenge Drawers', description: 'Team challenges grouped by tribe with color-coded drawers', status: 'Planned' },
+  { id: 9, title: 'Tribes in Main Nav', description: 'Browse tribes from the main menu with buff image uploads', status: 'Planned' },
+  { id: 10, title: 'Merge as Game Event', description: 'Submit merge through the normal event flow instead of admin-only', status: 'Planned' },
+  { id: 11, title: 'Draft Rehearsal & Admin Picks', description: 'Practice drafts and admin pick-on-behalf for absent users', status: 'Planned' },
+  { id: 12, title: 'User Impersonation', description: 'Admins can view the app as another user for debugging', status: 'Planned' },
+  { id: 13, title: 'Advantage Scoring', description: 'Points for finding and using advantages beyond idols', status: 'Planned' },
+  { id: 14, title: 'Event Metadata', description: 'Descriptions and types for events like idol kind and expiration', status: 'Planned' },
+  { id: 15, title: 'Moment of the Week', description: 'Vote on the best meme or moment each week', status: 'Planned' },
+  { id: 16, title: 'Point Betting', description: 'Wager points on predictions — eliminations, placements, and more', status: 'Planned' },
+  { id: 17, title: 'In-App Chat', description: 'Trash talk and discuss episodes without leaving the app', status: 'Planned' },
+  { id: 18, title: 'In-App Roadmap', description: 'Read-only view of planned features', status: 'Done' },
+  { id: 19, title: 'Feature Request Submission', description: 'Submit feature ideas directly in the app', status: 'Planned' },
+]
+
 export default function SettingsPage() {
   const [user, setUser] = useState<UserData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -25,6 +47,7 @@ export default function SettingsPage() {
   const [copied, setCopied] = useState(false)
   const [isSwitchingRole, setIsSwitchingRole] = useState(false)
   const [showSimulation, setShowSimulation] = useState(false)
+  const [roadmapExpanded, setRoadmapExpanded] = useState(false)
   const isDev = process.env.NODE_ENV === 'development'
 
   useEffect(() => {
@@ -253,6 +276,56 @@ export default function SettingsPage() {
               onCheckedChange={toggleSimulation}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Roadmap */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Rocket className="h-5 w-5" />
+            Roadmap
+          </CardTitle>
+          <CardDescription>Planned features and improvements</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {(roadmapExpanded ? ROADMAP_ITEMS : ROADMAP_ITEMS.slice(0, 5)).map((item) => (
+              <div key={item.id} className="flex items-start gap-3 py-2 border-b last:border-0">
+                <span className="text-xs font-mono text-muted-foreground mt-0.5 w-5 shrink-0">
+                  {item.id}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium leading-tight">{item.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
+                </div>
+                <Badge
+                  variant={item.status === 'Done' ? 'success' : item.status === 'In Progress' ? 'default' : 'outline'}
+                  className="shrink-0 text-xs"
+                >
+                  {item.status}
+                </Badge>
+              </div>
+            ))}
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full mt-3 text-muted-foreground"
+            onClick={() => setRoadmapExpanded(!roadmapExpanded)}
+          >
+            {roadmapExpanded ? (
+              <>
+                <ChevronUp className="h-4 w-4 mr-1" />
+                Show Less
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4 mr-1" />
+                Show All {ROADMAP_ITEMS.length} Features
+              </>
+            )}
+          </Button>
         </CardContent>
       </Card>
 
