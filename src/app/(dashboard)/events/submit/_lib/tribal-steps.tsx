@@ -14,9 +14,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Check, X } from 'lucide-react'
-import { ContestantLabel, getDisplayName } from '@/components/shared/contestant-label'
+import { Check } from 'lucide-react'
+import { getDisplayName } from '@/components/shared/contestant-label'
 import type { FormContestant } from '@/components/shared/contestant-label'
+import { ContestantSelectTile } from '@/components/shared/contestant-select-tile'
 import { useSubmitContext } from './submit-context'
 
 const BASE = '/events/submit/tribal-council'
@@ -25,19 +26,34 @@ const BASE = '/events/submit/tribal-council'
 
 export function AttendeesStep() {
   const router = useRouter()
-  const { contestants, tribalState, updateTribalState } = useSubmitContext()
+  const { contestants, tribes, tribalState, updateTribalState } = useSubmitContext()
   const { selectedAttendees } = tribalState
 
-  const contestantsByTribe = useMemo(() => {
-    const active = contestants.filter((c) => !c.isEliminated)
-    const grouped: Record<string, FormContestant[]> = {}
-    for (const c of active) {
-      const tribe = c.tribe || 'No Tribe'
-      if (!grouped[tribe]) grouped[tribe] = []
-      grouped[tribe].push(c)
+  // Which tribe is currently selected (derive from selectedAttendees)
+  const selectedTribeId = useMemo(() => {
+    if (tribes.length === 0) return null
+    for (const tribe of tribes) {
+      // If most of this tribe's members are selected, consider it the active tribe
+      const selected = tribe.contestantIds.filter((id) => selectedAttendees.has(id))
+      if (selected.length > 0) return tribe.id
     }
-    return grouped
-  }, [contestants])
+    return null
+  }, [tribes, selectedAttendees])
+
+  const selectedTribeMembers = useMemo(() => {
+    if (!selectedTribeId) return []
+    const tribe = tribes.find((t) => t.id === selectedTribeId)
+    if (!tribe) return []
+    return contestants.filter((c) => tribe.contestantIds.includes(c.id))
+  }, [selectedTribeId, tribes, contestants])
+
+  const selectTribe = (tribeId: string) => {
+    const tribe = tribes.find((t) => t.id === tribeId)
+    if (!tribe) return
+    // Select all members of this tribe, clear any previous selection
+    const next = new Set(tribe.contestantIds)
+    updateTribalState({ selectedAttendees: next, votes: {} })
+  }
 
   const toggleAttendee = (id: string) => {
     const next = new Set(selectedAttendees)
@@ -52,72 +68,76 @@ export function AttendeesStep() {
     }
   }
 
-  const selectTribe = (tribe: string) => {
-    const tribeMembers = contestantsByTribe[tribe] || []
-    const allSelected = tribeMembers.every((c) => selectedAttendees.has(c.id))
-    const next = new Set(selectedAttendees)
-    for (const c of tribeMembers) {
-      if (allSelected) next.delete(c.id)
-      else next.add(c.id)
-    }
-    updateTribalState({ selectedAttendees: next })
-  }
-
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold">Who went to Tribal Council?</h3>
+        <h3 className="text-lg font-semibold">Which tribe went to Tribal Council?</h3>
         <p className="text-sm text-muted-foreground">
-          Tap a tribe name to select all, or tap individual contestants.
+          Select the tribe, then deselect anyone who wasn&apos;t there.
         </p>
       </div>
 
-      {Object.entries(contestantsByTribe).map(([tribe, members]) => {
-        const allSelected = members.every((c) => selectedAttendees.has(c.id))
-        return (
-          <div key={tribe} className="space-y-2">
+      {/* Tribe selection */}
+      <div className="space-y-2">
+        {tribes.map((tribe) => {
+          const isSelected = selectedTribeId === tribe.id
+          return (
             <button
-              data-testid={`tribe-${tribe.toLowerCase().replace(/\s+/g, '-')}`}
-              onClick={() => selectTribe(tribe)}
-              className="flex items-center gap-2 text-sm font-medium hover:text-primary transition-colors"
+              key={tribe.id}
+              data-testid={`tribe-${tribe.name.toLowerCase().replace(/\s+/g, '-')}`}
+              onClick={() => selectTribe(tribe.id)}
+              className={`relative w-full flex items-center gap-3 p-4 rounded-lg border text-left transition-colors overflow-hidden ${
+                isSelected
+                  ? 'border-primary bg-primary/5'
+                  : 'border-muted hover:border-muted-foreground'
+              }`}
             >
+              {tribe.buffImage && (
+                <div
+                  className={`absolute inset-0 z-0 bg-cover bg-center transition-opacity ${
+                    isSelected ? 'opacity-[0.12]' : 'opacity-[0.06]'
+                  }`}
+                  style={{ backgroundImage: `url(${tribe.buffImage})` }}
+                />
+              )}
               <div
-                className={`w-3 h-3 rounded-sm border ${allSelected ? 'bg-primary border-primary' : 'border-muted-foreground'}`}
+                className={`relative z-10 w-6 h-6 rounded-full flex items-center justify-center border-2 ${
+                  isSelected ? 'border-primary' : 'border-transparent'
+                }`}
+                style={{ backgroundColor: tribe.color }}
               >
-                {allSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+                {isSelected && <Check className="h-3 w-3 text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)]" />}
               </div>
-              {tribe}
+              <div className="relative z-10">
+                <span className="font-medium">{tribe.name}</span>
+                <span className="text-xs text-muted-foreground ml-2">
+                  {tribe.contestantIds.length} members
+                </span>
+              </div>
             </button>
-            <div className="grid grid-cols-2 gap-2">
-              {members.map((c) => {
-                const isSelected = selectedAttendees.has(c.id)
-                return (
-                  <button
-                    key={c.id}
-                    data-testid={`contestant-${c.id}`}
-                    aria-selected={isSelected}
-                    onClick={() => toggleAttendee(c.id)}
-                    className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                      isSelected
-                        ? 'border-primary bg-primary/5'
-                        : 'border-muted hover:border-muted-foreground'
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                        isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                      }`}
-                    >
-                      {isSelected && <Check className="h-3 w-3" />}
-                    </div>
-                    <ContestantLabel contestant={c} />
-                  </button>
-                )
-              })}
-            </div>
+          )
+        })}
+      </div>
+
+      {/* Tribe members — toggle individuals off/on */}
+      {selectedTribeId && selectedTribeMembers.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            {selectedAttendees.size} attending — tap to remove anyone who wasn&apos;t there
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {selectedTribeMembers.map((c) => (
+              <ContestantSelectTile
+                key={c.id}
+                data-testid={`contestant-${c.id}`}
+                contestant={c}
+                isSelected={selectedAttendees.has(c.id)}
+                onClick={() => toggleAttendee(c.id)}
+              />
+            ))}
           </div>
-        )
-      })}
+        </div>
+      )}
 
       <div className="flex gap-2 pt-4">
         <Button variant="outline" onClick={() => router.push('/events/submit')}>
@@ -181,12 +201,30 @@ export function VotesStep() {
 
       <div className="space-y-3">
         {attendeeList.map((voter) => (
-          <Card key={voter.id}>
-            <CardContent className="flex items-center gap-3 p-3">
+          <div key={voter.id} className="flex rounded-lg border bg-card overflow-hidden">
+            {/* Photo slice */}
+            <div
+              className="relative w-14 shrink-0 bg-muted"
+              style={voter.tribeColor ? { borderBottom: `3px solid ${voter.tribeColor}` } : undefined}
+            >
+              {voter.imageUrl ? (
+                <img
+                  src={voter.imageUrl}
+                  alt={getDisplayName(voter)}
+                  className="absolute inset-0 w-full h-full object-cover object-top"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center text-muted-foreground font-medium text-xs">
+                  {voter.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0 flex items-center gap-2 p-3">
               <div className="flex-1 min-w-0">
-                <ContestantLabel contestant={voter} />
+                <p className="text-sm font-medium truncate">{getDisplayName(voter)}</p>
+                <p className="text-[11px] text-muted-foreground">voted for</p>
               </div>
-              <div className="text-xs text-muted-foreground mr-1">voted for</div>
               <Select
                 value={votes[voter.id] || ''}
                 onValueChange={(value) =>
@@ -206,8 +244,8 @@ export function VotesStep() {
                     ))}
                 </SelectContent>
               </Select>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
 
@@ -289,36 +327,17 @@ export function EliminationStep() {
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        {attendeeList.map((c) => {
-          const isSelected = eliminated === c.id
-          return (
-            <button
-              key={c.id}
-              data-testid={`eliminated-${c.id}`}
-              aria-selected={isSelected}
-              onClick={() => updateTribalState({ eliminated: c.id })}
-              className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                isSelected
-                  ? 'border-red-500 bg-red-50 dark:bg-red-950/20'
-                  : 'border-muted hover:border-muted-foreground'
-              }`}
-            >
-              <div
-                className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                  isSelected ? 'bg-red-500 text-white' : 'bg-muted'
-                }`}
-              >
-                {isSelected && <X className="h-3 w-3" />}
-              </div>
-              <div className="flex items-center gap-2 min-w-0">
-                <ContestantLabel contestant={c} />
-                <span className="text-xs text-muted-foreground shrink-0">
-                  ({voteTallies[c.id] || 0} votes)
-                </span>
-              </div>
-            </button>
-          )
-        })}
+        {attendeeList.map((c) => (
+          <ContestantSelectTile
+            key={c.id}
+            data-testid={`eliminated-${c.id}`}
+            contestant={c}
+            isSelected={eliminated === c.id}
+            onClick={() => updateTribalState({ eliminated: c.id })}
+            variant="destructive"
+            detail={`${voteTallies[c.id] || 0} votes`}
+          />
+        ))}
       </div>
 
       <div className="flex gap-2 pt-4">

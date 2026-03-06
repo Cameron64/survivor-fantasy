@@ -35,7 +35,7 @@ export function ContestantLabel({ contestant }: { contestant: FormContestant }) 
 
   return (
     <span className="flex items-center gap-2 min-w-0">
-      <Avatar className="h-6 w-6 shrink-0"
+      <Avatar className="h-7 w-7 shrink-0"
         style={contestant.tribeColor ? {
           boxShadow: `0 0 0 2px ${contestant.tribeColor}`,
         } : undefined}

@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Check, ChevronDown, ChevronRight } from 'lucide-react'
 import type { ImmunityChallengeData, RewardChallengeData } from '@/lib/event-derivation'
-import { ContestantLabel } from '@/components/shared/contestant-label'
+import { ContestantSelectTile } from '@/components/shared/contestant-select-tile'
 import type { FormContestant } from '@/components/shared/contestant-label'
 
 type Contestant = FormContestant
@@ -163,31 +163,15 @@ export function ImmunityChallengeForm({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2">
-          {active.map((c) => {
-            const isSelected = winner === c.id
-            return (
-              <button
-                key={c.id}
-                data-testid={`winner-${c.id}`}
-                aria-selected={isSelected}
-                onClick={() => setWinner(c.id)}
-                className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                  isSelected
-                    ? 'border-primary bg-primary/5'
-                    : 'border-muted hover:border-muted-foreground'
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                    isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                  }`}
-                >
-                  {isSelected && <Check className="h-3 w-3" />}
-                </div>
-                <ContestantLabel contestant={c} />
-              </button>
-            )
-          })}
+          {active.map((c) => (
+            <ContestantSelectTile
+              key={c.id}
+              data-testid={`winner-${c.id}`}
+              contestant={c}
+              isSelected={winner === c.id}
+              onClick={() => setWinner(c.id)}
+            />
+          ))}
         </div>
       )}
 
@@ -378,31 +362,15 @@ export function RewardChallengeForm({ contestants, tribes = [], onSubmit, onBack
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2">
-          {active.map((c) => {
-            const isSelected = winners.has(c.id)
-            return (
-              <button
-                key={c.id}
-                data-testid={`reward-winner-${c.id}`}
-                aria-selected={isSelected}
-                onClick={() => toggleWinner(c.id)}
-                className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                  isSelected
-                    ? 'border-primary bg-primary/5'
-                    : 'border-muted hover:border-muted-foreground'
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                    isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                  }`}
-                >
-                  {isSelected && <Check className="h-3 w-3" />}
-                </div>
-                <ContestantLabel contestant={c} />
-              </button>
-            )
-          })}
+          {active.map((c) => (
+            <ContestantSelectTile
+              key={c.id}
+              data-testid={`reward-winner-${c.id}`}
+              contestant={c}
+              isSelected={winners.has(c.id)}
+              onClick={() => toggleWinner(c.id)}
+            />
+          ))}
         </div>
       )}
 

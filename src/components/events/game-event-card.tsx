@@ -224,11 +224,11 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
                   </div>
                 ) : primaryAvatar?.imageUrl ? (
                   <Avatar
-                    className="h-8 w-8 shrink-0"
+                    className="h-9 w-9 shrink-0"
                     style={primaryAvatar.tribeColor ? { boxShadow: `0 0 0 2px ${primaryAvatar.tribeColor}` } : undefined}
                   >
                     <AvatarImage src={primaryAvatar.imageUrl} alt={primaryName || ''} />
-                    <AvatarFallback className="text-[10px]">
+                    <AvatarFallback className="text-xs">
                       {primaryName ? getInitials(primaryName) : <Icon className="h-4 w-4" />}
                     </AvatarFallback>
                   </Avatar>
@@ -302,7 +302,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
                   {/* Photo sliver */}
                   {avatar?.imageUrl ? (
                     <div
-                      className="relative w-10 shrink-0 bg-muted self-stretch"
+                      className="relative w-12 shrink-0 bg-muted self-stretch"
                       style={avatar.tribeColor ? { borderBottom: `2px solid ${avatar.tribeColor}` } : undefined}
                     >
                       <img
@@ -312,7 +312,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
                       />
                     </div>
                   ) : (
-                    <div className="w-10 shrink-0 bg-muted self-stretch flex items-center justify-center">
+                    <div className="w-12 shrink-0 bg-muted self-stretch flex items-center justify-center">
                       <span className="text-[10px] font-medium text-muted-foreground">
                         {getInitials(cEvents[0].contestant.name)}
                       </span>

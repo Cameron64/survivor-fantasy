@@ -83,13 +83,13 @@ export function StandaloneEventCard({ event, contestantNames, contestantAvatars,
             </div>
           ) : !compact ? (
             <Avatar
-              className="h-7 w-7 shrink-0 ml-3"
+              className="h-9 w-9 shrink-0 ml-3"
               style={avatar?.tribeColor ? { boxShadow: `0 0 0 2px ${avatar.tribeColor}` } : undefined}
             >
               {avatar?.imageUrl && (
                 <AvatarImage src={avatar.imageUrl} alt={displayName} />
               )}
-              <AvatarFallback className="text-[10px]">
+              <AvatarFallback className="text-xs">
                 {getInitials(event.contestant.name)}
               </AvatarFallback>
             </Avatar>

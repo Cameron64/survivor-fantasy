@@ -11,7 +11,7 @@ import { EventReview } from '@/components/events/event-review'
 export default function ReviewPage() {
   const params = useParams<{ type: string }>()
   const router = useRouter()
-  const { contestantNames, pointValues, week, formData, setFormData } = useSubmitContext()
+  const { contestants, contestantNames, pointValues, week, formData, setFormData } = useSubmitContext()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const eventType = slugToType(params.type)
@@ -70,6 +70,7 @@ export default function ReviewPage() {
     <EventReview
       events={derivedEvents}
       contestantNames={contestantNames}
+      contestants={contestants}
       eventType={eventType}
       eventTypeLabel={option?.label ?? ''}
       eventTypeIcon={option?.icon ?? Flame}

@@ -1,9 +1,8 @@
 import { db } from '@/lib/db'
 import { calculateTotalPoints } from '@/lib/scoring'
-import { getValidImageUrl } from '@/lib/utils'
+import { cn, getValidImageUrl } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Users } from 'lucide-react'
 
 async function getContestants() {
@@ -108,11 +107,14 @@ export default async function ContestantsPage() {
             </h2>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {tribeContestants.map((contestant) => (
               <Card
                 key={contestant.id}
-                className={`relative overflow-hidden ${contestant.isEliminated ? 'opacity-60' : ''}`}
+                className={cn(
+                  'relative overflow-hidden',
+                  contestant.isEliminated && 'opacity-60'
+                )}
               >
                 {buffImage && !isMerge && (
                   <div
@@ -126,44 +128,52 @@ export default async function ContestantsPage() {
                     style={{ backgroundColor: color }}
                   />
                 )}
-                <CardContent className="relative z-10 flex items-center gap-4 p-4">
-                  <Avatar className="h-12 w-12">
-                    {contestant.imageUrl && (
-                      <AvatarImage src={contestant.imageUrl} alt={contestant.name} />
-                    )}
-                    <AvatarFallback>
-                      {contestant.name.split(' ').map((n) => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium truncate">
-                        {contestant.nickname
-                          ? `${contestant.nickname} (${contestant.name.split(' ')[0]})`
-                          : contestant.name}
-                      </p>
-                      {contestant.isEliminated && (
-                        <Badge variant="destructive" className="text-xs">
-                          Out
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {contestant.totalPoints} pts
-                      {contestant.originalSeasons && (
-                        <span className="ml-1">
-                          · S{contestant.originalSeasons.replace(/,/g, ', S')}
-                        </span>
-                      )}
+                <div className="relative z-10 flex h-full">
+                  {/* Photo slice */}
+                  <div
+                    className="relative w-16 sm:w-20 shrink-0 bg-muted"
+                    style={color ? { borderBottom: `3px solid ${color}` } : undefined}
+                  >
+                    {contestant.imageUrl ? (
+                      <img
+                        src={contestant.imageUrl}
+                        alt={contestant.nickname || contestant.name}
+                        className="absolute inset-0 w-full h-full object-cover object-top"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center text-muted-foreground font-medium text-sm">
+                        {contestant.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0 p-2.5 flex flex-col justify-center">
+                    <p className="font-medium text-sm truncate">
+                      {contestant.nickname || contestant.name.split(' ')[0]}
                     </p>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-lg font-bold tabular-nums">{contestant.totalPoints}</span>
+                      <span className="text-[11px] text-muted-foreground">pts</span>
+                    </div>
+                    {contestant.isEliminated && (
+                      <Badge variant="destructive" className="text-[10px] px-1.5 py-0 mt-1 w-fit">
+                        Out
+                      </Badge>
+                    )}
+                    {contestant.originalSeasons && (
+                      <p className="text-[11px] text-muted-foreground mt-1 truncate">
+                        S{contestant.originalSeasons.replace(/,/g, ', S')}
+                      </p>
+                    )}
                     {contestant.draftedBy && (
-                      <p className="text-xs text-muted-foreground">
-                        Drafted by {contestant.draftedBy.name}
+                      <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                        {contestant.draftedBy.name}
                       </p>
                     )}
                   </div>
-                </CardContent>
+                </div>
               </Card>
             ))}
           </div>

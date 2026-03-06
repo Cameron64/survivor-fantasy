@@ -10,14 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Check } from 'lucide-react'
 import type {
   IdolFoundData,
   FireMakingData,
   QuitMedevacData,
   EndgameData,
 } from '@/lib/event-derivation'
-import { ContestantLabel } from '@/components/shared/contestant-label'
+import { ContestantSelectTile } from '@/components/shared/contestant-select-tile'
 import type { FormContestant } from '@/components/shared/contestant-label'
 
 type Contestant = FormContestant
@@ -40,31 +39,15 @@ export function IdolFoundForm({ contestants, onSubmit, onBack }: IdolFoundFormPr
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        {active.map((c) => {
-          const isSelected = finder === c.id
-          return (
-            <button
-              key={c.id}
-              data-testid={`idol-finder-${c.id}`}
-              aria-selected={isSelected}
-              onClick={() => setFinder(c.id)}
-              className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                isSelected
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted hover:border-muted-foreground'
-              }`}
-            >
-              <div
-                className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                  isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                }`}
-              >
-                {isSelected && <Check className="h-3 w-3" />}
-              </div>
-              <ContestantLabel contestant={c} />
-            </button>
-          )
-        })}
+        {active.map((c) => (
+          <ContestantSelectTile
+            key={c.id}
+            data-testid={`idol-finder-${c.id}`}
+            contestant={c}
+            isSelected={finder === c.id}
+            onClick={() => setFinder(c.id)}
+          />
+        ))}
       </div>
 
       <div className="flex gap-2 pt-4">
@@ -101,74 +84,40 @@ export function FireMakingForm({ contestants, onSubmit, onBack }: FireMakingForm
         <div>
           <Label className="text-sm font-medium">Winner</Label>
           <div className="grid grid-cols-2 gap-2 mt-2">
-            {active.map((c) => {
-              const isSelected = winner === c.id
-              return (
-                <button
-                  key={c.id}
-                  data-testid={`fire-winner-${c.id}`}
-                  aria-selected={isSelected}
-                  onClick={() => {
-                    setWinner(c.id)
-                    if (loser === c.id) setLoser('')
-                  }}
-                  className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                    isSelected
-                      ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
-                      : c.id === loser
-                        ? 'opacity-40 border-muted'
-                        : 'border-muted hover:border-muted-foreground'
-                  }`}
-                  disabled={c.id === loser}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                      isSelected ? 'bg-green-500 text-white' : 'bg-muted'
-                    }`}
-                  >
-                    {isSelected && <Check className="h-3 w-3" />}
-                  </div>
-                  <ContestantLabel contestant={c} />
-                </button>
-              )
-            })}
+            {active.map((c) => (
+              <ContestantSelectTile
+                key={c.id}
+                data-testid={`fire-winner-${c.id}`}
+                contestant={c}
+                isSelected={winner === c.id}
+                onClick={() => {
+                  setWinner(c.id)
+                  if (loser === c.id) setLoser('')
+                }}
+                variant="success"
+                disabled={c.id === loser}
+              />
+            ))}
           </div>
         </div>
 
         <div>
           <Label className="text-sm font-medium">Loser</Label>
           <div className="grid grid-cols-2 gap-2 mt-2">
-            {active.map((c) => {
-              const isSelected = loser === c.id
-              return (
-                <button
-                  key={c.id}
-                  data-testid={`fire-loser-${c.id}`}
-                  aria-selected={isSelected}
-                  onClick={() => {
-                    setLoser(c.id)
-                    if (winner === c.id) setWinner('')
-                  }}
-                  className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                    isSelected
-                      ? 'border-red-500 bg-red-50 dark:bg-red-950/20'
-                      : c.id === winner
-                        ? 'opacity-40 border-muted'
-                        : 'border-muted hover:border-muted-foreground'
-                  }`}
-                  disabled={c.id === winner}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                      isSelected ? 'bg-red-500 text-white' : 'bg-muted'
-                    }`}
-                  >
-                    {isSelected && <Check className="h-3 w-3" />}
-                  </div>
-                  <ContestantLabel contestant={c} />
-                </button>
-              )
-            })}
+            {active.map((c) => (
+              <ContestantSelectTile
+                key={c.id}
+                data-testid={`fire-loser-${c.id}`}
+                contestant={c}
+                isSelected={loser === c.id}
+                onClick={() => {
+                  setLoser(c.id)
+                  if (winner === c.id) setWinner('')
+                }}
+                variant="destructive"
+                disabled={c.id === winner}
+              />
+            ))}
           </div>
         </div>
       </div>
@@ -223,31 +172,15 @@ export function QuitMedevacForm({ contestants, onSubmit, onBack }: QuitMedevacFo
       <div>
         <Label className="text-sm font-medium">Who?</Label>
         <div className="grid grid-cols-2 gap-2 mt-2">
-          {active.map((c) => {
-            const isSelected = contestant === c.id
-            return (
-              <button
-                key={c.id}
-                data-testid={`quit-contestant-${c.id}`}
-                aria-selected={isSelected}
-                onClick={() => setContestant(c.id)}
-                className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                  isSelected
-                    ? 'border-primary bg-primary/5'
-                    : 'border-muted hover:border-muted-foreground'
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                    isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                  }`}
-                >
-                  {isSelected && <Check className="h-3 w-3" />}
-                </div>
-                <ContestantLabel contestant={c} />
-              </button>
-            )
-          })}
+          {active.map((c) => (
+            <ContestantSelectTile
+              key={c.id}
+              data-testid={`quit-contestant-${c.id}`}
+              contestant={c}
+              isSelected={contestant === c.id}
+              onClick={() => setContestant(c.id)}
+            />
+          ))}
         </div>
       </div>
 
@@ -304,31 +237,15 @@ export function EndgameForm({ contestants, onSubmit, onBack }: EndgameFormProps)
       <div>
         <Label className="text-sm font-medium">Finalists</Label>
         <div className="grid grid-cols-2 gap-2 mt-2">
-          {active.map((c) => {
-            const isSelected = finalists.has(c.id)
-            return (
-              <button
-                key={c.id}
-                data-testid={`finalist-${c.id}`}
-                aria-selected={isSelected}
-                onClick={() => toggleFinalist(c.id)}
-                className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                  isSelected
-                    ? 'border-primary bg-primary/5'
-                    : 'border-muted hover:border-muted-foreground'
-                }`}
-              >
-                <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                    isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                  }`}
-                >
-                  {isSelected && <Check className="h-3 w-3" />}
-                </div>
-                <ContestantLabel contestant={c} />
-              </button>
-            )
-          })}
+          {active.map((c) => (
+            <ContestantSelectTile
+              key={c.id}
+              data-testid={`finalist-${c.id}`}
+              contestant={c}
+              isSelected={finalists.has(c.id)}
+              onClick={() => toggleFinalist(c.id)}
+            />
+          ))}
         </div>
       </div>
 
@@ -338,31 +255,16 @@ export function EndgameForm({ contestants, onSubmit, onBack }: EndgameFormProps)
           <div className="grid grid-cols-2 gap-2 mt-2">
             {active
               .filter((c) => finalists.has(c.id))
-              .map((c) => {
-                const isSelected = winner === c.id
-                return (
-                  <button
-                    key={c.id}
-                    data-testid={`endgame-winner-${c.id}`}
-                    aria-selected={isSelected}
-                    onClick={() => setWinner(c.id)}
-                    className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                      isSelected
-                        ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20'
-                        : 'border-muted hover:border-muted-foreground'
-                    }`}
-                  >
-                    <div
-                      className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                        isSelected ? 'bg-yellow-500 text-white' : 'bg-muted'
-                      }`}
-                    >
-                      {isSelected && <Check className="h-3 w-3" />}
-                    </div>
-                    <ContestantLabel contestant={c} />
-                  </button>
-                )
-              })}
+              .map((c) => (
+                <ContestantSelectTile
+                  key={c.id}
+                  data-testid={`endgame-winner-${c.id}`}
+                  contestant={c}
+                  isSelected={winner === c.id}
+                  onClick={() => setWinner(c.id)}
+                  variant="warning"
+                />
+              ))}
           </div>
         </div>
       )}

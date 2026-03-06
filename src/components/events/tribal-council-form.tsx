@@ -13,9 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Check, X } from 'lucide-react'
+import { Check } from 'lucide-react'
 import type { TribalCouncilData } from '@/lib/event-derivation'
 import { ContestantLabel, getDisplayName } from '@/components/shared/contestant-label'
+import { ContestantSelectTile } from '@/components/shared/contestant-select-tile'
 import type { FormContestant } from '@/components/shared/contestant-label'
 
 type Contestant = FormContestant
@@ -175,31 +176,15 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
                   {tribe}
                 </button>
                 <div className="grid grid-cols-2 gap-2">
-                  {members.map((c) => {
-                    const isSelected = selectedAttendees.has(c.id)
-                    return (
-                      <button
-                        key={c.id}
-                        data-testid={`contestant-${c.id}`}
-                        aria-selected={isSelected}
-                        onClick={() => toggleAttendee(c.id)}
-                        className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                          isSelected
-                            ? 'border-primary bg-primary/5'
-                            : 'border-muted hover:border-muted-foreground'
-                        }`}
-                      >
-                        <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                            isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                          }`}
-                        >
-                          {isSelected && <Check className="h-3 w-3" />}
-                        </div>
-                        <ContestantLabel contestant={c} />
-                      </button>
-                    )
-                  })}
+                  {members.map((c) => (
+                    <ContestantSelectTile
+                      key={c.id}
+                      data-testid={`contestant-${c.id}`}
+                      contestant={c}
+                      isSelected={selectedAttendees.has(c.id)}
+                      onClick={() => toggleAttendee(c.id)}
+                    />
+                  ))}
                 </div>
               </div>
             )
@@ -316,36 +301,17 @@ export function TribalCouncilForm({ contestants, onSubmit, onBack }: TribalCounc
           </div>
 
           <div className="grid grid-cols-2 gap-2">
-            {attendeeList.map((c) => {
-              const isSelected = eliminated === c.id
-              return (
-                <button
-                  key={c.id}
-                  data-testid={`eliminated-${c.id}`}
-                  aria-selected={isSelected}
-                  onClick={() => setEliminated(c.id)}
-                  className={`flex items-center gap-2 p-3 rounded-lg border text-left transition-colors ${
-                    isSelected
-                      ? 'border-red-500 bg-red-50 dark:bg-red-950/20'
-                      : 'border-muted hover:border-muted-foreground'
-                  }`}
-                >
-                  <div
-                    className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
-                      isSelected ? 'bg-red-500 text-white' : 'bg-muted'
-                    }`}
-                  >
-                    {isSelected && <X className="h-3 w-3" />}
-                  </div>
-                  <div className="flex items-center gap-2 min-w-0">
-                    <ContestantLabel contestant={c} />
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      ({voteTallies[c.id] || 0} votes)
-                    </span>
-                  </div>
-                </button>
-              )
-            })}
+            {attendeeList.map((c) => (
+              <ContestantSelectTile
+                key={c.id}
+                data-testid={`eliminated-${c.id}`}
+                contestant={c}
+                isSelected={eliminated === c.id}
+                onClick={() => setEliminated(c.id)}
+                variant="destructive"
+                detail={`${voteTallies[c.id] || 0} votes`}
+              />
+            ))}
           </div>
 
           <div className="flex gap-2 pt-4">
