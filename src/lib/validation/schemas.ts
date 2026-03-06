@@ -15,7 +15,8 @@ import { EventType, GameEventType, Role } from '@prisma/client'
 // PRIMITIVES & REUSABLE
 // ============================================================================
 
-// CUID format: starts with 'c', 25 characters long, alphanumeric
+// CUID format: starts with 'c', 25 characters total (c + 24 alphanumeric chars)
+// Example: cmlcabwea000h1ec0hdencqzs
 const idSchema = z.string().regex(/^c[a-z0-9]{24}$/, { message: 'Invalid ID format' })
 const weekSchema = z.number().int().min(1).max(20)
 const optionalStringSchema = z.string().optional()
