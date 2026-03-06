@@ -43,14 +43,14 @@ Let any user view any other player's team breakdown — how their drafted contes
 
 ## 5. Larger Contestant Tiles in Event Submission
 
-**Status:** Planned
+**Status:** In Progress
 
 ### Summary
 The contestant selection tiles in the event submission forms are too small — hard to identify faces at a glance under time pressure. Increase tile/avatar size so contestants are easily recognizable by photo rather than needing to read names.
 
 ## 6. Routed Event Submission Wizard
 
-**Status:** Planned
+**Status:** Done
 
 ### Summary
 The event submission wizard should use proper URL routing for each step so browser back/forward navigation works as expected. Currently the wizard is client-state driven — switching to routed steps lets users navigate naturally without losing context.
@@ -145,3 +145,10 @@ A read-only page in the app where users can see the list of planned features and
 
 ### Summary
 Let users submit feature requests directly in the app. Pairs with the roadmap page (#18) — users can see what's planned and suggest what's missing.
+
+## 20. Context-Aware Challenge Mode
+
+**Status:** Planned
+
+### Summary
+Dynamically determine whether challenges are team-based or individual based on merge status. Pre-merge defaults to team; post-merge defaults to individual. Applies to immunity, reward, and other event types — removes the manual toggle and reduces input errors during live scoring.

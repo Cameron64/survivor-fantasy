@@ -23,8 +23,8 @@ const ROADMAP_ITEMS: { id: number; title: string; description: string; status: '
   { id: 2, title: 'Merge Functionality', description: 'End-to-end tribe merge workflow with correct app-wide display', status: 'Planned' },
   { id: 3, title: 'Simplified Player Breakdowns', description: 'Show category rollups instead of per-week badges', status: 'Planned' },
   { id: 4, title: 'Public Team Breakdowns', description: "View any player's team breakdown from the leaderboard", status: 'Planned' },
-  { id: 5, title: 'Larger Contestant Tiles', description: 'Bigger photos in event submission for faster face recognition', status: 'Planned' },
-  { id: 6, title: 'Routed Event Wizard', description: 'URL-based routing for event submission steps with browser navigation', status: 'Planned' },
+  { id: 5, title: 'Larger Contestant Tiles', description: 'Bigger photos in event submission for faster face recognition', status: 'In Progress' },
+  { id: 6, title: 'Routed Event Wizard', description: 'URL-based routing for event submission steps with browser navigation', status: 'Done' },
   { id: 7, title: 'Tribal Council Breakdown', description: 'View who voted for whom each week', status: 'Planned' },
   { id: 8, title: 'Tribe-Styled Challenge Drawers', description: 'Team challenges grouped by tribe with color-coded drawers', status: 'Planned' },
   { id: 9, title: 'Tribes in Main Nav', description: 'Browse tribes from the main menu with buff image uploads', status: 'Planned' },
@@ -38,6 +38,7 @@ const ROADMAP_ITEMS: { id: number; title: string; description: string; status: '
   { id: 17, title: 'In-App Chat', description: 'Trash talk and discuss episodes without leaving the app', status: 'Planned' },
   { id: 18, title: 'In-App Roadmap', description: 'Read-only view of planned features', status: 'Done' },
   { id: 19, title: 'Feature Request Submission', description: 'Submit feature ideas directly in the app', status: 'Planned' },
+  { id: 20, title: 'Context-Aware Challenge Mode', description: 'Auto-detect team vs individual challenges based on merge status', status: 'Planned' },
 ]
 
 export default function SettingsPage() {
