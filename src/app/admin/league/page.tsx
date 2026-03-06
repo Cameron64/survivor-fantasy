@@ -3,12 +3,13 @@ export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Trophy, Eye } from 'lucide-react'
+import { Settings, Trophy, Eye, Gamepad2 } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { EVENT_POINTS } from '@/lib/constants/scoring-constants'
 import { EventType } from '@prisma/client'
 import { ScoringConfigForm } from '@/components/admin/scoring-config-form'
 import { PrivacySettingsForm } from '@/components/admin/privacy-settings-form'
+import { FunSettingsForm } from '@/components/admin/fun-settings-form'
 
 async function getLeague() {
   const league = await db.league.findFirst({
@@ -98,6 +99,23 @@ export default async function AdminLeaguePage() {
             initialIsPublic={league?.isPublic ?? false}
             initialAllowGuestEvents={league?.allowGuestEvents ?? false}
             initialAllowUserEvents={league?.allowUserEvents ?? true}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Gamepad2 className="h-5 w-5" />
+            Fun Settings
+          </CardTitle>
+          <CardDescription>
+            Optional features to spice up the league
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <FunSettingsForm
+            initialShowLastPlace={league?.showLastPlace ?? false}
           />
         </CardContent>
       </Card>

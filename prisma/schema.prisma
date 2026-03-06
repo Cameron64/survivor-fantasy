@@ -169,6 +169,7 @@ model League {
   allowGuestEvents Boolean @default(false) // Let guests submit events (requires isPublic)
   allowUserEvents  Boolean @default(true)  // Let registered users submit events
   scoringConfig  Json? // Partial<Record<EventType, number>> overrides, null = all defaults
+  showLastPlace  Boolean @default(false) // Show a "trophy" for last place on the standings
   tribes         Tribe[]
   episodes       Episode[]
   createdAt      DateTime  @default(now())

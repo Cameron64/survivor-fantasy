@@ -83,11 +83,11 @@ const nextConfig = {
     if (isServer) {
       config.externals = [...(config.externals || []), 'bot/**']
     }
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: ['**/bot/**', '**/node_modules/**', '**/.git/**'],
+    }
     return config
-  },
-  // Speed up builds by excluding bot from file watching
-  watchOptions: {
-    ignored: ['**/bot/**', '**/node_modules/**', '**/.git/**'],
   },
 }
 

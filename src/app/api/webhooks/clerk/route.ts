@@ -7,6 +7,9 @@ import { env } from '@/lib/env'
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = env.CLERK_WEBHOOK_SECRET
+  if (!WEBHOOK_SECRET) {
+    return new Response('Error: CLERK_WEBHOOK_SECRET not configured', { status: 500 })
+  }
 
   const headerPayload = await headers()
   const svix_id = headerPayload.get('svix-id')

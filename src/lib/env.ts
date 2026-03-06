@@ -22,7 +22,8 @@ const envSchema = z.object({
     .string()
     .min(1, 'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is required'),
   CLERK_SECRET_KEY: z.string().min(1, 'CLERK_SECRET_KEY is required'),
-  CLERK_WEBHOOK_SECRET: z.string().min(1, 'CLERK_WEBHOOK_SECRET is required for user sync'),
+  CLERK_WEBHOOK_SECRET: z.string().min(1, 'CLERK_WEBHOOK_SECRET is required for user sync')
+    .optional().or(z.literal('')).transform(val => val || undefined),
 
   // Optional: Slack Integration
   SLACK_WEBHOOK_URL: z.string().url().optional().or(z.literal('')).transform(val => val || undefined),

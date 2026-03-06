@@ -13,7 +13,7 @@ import type {
 } from '@/components/overview/overview-types'
 
 async function getOverviewData() {
-  const [currentUser, teams, allDbContestants] = await Promise.all([
+  const [currentUser, teams, allDbContestants, league] = await Promise.all([
     getCurrentUser(),
     db.team.findMany({
       include: {
@@ -55,6 +55,7 @@ async function getOverviewData() {
         },
       },
     }),
+    db.league.findFirst({ select: { showLastPlace: true } }),
   ])
 
   // Build contestant map (id -> drafted-by user name)
@@ -113,7 +114,13 @@ async function getOverviewData() {
       }
     })
     .sort((a, b) => b.totalScore - a.totalScore)
-    .map((entry, idx) => ({ ...entry, rank: idx + 1 }))
+    .reduce<PlayerStanding[]>((acc, entry, idx) => {
+      const rank = idx > 0 && entry.totalScore === acc[idx - 1].totalScore
+        ? acc[idx - 1].rank
+        : acc[idx - 1]?.rank + 1 || 1
+      acc.push({ ...entry, rank })
+      return acc
+    }, [])
 
   // Build all-contestant ranking from full DB query (includes undrafted contestants)
   const uniqueContestants: ContestantScore[] = allDbContestants
@@ -257,11 +264,12 @@ async function getOverviewData() {
     contestants: uniqueContestants,
     weekEventsData,
     maxScore,
+    showLastPlace: league?.showLastPlace ?? false,
   }
 }
 
 export default async function LeaderboardPage() {
-  const { currentUserId, standings, contestants, weekEventsData, maxScore } =
+  const { currentUserId, standings, contestants, weekEventsData, maxScore, showLastPlace } =
     await getOverviewData()
 
   if (standings.length === 0) {
@@ -306,6 +314,7 @@ export default async function LeaderboardPage() {
         contestants={contestants}
         weekEventsData={weekEventsData}
         currentUserId={currentUserId}
+        showLastPlace={showLastPlace}
         maxScore={maxScore}
       />
     </div>

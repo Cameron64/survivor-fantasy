@@ -12,6 +12,7 @@ interface OverviewClientProps {
   weekEventsData: WeekEventsData | null
   currentUserId: string | null
   maxScore: number
+  showLastPlace?: boolean
 }
 
 export function OverviewClient({
@@ -20,6 +21,7 @@ export function OverviewClient({
   weekEventsData,
   currentUserId,
   maxScore,
+  showLastPlace = false,
 }: OverviewClientProps) {
   return (
     <div className="space-y-6">
@@ -27,6 +29,7 @@ export function OverviewClient({
         standings={standings}
         currentUserId={currentUserId}
         maxScore={maxScore}
+        showLastPlace={showLastPlace}
       />
 
       <ThisWeeksEvents data={weekEventsData} />
