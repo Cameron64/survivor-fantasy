@@ -6,6 +6,8 @@ import { PWAUpdateNotification } from '@/components/shared/pwa-update-notificati
 import { ErrorBoundary } from '@/components/shared/error-boundary'
 import { AdminDebugWrapper } from '@/components/shared/admin-debug-wrapper-server'
 
+const devBypass = process.env.NODE_ENV === 'development' && !!process.env.DEV_USER_ID
+
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
@@ -35,23 +37,24 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return (
-    <ClerkProvider>
-      <html lang="en">
-        <head>
-          <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-          <link rel="icon" type="image/png" href="/favicon.png" />
-          <meta name="mobile-web-app-capable" content="yes" />
-          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        </head>
-        <body className={`${inter.className} antialiased`}>
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
-          <PWAUpdateNotification />
-          <AdminDebugWrapper />
-        </body>
-      </html>
-    </ClerkProvider>
+  const content = (
+    <html lang="en">
+      <head>
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      </head>
+      <body className={`${inter.className} antialiased`}>
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
+        <PWAUpdateNotification />
+        <AdminDebugWrapper />
+      </body>
+    </html>
   )
+
+  if (devBypass) return content
+  return <ClerkProvider>{content}</ClerkProvider>
 }

@@ -58,11 +58,13 @@ async function getOverviewData() {
     db.league.findFirst({ select: { showLastPlace: true } }),
   ])
 
-  // Build contestant map (id -> drafted-by user name)
-  const contestantDraftedBy = new Map<string, string>()
+  // Build contestant map (id -> all user names who drafted them)
+  const contestantDraftedBy = new Map<string, string[]>()
   for (const team of teams) {
     for (const tc of team.contestants) {
-      contestantDraftedBy.set(tc.contestant.id, team.user.name)
+      const existing = contestantDraftedBy.get(tc.contestant.id) ?? []
+      existing.push(team.user.name.split(' ')[0])
+      contestantDraftedBy.set(tc.contestant.id, existing)
     }
   }
 
@@ -86,7 +88,7 @@ async function getOverviewData() {
           tribeBuffImage: currentTribe?.buffImage ?? null,
           tribeIsMerge: currentTribe?.isMerge ?? null,
           tribeName: currentTribe?.name ?? null,
-          draftedBy: team.user.name,
+          draftedBy: [team.user.name.split(' ')[0]],
           events: c.events.map((e) => ({
             id: e.id,
             type: e.type,
@@ -140,7 +142,7 @@ async function getOverviewData() {
         tribeBuffImage: currentTribe?.buffImage ?? null,
         tribeIsMerge: currentTribe?.isMerge ?? null,
         tribeName: currentTribe?.name ?? null,
-        draftedBy: contestantDraftedBy.get(c.id) ?? null,
+        draftedBy: contestantDraftedBy.get(c.id) ?? [],
         events: [],
       }
     })

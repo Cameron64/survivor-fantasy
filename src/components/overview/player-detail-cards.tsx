@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { ChevronDown, ChevronRight, Trophy, Medal, Award } from 'lucide-react'
+import { ChevronDown, Trophy, Medal, Award } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { getEventTypeLabel } from '@/lib/scoring'
@@ -245,13 +245,18 @@ export function PlayerDetailCards({ players, currentUserId }: PlayerDetailCardsP
           )
         })}
 
-        {!showAll && players.length > VISIBLE_COUNT && (
+        {players.length > VISIBLE_COUNT && (
           <button
-            onClick={() => setShowAll(true)}
+            onClick={() => setShowAll(!showAll)}
             className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-lg border border-dashed hover:border-solid hover:bg-accent/50"
           >
-            Show all {players.length} players
-            <ChevronRight className="h-3.5 w-3.5" />
+            {showAll ? 'Show top 5' : `Show all ${players.length} players`}
+            <ChevronDown
+              className={cn(
+                'h-3.5 w-3.5 transition-transform duration-200',
+                showAll && 'rotate-180'
+              )}
+            />
           </button>
         )}
       </div>

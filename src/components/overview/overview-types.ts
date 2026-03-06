@@ -12,7 +12,7 @@ export interface ContestantScore {
   tribeBuffImage: string | null
   tribeIsMerge: boolean | null
   tribeName: string | null
-  draftedBy: string | null
+  draftedBy: string[]
   events: ApprovedEvent[]
 }
 

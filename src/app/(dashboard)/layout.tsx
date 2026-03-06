@@ -59,12 +59,19 @@ function isDbConnectionError(error: unknown): boolean {
   return false
 }
 
+const devBypass = process.env.NODE_ENV === 'development' && !!process.env.DEV_USER_ID
+
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { userId } = await auth()
+  let userId: string | null = null
+
+  if (!devBypass) {
+    const authResult = await auth()
+    userId = authResult.userId
+  }
 
   // Check league privacy settings to decide if guests can view
   let leagueSettings = { isPublic: false, allowGuestEvents: false }
@@ -78,16 +85,16 @@ export default async function DashboardLayout({
   }
 
   // No user and not public → redirect to sign-in (original behavior)
-  if (!userId && !leagueSettings.isPublic) {
+  if (!devBypass && !userId && !leagueSettings.isPublic) {
     redirect('/sign-in')
   }
 
-  // Guest mode: no userId but league is public
-  if (!userId) {
+  // Guest mode: no userId but league is public (not applicable in dev bypass)
+  if (!devBypass && !userId) {
     return <GuestLayout>{children}</GuestLayout>
   }
 
-  // Authenticated flow (unchanged)
+  // Authenticated flow
   let user;
   let readiness;
 
@@ -95,7 +102,7 @@ export default async function DashboardLayout({
     user = await getCurrentUser()
 
     // Auto-create DB user from Clerk if not synced yet (e.g. webhook hasn't fired)
-    if (!user) {
+    if (!user && !devBypass && userId) {
       const clerk = await clerkClient()
       const clerkUser = await clerk.users.getUser(userId)
       const email = clerkUser.emailAddresses[0]?.emailAddress
@@ -143,7 +150,13 @@ export default async function DashboardLayout({
           <Link href="/leaderboard" className="flex items-center">
             <Image src="/logo.png" alt="Survivor Fantasy League" width={180} height={120} className="h-11 w-auto" />
           </Link>
-          <UserButton afterSignOutUrl="/" />
+          {devBypass ? (
+            <span className="text-xs font-mono bg-amber-500/20 text-amber-700 px-2 py-1 rounded">
+              DEV: {user?.name?.split(' ')[0]} ({user?.role})
+            </span>
+          ) : (
+            <UserButton afterSignOutUrl="/" />
+          )}
         </div>
       </header>
 
@@ -184,10 +197,18 @@ export default async function DashboardLayout({
           </div>
           <div className="flex-shrink-0 flex border-t p-4">
             <div className="flex items-center gap-3 w-full">
-              <UserButton afterSignOutUrl="/" />
+              {devBypass ? (
+                <span className="h-8 w-8 rounded-full bg-amber-500/20 flex items-center justify-center text-xs font-bold text-amber-700">
+                  {user?.name?.split(' ').map(w => w[0]).join('') || '?'}
+                </span>
+              ) : (
+                <UserButton afterSignOutUrl="/" />
+              )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{user?.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {devBypass ? user?.role : user?.email}
+                </p>
               </div>
             </div>
           </div>

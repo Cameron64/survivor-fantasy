@@ -24,6 +24,9 @@ const isPageRoute = createRouteMatcher([
 ])
 
 export default clerkMiddleware(async (auth, req) => {
+  // Dev bypass: skip all Clerk protection when DEV_USER_ID is set
+  if (process.env.NODE_ENV === 'development' && process.env.DEV_USER_ID) return
+
   // API routes handle their own auth (supports both Clerk sessions and API key auth)
   if (isApiRoute(req)) return
 

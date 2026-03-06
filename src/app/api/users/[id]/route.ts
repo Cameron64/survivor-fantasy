@@ -4,6 +4,8 @@ import { db } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth'
 import { Role } from '@prisma/client'
 
+const devBypass = process.env.NODE_ENV === 'development' && !!process.env.DEV_USER_ID
+
 interface RouteParams {
   params: Promise<{ id: string }>
 }
@@ -44,7 +46,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
     }
 
-    const clerk = await clerkClient()
+    const clerk = devBypass ? null : await clerkClient()
 
     // If email is being replaced (user replacement flow):
     // Delete old Clerk account, update DB email, send invitation to new person.
@@ -63,7 +65,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
         // Delete old Clerk account (skip if it doesn't exist, e.g. test users)
         try {
-          await clerk.users.deleteUser(existingUser.clerkId)
+          if (clerk) await clerk.users.deleteUser(existingUser.clerkId)
         } catch (clerkError: unknown) {
           const isNotFound =
             clerkError &&
@@ -84,7 +86,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           const redirectUrl = process.env.NEXT_PUBLIC_APP_URL
             ? `${process.env.NEXT_PUBLIC_APP_URL}/sign-up`
             : undefined
-          await clerk.invitations.createInvitation({
+          if (clerk) await clerk.invitations.createInvitation({
             emailAddress: newEmail,
             redirectUrl,
           })
@@ -112,19 +114,15 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       }
     }
 
-    // If name is being updated, sync to Clerk
-    if (name !== undefined && typeof name === 'string' && name.trim()) {
+    // If name is being updated, sync to Clerk (non-blocking — DB update proceeds even if Clerk fails)
+    if (name !== undefined && typeof name === 'string' && name.trim() && clerk) {
       try {
         const parts = name.trim().split(/\s+/)
         const firstName = parts[0]
         const lastName = parts.slice(1).join(' ') || undefined
         await clerk.users.updateUser(existingUser.clerkId, { firstName, lastName })
       } catch (clerkError) {
-        console.error('Failed to update name in Clerk:', clerkError)
-        return NextResponse.json(
-          { error: 'Failed to update name in Clerk' },
-          { status: 502 }
-        )
+        console.error('Failed to update name in Clerk (continuing with DB update):', clerkError)
       }
     }
 
@@ -194,8 +192,10 @@ export async function DELETE(_req: NextRequest, { params }: RouteParams) {
 
     // Delete from Clerk first (skip if not found, e.g. test users)
     try {
-      const clerk = await clerkClient()
-      await clerk.users.deleteUser(existingUser.clerkId)
+      if (!devBypass) {
+        const clerk = await clerkClient()
+        await clerk.users.deleteUser(existingUser.clerkId)
+      }
     } catch (clerkError: unknown) {
       const isNotFound =
         clerkError &&

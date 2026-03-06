@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -23,22 +24,26 @@ export function TopContestants({ contestants }: TopContestantsProps) {
   const [showAll, setShowAll] = useState(false)
   const visible = showAll ? contestants : contestants.slice(0, 8)
 
+  // Dense ranking: tied scores share the same rank
+  const ranks = contestants.reduce<number[]>((acc, c, idx) => {
+    if (idx === 0) {
+      acc.push(1)
+    } else if (c.totalPoints === contestants[idx - 1].totalPoints) {
+      acc.push(acc[idx - 1])
+    } else {
+      acc.push(acc[idx - 1] + 1)
+    }
+    return acc
+  }, [])
+
   return (
     <section>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-semibold">Top Contestants</h2>
-        {contestants.length > 8 && (
-          <button
-            onClick={() => setShowAll(!showAll)}
-            className="text-sm text-primary hover:underline"
-          >
-            {showAll ? 'Show less' : `Show all (${contestants.length})`}
-          </button>
-        )}
-      </div>
+      <h2 className="text-xl font-semibold mb-4">Top Contestants</h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {visible.map((c, idx) => (
+        {visible.map((c, idx) => {
+          const rank = ranks[idx]
+          return (
           <Card
             key={c.id}
             className={cn(
@@ -80,15 +85,15 @@ export function TopContestants({ contestants }: TopContestantsProps) {
                     {getInitials(c.name)}
                   </div>
                 )}
-                {/* Rank badge for top 3 */}
-                {idx < 3 && (
+                {/* Rank badge for podium */}
+                {rank <= 3 && (
                   <div className={cn(
                     'absolute top-1 left-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm',
-                    idx === 0 && 'bg-yellow-400 text-yellow-900',
-                    idx === 1 && 'bg-gray-300 text-gray-700',
-                    idx === 2 && 'bg-amber-600 text-amber-100',
+                    rank === 1 && 'bg-yellow-400 text-yellow-900',
+                    rank === 2 && 'bg-gray-300 text-gray-700',
+                    rank === 3 && 'bg-amber-600 text-amber-100',
                   )}>
-                    {idx + 1}
+                    {rank}
                   </div>
                 )}
               </div>
@@ -105,16 +110,32 @@ export function TopContestants({ contestants }: TopContestantsProps) {
                     Out
                   </Badge>
                 )}
-                {c.draftedBy && (
+                {c.draftedBy.length > 0 && (
                   <p className="text-[11px] text-muted-foreground mt-1 truncate">
-                    {c.draftedBy.split(' ')[0]}
+                    {c.draftedBy.join(', ')}
                   </p>
                 )}
               </div>
             </div>
           </Card>
-        ))}
+          )
+        })}
       </div>
+
+      {contestants.length > 8 && (
+        <button
+          onClick={() => setShowAll(!showAll)}
+          className="w-full flex items-center justify-center gap-1 mt-3 py-2 text-xs text-muted-foreground hover:text-foreground active:scale-[0.98] transition-all"
+        >
+          <ChevronDown
+            className={cn(
+              'h-3.5 w-3.5 transition-transform duration-200',
+              showAll && 'rotate-180'
+            )}
+          />
+          {showAll ? 'Show top 8' : `Show all ${contestants.length} contestants`}
+        </button>
+      )}
     </section>
   )
 }

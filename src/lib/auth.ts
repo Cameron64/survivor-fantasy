@@ -41,10 +41,39 @@ async function getUserFromApiKey() {
 }
 
 /**
+ * Dev-only: bypass Clerk and impersonate a user by DB id.
+ * Set DEV_USER_ID in .env to a User.id, optionally DEV_USER_ROLE to override role.
+ */
+async function getDevUser() {
+  if (process.env.NODE_ENV !== 'development') return null
+  const devUserId = process.env.DEV_USER_ID
+  if (!devUserId) return null
+
+  const user = await db.user.findUnique({
+    where: { id: devUserId },
+    include: userInclude,
+  })
+
+  if (!user) return null
+
+  // Optional role override without touching the DB
+  const roleOverride = process.env.DEV_USER_ROLE as Role | undefined
+  if (roleOverride && Object.values(Role).includes(roleOverride)) {
+    return { ...user, role: roleOverride }
+  }
+
+  return user
+}
+
+/**
  * Get the current user's database record.
- * Tries API key auth first (for bot), then falls back to Clerk session.
+ * Tries dev bypass first, then API key auth (bot), then Clerk session.
  */
 export async function getCurrentUser() {
+  // Dev bypass
+  const devUser = await getDevUser()
+  if (devUser) return devUser
+
   // API key auth (bot service)
   const apiKeyUser = await getUserFromApiKey()
   if (apiKeyUser) return apiKeyUser

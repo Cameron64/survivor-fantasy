@@ -9,10 +9,12 @@ export default async function SimulationLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { userId } = await auth()
-
-  if (!userId) {
-    redirect('/sign-in')
+  const devBypass = process.env.NODE_ENV === 'development' && !!process.env.DEV_USER_ID
+  if (!devBypass) {
+    const { userId } = await auth()
+    if (!userId) {
+      redirect('/sign-in')
+    }
   }
 
   return (
