@@ -23,7 +23,8 @@
     "sim:run": "tsx src/simulation/cli/simulate.ts",
     "sim:batch": "tsx src/simulation/cli/batch.ts",
     "sim:compare": "tsx src/simulation/cli/compare.ts",
-    "sim:preview": "tsx src/simulation/cli/preview.ts"
+    "sim:preview": "tsx src/simulation/cli/preview.ts",
+    "snap": "tsx scripts/db-snapshot.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.37.3",

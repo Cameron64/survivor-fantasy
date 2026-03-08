@@ -43,7 +43,7 @@ Let any user view any other player's team breakdown — how their drafted contes
 
 ## 5. Larger Contestant Tiles in Event Submission
 
-**Status:** In Progress
+**Status:** Done
 
 ### Summary
 The contestant selection tiles in the event submission forms are too small — hard to identify faces at a glance under time pressure. Increase tile/avatar size so contestants are easily recognizable by photo rather than needing to read names.

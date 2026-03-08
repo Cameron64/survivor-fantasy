@@ -49,7 +49,7 @@ export default async function ContestantsPage() {
   // Group by tribe (prefer TribeMembership, fallback to string field)
   const tribes = contestants.reduce(
     (acc, contestant) => {
-      const tribeName = contestant.currentTribe?.name || contestant.tribe || 'Unknown'
+      const tribeName = contestant.currentTribe?.name || 'Unknown'
       if (!acc[tribeName]) {
         acc[tribeName] = {
           contestants: [],

@@ -15,11 +15,15 @@ import {
   QuitMedevacForm,
   EndgameForm,
 } from '@/components/events/simple-event-form'
+import { MergeForm } from '@/components/events/merge-form'
+import { TribeSwapForm } from '@/components/events/tribe-swap-form'
 
 export default function EventFormPage() {
   const params = useParams<{ type: string }>()
   const router = useRouter()
-  const { contestants, tribes, setFormData, isLoading } = useSubmitContext()
+  const { contestants, tribes, allTribes, week, episodePhase, setFormData, isLoading } = useSubmitContext()
+
+  const isTeamPhase = episodePhase === 'PRE_MERGE' || episodePhase === 'MERGE_TRANSITION'
 
   const eventType = slugToType(params.type)
 
@@ -54,9 +58,9 @@ export default function EventFormPage() {
 
   switch (eventType) {
     case 'IMMUNITY_CHALLENGE':
-      return <ImmunityChallengeForm contestants={contestants} tribes={tribes} onSubmit={handleFormSubmit} onBack={goBack} />
+      return <ImmunityChallengeForm contestants={contestants} tribes={tribes} defaultTeamChallenge={isTeamPhase} onSubmit={handleFormSubmit} onBack={goBack} />
     case 'REWARD_CHALLENGE':
-      return <RewardChallengeForm contestants={contestants} tribes={tribes} onSubmit={handleFormSubmit} onBack={goBack} />
+      return <RewardChallengeForm contestants={contestants} tribes={tribes} defaultTeamChallenge={isTeamPhase} onSubmit={handleFormSubmit} onBack={goBack} />
     case 'IDOL_FOUND':
       return <IdolFoundForm contestants={contestants} onSubmit={handleFormSubmit} onBack={goBack} />
     case 'FIRE_MAKING':
@@ -65,5 +69,9 @@ export default function EventFormPage() {
       return <QuitMedevacForm contestants={contestants} onSubmit={handleFormSubmit} onBack={goBack} />
     case 'ENDGAME':
       return <EndgameForm contestants={contestants} onSubmit={handleFormSubmit} onBack={goBack} />
+    case 'TRIBE_MERGE':
+      return <MergeForm contestants={contestants} allTribes={allTribes} week={week} onSubmit={handleFormSubmit} onBack={goBack} />
+    case 'TRIBE_SWAP':
+      return <TribeSwapForm contestants={contestants} tribes={tribes} week={week} onSubmit={handleFormSubmit} onBack={goBack} />
   }
 }

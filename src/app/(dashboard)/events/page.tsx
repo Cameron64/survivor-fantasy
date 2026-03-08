@@ -65,6 +65,7 @@ export default function EventsPage() {
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([])
   const [episodes, setEpisodes] = useState<Episode[]>([])
   const [allContestants, setAllContestants] = useState<Contestant[]>([])
+  const [tribes, setTribes] = useState<Array<{ id: string; name: string; color: string }>>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedWeeks, setExpandedWeeks] = useState<number[]>([])
   const hasInitialized = useRef(false)
@@ -75,11 +76,12 @@ export default function EventsPage() {
 
   const fetchData = async () => {
     try {
-      const [eventsRes, gameEventsRes, episodesRes, contestantsRes] = await Promise.all([
+      const [eventsRes, gameEventsRes, episodesRes, contestantsRes, tribesRes] = await Promise.all([
         fetch('/api/events'),
         fetch('/api/game-events'),
         fetch('/api/episodes'),
         fetch('/api/contestants?includeMemberships=true'),
+        fetch('/api/tribes'),
       ])
 
       if (eventsRes.ok) {
@@ -97,6 +99,10 @@ export default function EventsPage() {
       if (contestantsRes.ok) {
         const data = await contestantsRes.json()
         if (Array.isArray(data)) setAllContestants(data)
+      }
+      if (tribesRes.ok) {
+        const data = await tribesRes.json()
+        setTribes(data)
       }
     } catch (error) {
       console.error('Failed to fetch data:', error)
@@ -305,6 +311,7 @@ export default function EventsPage() {
                   onToggle={() => toggleWeek(wd.week)}
                   contestantNames={contestantNames}
                   contestantAvatars={contestantAvatars}
+                  tribes={tribes}
                 />
               ))}
             </div>
@@ -329,6 +336,7 @@ export default function EventsPage() {
                   key={ge.id}
                   gameEvent={ge}
                   contestantNames={contestantNames}
+                  tribes={tribes}
                   isPending
                 />
               ))}

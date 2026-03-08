@@ -23,6 +23,7 @@ interface TribeGroup {
 interface ImmunityChallengeFormProps {
   contestants: Contestant[]
   tribes?: TribeGroup[]
+  defaultTeamChallenge?: boolean
   onSubmit: (data: ImmunityChallengeData) => void
   onBack: () => void
 }
@@ -30,11 +31,12 @@ interface ImmunityChallengeFormProps {
 export function ImmunityChallengeForm({
   contestants,
   tribes = [],
+  defaultTeamChallenge,
   onSubmit,
   onBack,
 }: ImmunityChallengeFormProps) {
   const [winner, setWinner] = useState('')
-  const [isTeamChallenge, setIsTeamChallenge] = useState(false)
+  const [isTeamChallenge, setIsTeamChallenge] = useState(defaultTeamChallenge ?? false)
   const [selectedTribes, setSelectedTribes] = useState<Set<string>>(new Set())
   const [expandedTribes, setExpandedTribes] = useState<Set<string>>(new Set())
 
@@ -207,13 +209,14 @@ export function ImmunityChallengeForm({
 interface RewardChallengeFormProps {
   contestants: Contestant[]
   tribes?: TribeGroup[]
+  defaultTeamChallenge?: boolean
   onSubmit: (data: RewardChallengeData) => void
   onBack: () => void
 }
 
-export function RewardChallengeForm({ contestants, tribes = [], onSubmit, onBack }: RewardChallengeFormProps) {
+export function RewardChallengeForm({ contestants, tribes = [], defaultTeamChallenge, onSubmit, onBack }: RewardChallengeFormProps) {
   const [winners, setWinners] = useState<Set<string>>(new Set())
-  const [isTeamChallenge, setIsTeamChallenge] = useState(false)
+  const [isTeamChallenge, setIsTeamChallenge] = useState(defaultTeamChallenge ?? false)
   const [selectedTribes, setSelectedTribes] = useState<Set<string>>(new Set())
   const [expandedTribes, setExpandedTribes] = useState<Set<string>>(new Set())
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, Flame, Shield, Gift, Search, Swords, LogOut, Trophy, Clock } from 'lucide-react'
+import { ChevronDown, Flame, Shield, Gift, Search, Swords, LogOut, Trophy, Clock, ArrowLeftRight, Merge } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { getEventTypeLabel } from '@/lib/scoring'
@@ -9,7 +9,7 @@ import { getGameEventTypeLabel, getGameEventSummary } from '@/lib/event-derivati
 import { formatRelativeTime } from '@/lib/utils'
 import type { ReactNode } from 'react'
 import type { GameEventType, EventType } from '@prisma/client'
-import type { GameEventData } from '@/lib/event-derivation'
+import type { GameEventData, TribeSwapData } from '@/lib/event-derivation'
 import type { ContestantAvatarMap } from './week-group'
 
 const TYPE_ICONS: Record<string, typeof Flame> = {
@@ -20,6 +20,8 @@ const TYPE_ICONS: Record<string, typeof Flame> = {
   FIRE_MAKING: Swords,
   QUIT_MEDEVAC: LogOut,
   ENDGAME: Trophy,
+  TRIBE_SWAP: ArrowLeftRight,
+  TRIBE_MERGE: Merge,
 }
 
 /**
@@ -78,20 +80,27 @@ interface GameEventCardProps {
   compact?: boolean
   /** Optional action buttons rendered in the header (e.g. approve/reject for admin) */
   actions?: ReactNode
+  /** Tribe lookup for tribe swap details */
+  tribes?: Array<{ id: string; name: string; color: string }>
 }
 
 function getInitials(name: string): string {
   return name.split(' ').map(p => p[0]).join('').slice(0, 2).toUpperCase()
 }
 
-export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, isPending, compact, actions }: GameEventCardProps) {
+export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, isPending, compact, actions, tribes }: GameEventCardProps) {
   const [expanded, setExpanded] = useState(false)
   const totalPoints = gameEvent.events.reduce((sum, e) => sum + e.points, 0)
 
+  // Check if this is a tribe swap event
+  const isTribeSwap = gameEvent.type === 'TRIBE_SWAP'
+  const tribeSwapData = isTribeSwap ? (gameEvent.data as TribeSwapData) : null
+
   // Multi-person events still need a drawer even in compact mode
+  // Tribe swaps always need a drawer to show the swap details
   const uniqueContestants = new Set(gameEvent.events.map((e) => e.contestant.id))
   const isMultiPerson = uniqueContestants.size > 1
-  const suppressDrawer = compact && !isMultiPerson
+  const suppressDrawer = compact && !isMultiPerson && !isTribeSwap
 
   const Icon = TYPE_ICONS[gameEvent.type] || Flame
   const typeLabel = getGameEventTypeLabel(gameEvent.type as GameEventType)
@@ -192,19 +201,23 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
             )}
 
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm leading-snug">{summary}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}</p>
+              <p className="font-medium text-sm leading-snug">
+                {isTribeSwap ? typeLabel : summary}
+              </p>
+              {!isTribeSwap && <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}</p>}
             </div>
 
-            <span
-              className={cn(
-                'text-sm font-semibold tabular-nums shrink-0',
-                totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
-              )}
-            >
-              {totalPoints > 0 ? '+' : ''}
-              {totalPoints}
-            </span>
+            {!isTribeSwap && (
+              <span
+                className={cn(
+                  'text-sm font-semibold tabular-nums shrink-0',
+                  totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
+                )}
+              >
+                {totalPoints > 0 ? '+' : ''}
+                {totalPoints}
+              </span>
+            )}
           </div>
         ) : (
           <>
@@ -217,7 +230,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
               }}
               className="flex items-center gap-3 flex-1 min-w-0 text-left p-3 hover:bg-accent/50 transition-colors rounded-lg"
             >
-              {!compact && (
+              {!compact && !isTribeSwap && (
                 isPending ? (
                   <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400">
                     <Clock className="h-4 w-4" />
@@ -238,27 +251,36 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
                   </div>
                 )
               )}
-              {compact && !compactSliver && (
+              {(compact || isTribeSwap) && !compactSliver && (
                 <div className="flex items-center justify-center w-8 h-8 rounded-full shrink-0 bg-muted text-muted-foreground">
                   <Icon className="h-4 w-4" />
                 </div>
               )}
 
               <div className="flex-1 min-w-0">
-                <p className={cn('font-medium text-sm leading-snug', !compact && 'truncate')}>{summary}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}</p>
+                <p className={cn('font-medium text-sm leading-snug', !compact && 'truncate')}>
+                  {isTribeSwap ? typeLabel : summary}
+                </p>
+                {!isTribeSwap && <p className="text-xs text-muted-foreground mt-0.5">{typeLabel}</p>}
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                <span
-                  className={cn(
-                    'text-sm font-semibold tabular-nums',
-                    totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
-                  )}
-                >
-                  {totalPoints > 0 ? '+' : ''}
-                  {totalPoints}
-                </span>
+                {!isTribeSwap && (
+                  <span
+                    className={cn(
+                      'text-sm font-semibold tabular-nums',
+                      totalPoints >= 0 ? 'text-green-600' : 'text-red-600'
+                    )}
+                  >
+                    {totalPoints > 0 ? '+' : ''}
+                    {totalPoints}
+                  </span>
+                )}
+                {actions && (
+                  <div className="flex items-center gap-1">
+                    {actions}
+                  </div>
+                )}
                 <ChevronDown
                   className={cn(
                     'h-4 w-4 text-muted-foreground transition-transform duration-200',
@@ -267,17 +289,125 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
                 />
               </div>
             </button>
-
-            {actions && (
-              <div className="flex items-center gap-1 pr-3 shrink-0">
-                {actions}
-              </div>
-            )}
           </>
         )}
       </div>
 
       {!suppressDrawer && expanded && (() => {
+        // Special view for tribe swaps
+        if (isTribeSwap && tribeSwapData && tribes) {
+          const tribeMap = new Map(tribes.map(t => [t.id, t]))
+
+          // Build tribe lookup
+          const getTribeName = (id: string) => tribeMap.get(id)?.name || id
+          const getTribeColor = (id: string) => tribeMap.get(id)?.color
+
+          // Group moves by origin tribe (where they came from)
+          const movesByTribe = new Map<string, typeof tribeSwapData.moves>()
+          for (const move of tribeSwapData.moves) {
+            const existing = movesByTribe.get(move.fromTribeId) || []
+            existing.push(move)
+            movesByTribe.set(move.fromTribeId, existing)
+          }
+
+          return (
+            <div className="border-t pb-3 pt-3 space-y-3 animate-in slide-in-from-top-1 duration-200">
+              {/* Swap type header */}
+              <div className="px-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">
+                    {tribeSwapData.mode === 'SWAP' && 'Standard Tribe Swap'}
+                    {tribeSwapData.mode === 'DISSOLUTION' && 'Tribe Dissolution'}
+                    {tribeSwapData.mode === 'EXPANSION' && 'Tribe Expansion'}
+                  </span>
+                </div>
+
+                {tribeSwapData.dissolvedTribeId && (
+                  <div className="mt-2 text-xs bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded px-2 py-1 inline-flex items-center gap-1.5">
+                    <span className="font-medium text-red-700 dark:text-red-400">Dissolved:</span>
+                    <span
+                      className="inline-block w-2 h-2 rounded-full"
+                      style={{ backgroundColor: getTribeColor(tribeSwapData.dissolvedTribeId) }}
+                    />
+                    <span className="text-red-600 dark:text-red-300">{getTribeName(tribeSwapData.dissolvedTribeId)}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Moves grouped by origin tribe */}
+              <div className="space-y-2">
+                {Array.from(movesByTribe.entries()).map(([fromTribeId, moves]) => {
+                  const tribeColor = getTribeColor(fromTribeId)
+                  const tribeName = getTribeName(fromTribeId)
+
+                  return (
+                    <div key={fromTribeId} className="border-l-2 ml-3" style={{ borderColor: tribeColor }}>
+                      <div className="px-3 py-1.5">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span
+                            className="inline-block w-3 h-3 rounded-full"
+                            style={{ backgroundColor: tribeColor }}
+                          />
+                          <span className="font-medium text-sm">{tribeName}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {moves.length} member{moves.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+
+                        <div className="space-y-1">
+                          {moves.map((move) => {
+                            const avatar = contestantAvatars?.[move.contestantId]
+                            const name = contestantNames[move.contestantId] || move.contestantId
+                            const toTribeName = getTribeName(move.toTribeId)
+                            const toTribeColor = getTribeColor(move.toTribeId)
+
+                            return (
+                              <div key={move.contestantId} className="flex items-center gap-2">
+                                {avatar?.imageUrl ? (
+                                  <Avatar className="h-6 w-6 shrink-0">
+                                    <AvatarImage src={avatar.imageUrl} alt={name} />
+                                    <AvatarFallback className="text-[10px]">
+                                      {getInitials(name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                ) : (
+                                  <div className="h-6 w-6 rounded-full bg-muted flex items-center justify-center shrink-0">
+                                    <span className="text-[10px] font-medium text-muted-foreground">
+                                      {getInitials(name)}
+                                    </span>
+                                  </div>
+                                )}
+
+                                <span className="text-sm">{name}</span>
+
+                                <div className="flex items-center gap-1 ml-auto text-xs text-muted-foreground">
+                                  <span>→</span>
+                                  <span
+                                    className="inline-block w-2 h-2 rounded-full"
+                                    style={{ backgroundColor: toTribeColor }}
+                                  />
+                                  <span>{toTribeName}</span>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {!compact && (
+                <p className="text-xs text-muted-foreground px-3">
+                  Submitted by {gameEvent.submittedBy.name} • {formatRelativeTime(gameEvent.createdAt)}
+                </p>
+              )}
+            </div>
+          )
+        }
+
+        // Standard event view (for non-tribe-swap events)
         // Group events by contestant
         const grouped = new Map<string, { events: GameEventCardEvent[]; subtotal: number }>()
         for (const event of gameEvent.events) {

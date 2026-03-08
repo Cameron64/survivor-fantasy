@@ -64,6 +64,9 @@ prisma/migrations/*.sql.bak
 # Simulation data (raw exports are large, regenerable)
 data/survivor-raw/*.json
 
+# Database snapshots (prod dumps, large)
+data/snapshots/
+
 # Test output
 test-results.json
 

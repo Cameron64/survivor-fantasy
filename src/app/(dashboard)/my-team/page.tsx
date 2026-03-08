@@ -195,7 +195,7 @@ export default async function MyTeamPage() {
                                   </>
                                 )
                               }
-                              return tc.contestant.tribe || 'Unknown tribe'
+                              return 'Unknown tribe'
                             })()}
                           </span>
                           {tc.contestant.isEliminated && (

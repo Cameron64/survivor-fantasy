@@ -88,4 +88,5 @@ export interface WeekEventsData {
   standaloneEvents: SerializedStandaloneEvent[]
   contestantNames: Record<string, string>
   contestantAvatars: ContestantAvatarMap
+  tribes?: Array<{ id: string; name: string; color: string }>
 }

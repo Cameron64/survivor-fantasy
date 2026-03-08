@@ -1,4 +1,3 @@
-import { auth } from '@clerk/nextjs/server'
 import { getCurrentUser } from '@/lib/auth'
 import { getLeagueSettings } from '@/lib/league-settings'
 import { Card, CardContent } from '@/components/ui/card'
@@ -12,14 +11,13 @@ export default async function SubmitLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { userId } = await auth()
+  const user = await getCurrentUser()
   const settings = await getLeagueSettings()
 
   // Authenticated user — check if user events are disabled
-  if (userId) {
+  if (user) {
     if (!settings.allowUserEvents) {
-      const user = await getCurrentUser()
-      if (user && user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
+      if (user.role !== 'ADMIN' && user.role !== 'MODERATOR') {
         return (
           <div className="max-w-lg mx-auto space-y-6 pb-20 lg:pb-6">
             <div>

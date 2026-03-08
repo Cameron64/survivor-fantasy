@@ -20,6 +20,7 @@ export const DEFAULT_BASE_POINTS: Record<SimEventType, number> = {
   VOTED_OUT_WITH_IDOL: -3,
   QUIT: -10,
   MEDEVAC: 0,
+  MADE_MERGE: 0,
 }
 
 export const SIM_EVENT_LABELS: Record<SimEventType, string> = {
@@ -38,6 +39,7 @@ export const SIM_EVENT_LABELS: Record<SimEventType, string> = {
   VOTED_OUT_WITH_IDOL: 'Voted Out with Idol',
   QUIT: 'Quit',
   MEDEVAC: 'Medevac',
+  MADE_MERGE: 'Made Merge',
 }
 
 export const EVENT_CATEGORIES: Record<string, SimEventType[]> = {

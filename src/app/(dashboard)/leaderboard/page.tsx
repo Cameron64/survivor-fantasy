@@ -13,7 +13,7 @@ import type {
 } from '@/components/overview/overview-types'
 
 async function getOverviewData() {
-  const [currentUser, teams, allDbContestants, league] = await Promise.all([
+  const [currentUser, teams, allDbContestants, league, tribes] = await Promise.all([
     getCurrentUser(),
     db.team.findMany({
       include: {
@@ -56,6 +56,7 @@ async function getOverviewData() {
       },
     }),
     db.league.findFirst({ select: { showLastPlace: true } }),
+    db.tribe.findMany({ select: { id: true, name: true, color: true } }),
   ])
 
   // Build contestant map (id -> all user names who drafted them)
@@ -255,6 +256,7 @@ async function getOverviewData() {
       standaloneEvents: serializedStandaloneEvents,
       contestantNames,
       contestantAvatars,
+      tribes,
     }
   }
 

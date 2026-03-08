@@ -56,9 +56,10 @@ interface WeekGroupProps {
   onToggle: () => void
   contestantNames: Record<string, string>
   contestantAvatars: ContestantAvatarMap
+  tribes?: Array<{ id: string; name: string; color: string }>
 }
 
-export function WeekGroup({ weekData, isExpanded, onToggle, contestantNames, contestantAvatars }: WeekGroupProps) {
+export function WeekGroup({ weekData, isExpanded, onToggle, contestantNames, contestantAvatars, tribes }: WeekGroupProps) {
   const { week, episodeTitle, items, totalPoints, eventCount } = weekData
 
   return (
@@ -112,6 +113,7 @@ export function WeekGroup({ weekData, isExpanded, onToggle, contestantNames, con
                 gameEvent={item}
                 contestantNames={contestantNames}
                 contestantAvatars={contestantAvatars}
+                tribes={tribes}
                 compact
               />
             ) : (

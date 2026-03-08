@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Settings, Share2, Trash2, RefreshCw, Copy, Check, Bug, FlaskConical, Rocket, ChevronDown, ChevronUp } from 'lucide-react'
+import { Settings, Share2, Trash2, RefreshCw, Copy, Check, Bug, FlaskConical, Rocket, ChevronDown, ChevronUp, Database } from 'lucide-react'
 
 interface UserData {
   id: string
@@ -49,12 +49,39 @@ export default function SettingsPage() {
   const [isSwitchingRole, setIsSwitchingRole] = useState(false)
   const [showSimulation, setShowSimulation] = useState(false)
   const [roadmapExpanded, setRoadmapExpanded] = useState(false)
+  const [isImportingData, setIsImportingData] = useState(false)
+  const [importError, setImportError] = useState<string | null>(null)
+
+  // Feature toggles
+  const [enableTribeSwap, setEnableTribeSwap] = useState(false)
+  const [enableSwapMode, setEnableSwapMode] = useState(false)
+  const [enableDissolutionMode, setEnableDissolutionMode] = useState(false)
+  const [enableExpansionMode, setEnableExpansionMode] = useState(false)
+  const [enableTribeMerge, setEnableTribeMerge] = useState(false)
+  const [isUpdatingFlags, setIsUpdatingFlags] = useState(false)
+
   const isDev = process.env.NODE_ENV === 'development'
+  const isAdmin = user?.role === 'ADMIN'
 
   useEffect(() => {
     fetchUser()
+    fetchFeatureFlags()
     setShowSimulation(localStorage.getItem('showSimulation') === 'true')
   }, [])
+
+  const fetchFeatureFlags = async () => {
+    try {
+      const res = await fetch('/api/feature-flags')
+      const data = await res.json()
+      setEnableTribeSwap(data.enableTribeSwap || false)
+      setEnableSwapMode(data.enableSwapMode || false)
+      setEnableDissolutionMode(data.enableDissolutionMode || false)
+      setEnableExpansionMode(data.enableExpansionMode || false)
+      setEnableTribeMerge(data.enableTribeMerge || false)
+    } catch (error) {
+      console.error('Failed to fetch feature flags:', error)
+    }
+  }
 
   const fetchUser = async () => {
     try {
@@ -109,13 +136,56 @@ export default function SettingsPage() {
     )
   }
 
-  const clearCache = async () => {
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      // Clear all caches
-      const cacheNames = await caches.keys()
-      await Promise.all(cacheNames.map((name) => caches.delete(name)))
+  const toggleFeature = async (key: string, checked: boolean, setter: (val: boolean) => void) => {
+    if (!isAdmin) {
+      console.warn('Only admins can toggle feature flags')
+      return
+    }
 
-      // Reload the page
+    setter(checked)
+    setIsUpdatingFlags(true)
+
+    try {
+      const res = await fetch('/api/admin/feature-flags', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [key]: checked }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to update feature flags')
+      }
+
+      // Reload the page to refresh feature flags context
+      setTimeout(() => window.location.reload(), 500)
+    } catch (error) {
+      console.error('Failed to toggle feature flag:', error)
+      // Revert on error
+      setter(!checked)
+    } finally {
+      setIsUpdatingFlags(false)
+    }
+  }
+
+  const clearCache = async () => {
+    try {
+      // Clear all caches (works even without service worker)
+      if ('caches' in window) {
+        const cacheNames = await caches.keys()
+        await Promise.all(cacheNames.map((name) => caches.delete(name)))
+      }
+
+      // Unregister service workers
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations()
+        await Promise.all(registrations.map((reg) => reg.unregister()))
+      }
+
+      // Hard reload the page (bypass cache)
+      window.location.reload()
+    } catch (error) {
+      console.error('Failed to clear cache:', error)
+      // Still reload even if clearing failed
       window.location.reload()
     }
   }
@@ -134,6 +204,38 @@ export default function SettingsPage() {
       console.error('Failed to switch role:', error)
     } finally {
       setIsSwitchingRole(false)
+    }
+  }
+
+  const importProdData = async () => {
+    const confirmed = window.confirm(
+      '⚠️ WARNING: This will OVERWRITE ALL local data with production data!\n\n' +
+      'This action cannot be undone. Are you sure you want to continue?'
+    )
+
+    if (!confirmed) return
+
+    setIsImportingData(true)
+    setImportError(null)
+
+    try {
+      const res = await fetch('/api/dev/import-prod-data', {
+        method: 'POST',
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to import production data')
+      }
+
+      // Success - reload the page to show fresh data
+      window.location.reload()
+    } catch (error) {
+      console.error('Failed to import production data:', error)
+      setImportError(error instanceof Error ? error.message : 'Unknown error occurred')
+    } finally {
+      setIsImportingData(false)
     }
   }
 
@@ -280,6 +382,96 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
+      {/* Feature Toggles - Admin Only */}
+      {isAdmin && (
+        <Card className="border-dashed border-orange-500/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FlaskConical className="h-5 w-5 text-orange-500" />
+              Experimental Features
+            </CardTitle>
+            <CardDescription>
+              Global feature flags for all users (changes take effect immediately)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-medium">Tribe Swap Events</p>
+                <p className="text-sm text-muted-foreground">
+                  Enable tribe swap event submission and display
+                </p>
+              </div>
+              <Switch
+                checked={enableTribeSwap}
+                disabled={isUpdatingFlags}
+                onCheckedChange={(checked) => toggleFeature('enableTribeSwap', checked, setEnableTribeSwap)}
+              />
+            </div>
+
+            {enableTribeSwap && (
+              <div className="pl-4 border-l-2 border-orange-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">Standard Swap Mode</p>
+                    <p className="text-xs text-muted-foreground">
+                      Allow standard tribe swap submissions
+                    </p>
+                  </div>
+                  <Switch
+                    checked={enableSwapMode}
+                    disabled={isUpdatingFlags}
+                    onCheckedChange={(checked) => toggleFeature('enableSwapMode', checked, setEnableSwapMode)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">Dissolution Mode</p>
+                    <p className="text-xs text-muted-foreground">
+                      Allow tribe dissolution submissions
+                    </p>
+                  </div>
+                  <Switch
+                    checked={enableDissolutionMode}
+                    disabled={isUpdatingFlags}
+                    onCheckedChange={(checked) => toggleFeature('enableDissolutionMode', checked, setEnableDissolutionMode)}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-sm">Expansion Mode</p>
+                    <p className="text-xs text-muted-foreground">
+                      Allow tribe expansion submissions
+                    </p>
+                  </div>
+                  <Switch
+                    checked={enableExpansionMode}
+                    disabled={isUpdatingFlags}
+                    onCheckedChange={(checked) => toggleFeature('enableExpansionMode', checked, setEnableExpansionMode)}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2 border-t">
+              <div>
+                <p className="font-medium">Tribe Merge Events</p>
+                <p className="text-sm text-muted-foreground">
+                  Enable tribe merge event submission and display
+                </p>
+              </div>
+              <Switch
+                checked={enableTribeMerge}
+                disabled={isUpdatingFlags}
+                onCheckedChange={(checked) => toggleFeature('enableTribeMerge', checked, setEnableTribeMerge)}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Roadmap */}
       <Card>
         <CardHeader>
@@ -340,7 +532,7 @@ export default function SettingsPage() {
             </CardTitle>
             <CardDescription>Development-only tools (not visible in production)</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             <div>
               <Label>Switch Role</Label>
               <p className="text-sm text-muted-foreground mb-3">
@@ -359,6 +551,37 @@ export default function SettingsPage() {
                   </Button>
                 ))}
               </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <Label>Import Production Data</Label>
+              <p className="text-sm text-muted-foreground mb-3">
+                Pull fresh data from production database (overwrites all local data)
+              </p>
+              {importError && (
+                <div className="bg-red-50 border border-red-200 rounded p-3 mb-3">
+                  <p className="text-sm text-red-900 font-medium">Import Failed</p>
+                  <p className="text-xs text-red-700 mt-1">{importError}</p>
+                </div>
+              )}
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={importProdData}
+                disabled={isImportingData}
+              >
+                {isImportingData ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Importing... (this may take a minute)
+                  </>
+                ) : (
+                  <>
+                    <Database className="h-4 w-4 mr-2" />
+                    Pull Production Data
+                  </>
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>

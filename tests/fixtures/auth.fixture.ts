@@ -111,6 +111,7 @@ export const TEST_DATA = {
   tribes: {
     alpha: { name: 'Alpha', color: '#FF5733' },
     beta: { name: 'Beta', color: '#3498DB' },
+    merged: { name: 'Merged', color: '#9B59B6', isMerge: true },
   },
   // Password for all test users
   defaultPassword: 'SurvivorFantasy2025_E2E!',

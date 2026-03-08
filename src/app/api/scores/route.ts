@@ -50,7 +50,6 @@ export async function GET(req: NextRequest) {
           contestant: {
             id: tc.contestant.id,
             name: tc.contestant.name,
-            tribe: tc.contestant.tribe,
             imageUrl: getValidImageUrl(tc.contestant.imageUrl, tc.contestant.originalImageUrl),
             isEliminated: tc.contestant.isEliminated,
           },

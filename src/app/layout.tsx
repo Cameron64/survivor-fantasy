@@ -5,6 +5,7 @@ import './globals.css'
 import { PWAUpdateNotification } from '@/components/shared/pwa-update-notification'
 import { ErrorBoundary } from '@/components/shared/error-boundary'
 import { AdminDebugWrapper } from '@/components/shared/admin-debug-wrapper-server'
+import { FeatureFlagsProvider } from '@/lib/feature-flags-context'
 
 const devBypass = process.env.NODE_ENV === 'development' && !!process.env.DEV_USER_ID
 
@@ -46,11 +47,13 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body className={`${inter.className} antialiased`}>
-        <ErrorBoundary>
-          {children}
-        </ErrorBoundary>
-        <PWAUpdateNotification />
-        <AdminDebugWrapper />
+        <FeatureFlagsProvider>
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
+          <PWAUpdateNotification />
+          <AdminDebugWrapper />
+        </FeatureFlagsProvider>
       </body>
     </html>
   )

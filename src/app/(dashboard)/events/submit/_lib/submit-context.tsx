@@ -5,10 +5,10 @@ import { getCurrentWeek } from '@/lib/season'
 import { getDisplayName } from '@/components/shared/contestant-label'
 import type { FormContestant } from '@/components/shared/contestant-label'
 import type { GameEventData } from '@/lib/event-derivation'
-import type { EventType } from '@prisma/client'
+import type { EventType, GamePhase } from '@prisma/client'
 
 interface TribeMembership {
-  tribe: { id: string; name: string; color: string; buffImage?: string | null }
+  tribe: { id: string; name: string; color: string; buffImage?: string | null; isMerge?: boolean }
 }
 
 interface RawContestant {
@@ -26,8 +26,16 @@ export interface TribeGroup {
   name: string
   color: string
   buffImage?: string | null
+  isMerge: boolean
   contestantIds: string[]
   contestantNames: string[]
+}
+
+export interface SplitTribalState {
+  groupA: string[]
+  groupB: string[]
+  groupAComplete: boolean
+  groupBComplete: boolean
 }
 
 export interface TribalState {
@@ -50,18 +58,30 @@ const INITIAL_TRIBAL_STATE: TribalState = {
   sentToJury: false,
 }
 
+export interface AllTribe {
+  id: string
+  name: string
+  color: string
+  isMerge: boolean
+  buffImage?: string | null
+}
+
 interface SubmitContextValue {
   contestants: FormContestant[]
   tribes: TribeGroup[]
+  allTribes: AllTribe[]
   contestantNames: Record<string, string>
   pointValues: Record<EventType, number> | undefined
   week: string
   setWeek: (w: string) => void
+  episodePhase: GamePhase | null
   formData: GameEventData | null
   setFormData: (d: GameEventData | null) => void
   tribalState: TribalState
   updateTribalState: (updates: Partial<TribalState>) => void
   resetTribalState: () => void
+  splitTribal: SplitTribalState | null
+  setSplitTribal: (s: SplitTribalState | null) => void
   isLoading: boolean
 }
 
@@ -76,10 +96,13 @@ export function useSubmitContext() {
 export function SubmitProvider({ children }: { children: ReactNode }) {
   const [contestants, setContestants] = useState<FormContestant[]>([])
   const [tribes, setTribes] = useState<TribeGroup[]>([])
+  const [allTribes, setAllTribes] = useState<AllTribe[]>([])
   const [pointValues, setPointValues] = useState<Record<EventType, number> | undefined>(undefined)
   const [week, setWeek] = useState(() => getCurrentWeek().toString())
   const [formData, setFormData] = useState<GameEventData | null>(null)
   const [tribalState, setTribalState] = useState<TribalState>(INITIAL_TRIBAL_STATE)
+  const [episodePhase, setEpisodePhase] = useState<GamePhase | null>(null)
+  const [splitTribal, setSplitTribal] = useState<SplitTribalState | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   const updateTribalState = useCallback((updates: Partial<TribalState>) => {
@@ -95,6 +118,37 @@ export function SubmitProvider({ children }: { children: ReactNode }) {
       .then((res) => res.json())
       .then((data) => {
         if (data.effective) setPointValues(data.effective)
+      })
+      .catch(console.error)
+  }, [])
+
+  // Fetch episode phase for the current week
+  useEffect(() => {
+    const weekNum = parseInt(week)
+    if (isNaN(weekNum)) return
+    fetch('/api/episodes')
+      .then((res) => {
+        if (!res.ok) return null
+        return res.json()
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const episode = data.find((ep: { number: number }) => ep.number === weekNum)
+          setEpisodePhase(episode?.gamePhase ?? null)
+        }
+      })
+      .catch(() => {})
+  }, [week])
+
+  useEffect(() => {
+    fetch('/api/tribes')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setAllTribes(data.map((t: { id: string; name: string; color: string; isMerge: boolean; buffImage?: string | null }) => ({
+            id: t.id, name: t.name, color: t.color, isMerge: t.isMerge, buffImage: t.buffImage,
+          })))
+        }
       })
       .catch(console.error)
   }, [])
@@ -122,7 +176,7 @@ export function SubmitProvider({ children }: { children: ReactNode }) {
             if (!membership) continue
             const t = membership.tribe
             if (!tribeMap.has(t.id)) {
-              tribeMap.set(t.id, { id: t.id, name: t.name, color: t.color, buffImage: t.buffImage, contestantIds: [], contestantNames: [] })
+              tribeMap.set(t.id, { id: t.id, name: t.name, color: t.color, buffImage: t.buffImage, isMerge: !!t.isMerge, contestantIds: [], contestantNames: [] })
             }
             const group = tribeMap.get(t.id)!
             group.contestantIds.push(raw.id)
@@ -141,8 +195,8 @@ export function SubmitProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo(
-    () => ({ contestants, tribes, contestantNames, pointValues, week, setWeek, formData, setFormData, tribalState, updateTribalState, resetTribalState, isLoading }),
-    [contestants, tribes, contestantNames, pointValues, week, formData, tribalState, updateTribalState, resetTribalState, isLoading]
+    () => ({ contestants, tribes, allTribes, contestantNames, pointValues, week, setWeek, episodePhase, formData, setFormData, tribalState, updateTribalState, resetTribalState, splitTribal, setSplitTribal, isLoading }),
+    [contestants, tribes, allTribes, contestantNames, pointValues, week, episodePhase, formData, tribalState, updateTribalState, resetTribalState, splitTribal, isLoading]
   )
 
   return <SubmitContext.Provider value={value}>{children}</SubmitContext.Provider>

@@ -16,7 +16,9 @@ export default async function globalSetup(config: FullConfig) {
   // production/development data
   console.log('Seeding test database...')
   try {
-    execSync('pnpm db:seed:test', {
+    // Use npm instead of pnpm for CI/test environments where pnpm may not be available
+    const packageManager = process.env.npm_execpath?.includes('pnpm') ? 'pnpm' : 'npm'
+    execSync(`${packageManager} run db:seed:test`, {
       stdio: 'inherit',
       env: process.env,
     })

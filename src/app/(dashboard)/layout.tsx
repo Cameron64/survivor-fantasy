@@ -8,7 +8,6 @@ import { Role } from '@prisma/client'
 import { checkSeasonReadiness } from '@/lib/season-readiness'
 import { SeasonSetupGate } from '@/components/shared/season-setup-gate'
 import { getLeagueSettings } from '@/lib/league-settings'
-import Image from 'next/image'
 import {
   Trophy,
   Users,
@@ -148,7 +147,7 @@ export default async function DashboardLayout({
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
         <div className="flex h-14 items-center justify-between px-4">
           <Link href="/leaderboard" className="flex items-center">
-            <Image src="/logo.png" alt="Survivor Fantasy League" width={180} height={120} className="h-11 w-auto" />
+            <img src="/logo.png" alt="Survivor Fantasy League" className="h-11 w-auto" />
           </Link>
           {devBypass ? (
             <span className="text-xs font-mono bg-amber-500/20 text-amber-700 px-2 py-1 rounded">
@@ -165,7 +164,7 @@ export default async function DashboardLayout({
         <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r bg-background">
           <div className="flex flex-col flex-1 min-h-0 pt-5 pb-4">
             <div className="flex justify-center flex-shrink-0 px-4">
-              <Image src="/logo.png" alt="Survivor Fantasy League" width={224} height={150} className="h-24 w-auto" />
+              <img src="/logo.png" alt="Survivor Fantasy League" className="h-24 w-auto" />
             </div>
             <nav className="mt-4 flex-1 px-2 space-y-1">
               <NavLink href="/leaderboard" icon={Trophy}>
@@ -250,7 +249,7 @@ function GuestLayout({ children }: { children: React.ReactNode }) {
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
         <div className="flex h-14 items-center justify-between px-4">
           <Link href="/leaderboard" className="flex items-center">
-            <Image src="/logo.png" alt="Survivor Fantasy League" width={180} height={120} className="h-11 w-auto" />
+            <img src="/logo.png" alt="Survivor Fantasy League" className="h-11 w-auto" />
           </Link>
           <SignInButton mode="modal">
             <button className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -266,7 +265,7 @@ function GuestLayout({ children }: { children: React.ReactNode }) {
         <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r bg-background">
           <div className="flex flex-col flex-1 min-h-0 pt-5 pb-4">
             <div className="flex justify-center flex-shrink-0 px-4">
-              <Image src="/logo.png" alt="Survivor Fantasy League" width={224} height={150} className="h-24 w-auto" />
+              <img src="/logo.png" alt="Survivor Fantasy League" className="h-24 w-auto" />
             </div>
             <nav className="mt-4 flex-1 px-2 space-y-1">
               <NavLink href="/leaderboard" icon={Trophy}>

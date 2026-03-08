@@ -77,6 +77,15 @@ async function seedTestDatabase() {
     },
   })
 
+  const mergeTribe = await prisma.tribe.create({
+    data: {
+      name: 'Merged',
+      color: '#9B59B6',
+      isMerge: true,
+      leagueId: league.id,
+    },
+  })
+
   // Assign contestants to tribes
   await prisma.tribeMembership.createMany({
     data: [
@@ -102,8 +111,10 @@ async function seedTestDatabase() {
   console.log(`✅ Created 5 test episodes`)
 
   // Create test users with real Clerk IDs (created via scripts/create-test-users.ts)
+  // Admin uses a fixed ID so DEV_USER_ID can reference it for local E2E testing
   const adminUser = await prisma.user.create({
     data: {
+      id: 'e2e_test_admin_user_id',
       clerkId: 'user_39H6pR74TsSowJTwawzWAoeRUVD',
       email: 'e2e-admin@example.com',
       name: 'E2E Admin',

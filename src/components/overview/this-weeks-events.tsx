@@ -30,7 +30,7 @@ export function ThisWeeksEvents({ data }: ThisWeeksEventsProps) {
     )
   }
 
-  const { week, episodeTitle, gameEvents, standaloneEvents, contestantNames, contestantAvatars } = data
+  const { week, episodeTitle, gameEvents, standaloneEvents, contestantNames, contestantAvatars, tribes } = data
 
   const totalPoints =
     gameEvents.reduce((sum, ge) => sum + ge.events.reduce((s, e) => s + e.points, 0), 0) +
@@ -63,6 +63,7 @@ export function ThisWeeksEvents({ data }: ThisWeeksEventsProps) {
               gameEvent={ge}
               contestantNames={contestantNames}
               contestantAvatars={contestantAvatars}
+              tribes={tribes}
               compact
             />
           ))}

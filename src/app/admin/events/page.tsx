@@ -65,6 +65,7 @@ interface GameEvent {
 export default function AdminEventsPage() {
   const [events, setEvents] = useState<Event[]>([])
   const [gameEvents, setGameEvents] = useState<GameEvent[]>([])
+  const [tribes, setTribes] = useState<Array<{ id: string; name: string; color: string }>>([])
   const [isLoading, setIsLoading] = useState(true)
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [selectedGameEventIds, setSelectedGameEventIds] = useState<Set<string>>(new Set())
@@ -82,9 +83,10 @@ export default function AdminEventsPage() {
 
   const fetchAll = async () => {
     try {
-      const [eventsRes, gameEventsRes] = await Promise.all([
+      const [eventsRes, gameEventsRes, tribesRes] = await Promise.all([
         fetch('/api/events'),
         fetch('/api/game-events'),
+        fetch('/api/tribes'),
       ])
       if (eventsRes.ok) {
         const data = await eventsRes.json()
@@ -93,6 +95,10 @@ export default function AdminEventsPage() {
       if (gameEventsRes.ok) {
         const data = await gameEventsRes.json()
         setGameEvents(data)
+      }
+      if (tribesRes.ok) {
+        const data = await tribesRes.json()
+        setTribes(data)
       }
     } catch (error) {
       console.error('Failed to fetch:', error)
@@ -329,6 +335,7 @@ export default function AdminEventsPage() {
                   gameEvent={ge}
                   contestantNames={contestantNames}
                   contestantAvatars={contestantAvatars}
+                  tribes={tribes}
                   isPending
                   actions={
                     <>
@@ -438,6 +445,7 @@ export default function AdminEventsPage() {
                         gameEvent={ge}
                         contestantNames={contestantNames}
                         contestantAvatars={contestantAvatars}
+                        tribes={tribes}
                         actions={
                           <Button
                             size="sm"

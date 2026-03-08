@@ -85,15 +85,38 @@ const tribalCouncilDataSchema = z.object({
 /**
  * Immunity Challenge data structure
  */
+const challengeGroupSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  memberIds: z.array(idSchema).min(1),
+})
+
 const immunityChallengeDataSchema = z.object({
   winner: idSchema.optional(),
   winners: z.array(idSchema).optional(),
   isTeamChallenge: z.boolean().optional(),
   tribeNames: z.array(z.string()).optional(),
+  challengeGroups: z.array(challengeGroupSchema).optional(),
+  winningGroupIds: z.array(z.string()).optional(),
 }).refine(
-  (data) => data.winner || (data.winners && data.winners.length > 0),
+  (data) => {
+    // challengeGroups path or legacy path must provide a winner
+    if (data.challengeGroups?.length && data.winningGroupIds?.length) return true
+    return data.winner || (data.winners && data.winners.length > 0)
+  },
   {
-    message: 'Either winner or winners must be provided',
+    message: 'Either winner, winners, or challengeGroups with winningGroupIds must be provided',
+  }
+).refine(
+  (data) => {
+    // If challengeGroups present, legacy fields must be empty
+    if (data.challengeGroups?.length) {
+      return !data.winners?.length && !data.tribeNames?.length
+    }
+    return true
+  },
+  {
+    message: 'Cannot mix challengeGroups with legacy winners/tribeNames fields',
   }
 )
 
@@ -138,6 +161,30 @@ const endgameDataSchema = z.object({
 })
 
 /**
+ * Tribe Merge data structure
+ */
+const tribeMergeDataSchema = z.object({
+  mergeTribeId: idSchema,
+  remainingContestants: z.array(idSchema).min(1, 'At least one contestant required'),
+  mergeWeek: weekSchema,
+  juryStartsThisWeek: z.boolean(),
+})
+
+/**
+ * Tribe Swap data structure
+ */
+const tribeSwapDataSchema = z.object({
+  mode: z.enum(['SWAP', 'DISSOLUTION', 'EXPANSION']),
+  moves: z.array(z.object({
+    contestantId: idSchema,
+    fromTribeId: idSchema,
+    toTribeId: idSchema,
+  })).min(1, 'At least one move required'),
+  swapWeek: weekSchema,
+  dissolvedTribeId: idSchema.optional(),
+})
+
+/**
  * Schema for creating a game event with derived scoring events.
  * Uses discriminated union to enforce correct data shape per type.
  */
@@ -176,6 +223,16 @@ export const createGameEventSchema = z.discriminatedUnion('type', [
     type: z.literal(GameEventType.ENDGAME),
     week: weekSchema,
     data: endgameDataSchema,
+  }),
+  z.object({
+    type: z.literal(GameEventType.TRIBE_MERGE),
+    week: weekSchema,
+    data: tribeMergeDataSchema,
+  }),
+  z.object({
+    type: z.literal(GameEventType.TRIBE_SWAP),
+    week: weekSchema,
+    data: tribeSwapDataSchema,
   }),
 ])
 

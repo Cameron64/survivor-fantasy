@@ -496,7 +496,7 @@ function ContestantCard({
                   </>
                 )
               }
-              return <span className="truncate">{contestant.tribe || 'No tribe'}</span>
+              return <span className="truncate">No tribe</span>
             })()}
           </p>
         </div>

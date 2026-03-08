@@ -88,7 +88,9 @@ export async function POST(req: NextRequest) {
     // Derive individual scoring events
     const derivedEvents = deriveEvents(type, data, pointValues)
 
-    if (derivedEvents.length === 0) {
+    // Structural events (TRIBE_SWAP) derive no scoring events — that's valid
+    const structuralEventTypes: string[] = ['TRIBE_SWAP']
+    if (derivedEvents.length === 0 && !structuralEventTypes.includes(type)) {
       return NextResponse.json(
         { error: 'No scoring events could be derived from this game event' },
         { status: 400 }
@@ -113,11 +115,19 @@ export async function POST(req: NextRequest) {
 
     // Create GameEvent + all derived Events in a transaction
     const gameEvent = await db.$transaction(async (tx) => {
+      // Auto-increment sequenceInEpisode within the same week
+      const maxSeq = await tx.gameEvent.aggregate({
+        where: { week },
+        _max: { sequenceInEpisode: true },
+      })
+      const nextSeq = (maxSeq._max.sequenceInEpisode ?? -1) + 1
+
       const ge = await tx.gameEvent.create({
         data: {
           type,
           week,
           data: data as object,
+          sequenceInEpisode: nextSeq,
           isApproved: false,
           submittedById: user.id,
         },
