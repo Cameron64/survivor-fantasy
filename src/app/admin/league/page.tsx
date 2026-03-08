@@ -3,13 +3,16 @@ export const dynamic = 'force-dynamic'
 import { db } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Settings, Trophy, Eye, Gamepad2 } from 'lucide-react'
+import { Settings, Trophy, Eye, Gamepad2, Flag } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { EVENT_POINTS } from '@/lib/constants/scoring-constants'
 import { EventType } from '@prisma/client'
 import { ScoringConfigForm } from '@/components/admin/scoring-config-form'
 import { PrivacySettingsForm } from '@/components/admin/privacy-settings-form'
 import { FunSettingsForm } from '@/components/admin/fun-settings-form'
+import { FeatureFlagsForm } from '@/components/admin/feature-flags-form'
+import type { FeatureFlags } from '@/lib/feature-flags'
+import { DEFAULT_FLAGS } from '@/lib/feature-flags'
 
 async function getLeague() {
   const league = await db.league.findFirst({
@@ -22,6 +25,17 @@ export default async function AdminLeaguePage() {
   const league = await getLeague()
 
   const scoringOverrides = (league?.scoringConfig as Partial<Record<EventType, number>>) || {}
+
+  // Extract feature flags from league
+  const featureFlags: FeatureFlags = league
+    ? {
+        enableTribeSwap: league.enableTribeSwap,
+        enableSwapMode: league.enableSwapMode,
+        enableDissolutionMode: league.enableDissolutionMode,
+        enableExpansionMode: league.enableExpansionMode,
+        enableTribeMerge: league.enableTribeMerge,
+      }
+    : DEFAULT_FLAGS
 
   return (
     <div className="space-y-6">
@@ -81,6 +95,21 @@ export default async function AdminLeaguePage() {
               No league configured. Run the seed script to create one.
             </p>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Flag className="h-5 w-5" />
+            Feature Flags
+          </CardTitle>
+          <CardDescription>
+            Enable or disable experimental features for this season
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <FeatureFlagsForm initialFlags={featureFlags} />
         </CardContent>
       </Card>
 
