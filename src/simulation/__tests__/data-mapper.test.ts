@@ -27,8 +27,8 @@ function makeInput(overrides: {
 
 describe('data-mapper', () => {
   describe('BASE_EVENT_POINTS', () => {
-    it('has 16 event types', () => {
-      expect(Object.keys(BASE_EVENT_POINTS)).toHaveLength(16)
+    it('has 17 event types', () => {
+      expect(Object.keys(BASE_EVENT_POINTS)).toHaveLength(17)
     })
 
     it('WINNER is worth 20 points', () => {

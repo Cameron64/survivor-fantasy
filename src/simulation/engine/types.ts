@@ -18,6 +18,7 @@ export type SimEventType =
   | 'VOTED_OUT_WITH_IDOL'
   | 'QUIT'
   | 'MEDEVAC'
+  | 'MADE_MERGE'
 
 export interface SimCastaway {
   id: string
