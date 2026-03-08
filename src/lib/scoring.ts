@@ -103,6 +103,7 @@ export function getEventTypeLabel(eventType: EventType): string {
     VOTED_OUT_WITH_IDOL: 'Voted Out with Idol',
     QUIT: 'Quit',
     MEDEVAC: 'Medevac',
+    MADE_MERGE: 'Made Merge',
   }
   return labels[eventType]
 }
@@ -124,7 +125,8 @@ export function getEventTypesByCategory(): Record<string, EventType[]> {
       'FIRE_MAKING_WIN',
     ],
     'Social & Game': ['ZERO_VOTES_RECEIVED', 'SURVIVED_WITH_VOTES'],
-    Endgame: ['MADE_JURY', 'FINALIST', 'WINNER'],
+    Milestones: ['MADE_MERGE', 'MADE_JURY'],
+    Endgame: ['FINALIST', 'WINNER'],
     Deductions: ['VOTED_OUT_WITH_IDOL', 'QUIT'],
     Neutral: ['MEDEVAC'],
   }

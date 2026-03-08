@@ -23,11 +23,20 @@ export interface TribalCouncilData {
   sentToJury: boolean
 }
 
+export interface ChallengeGroup {
+  id: string // "A", "B"
+  label: string // "Orange Team", "Purple Team"
+  memberIds: string[]
+}
+
 export interface ImmunityChallengeData {
   winner?: string // contestant ID (individual)
   winners?: string[] // contestant IDs (team)
   isTeamChallenge?: boolean
   tribeNames?: string[] // winning tribe name(s) when isTeamChallenge
+  // grouped path for merge transition temporary teams
+  challengeGroups?: ChallengeGroup[]
+  winningGroupIds?: string[]
 }
 
 export interface RewardChallengeData {
@@ -55,6 +64,24 @@ export interface EndgameData {
   winner: string // contestant ID
 }
 
+export interface TribeMergeData {
+  mergeTribeId: string
+  remainingContestants: string[] // contestant IDs
+  mergeWeek: number
+  juryStartsThisWeek: boolean
+}
+
+export interface TribeSwapData {
+  mode: 'SWAP' | 'DISSOLUTION' | 'EXPANSION'
+  moves: Array<{
+    contestantId: string
+    fromTribeId: string
+    toTribeId: string
+  }>
+  swapWeek: number
+  dissolvedTribeId?: string
+}
+
 export type GameEventData =
   | TribalCouncilData
   | ImmunityChallengeData
@@ -63,12 +90,33 @@ export type GameEventData =
   | FireMakingData
   | QuitMedevacData
   | EndgameData
+  | TribeMergeData
+  | TribeSwapData
 
 /**
  * Look up points for an event type, using custom point values if provided.
  */
 function resolvePoints(type: EventType, pointValues?: Record<EventType, number>): number {
   return pointValues ? pointValues[type] : getEventPoints(type)
+}
+
+/**
+ * Create a milestone-type derived event (MADE_JURY, MADE_MERGE, etc.).
+ * Generic path for all milestones — adding a new milestone is: add enum value,
+ * add one awardMilestone() call in the relevant derivation function.
+ */
+function awardMilestone(
+  contestantId: string,
+  type: EventType,
+  description: string,
+  pv?: Record<EventType, number>
+): DerivedEvent {
+  return {
+    type,
+    contestantId,
+    points: resolvePoints(type, pv),
+    description,
+  }
 }
 
 /**
@@ -100,6 +148,10 @@ export function deriveEvents(
       return deriveQuitMedevac(data as QuitMedevacData, pointValues)
     case 'ENDGAME':
       return deriveEndgame(data as EndgameData, pointValues)
+    case 'TRIBE_MERGE':
+      return deriveTribeMerge(data as TribeMergeData, pointValues)
+    case 'TRIBE_SWAP':
+      return []
     default:
       return []
   }
@@ -169,18 +221,27 @@ function deriveTribalCouncil(data: TribalCouncilData, pv?: Record<EventType, num
 
   // MADE_JURY
   if (sentToJury) {
-    events.push({
-      type: 'MADE_JURY',
-      contestantId: eliminated,
-      points: resolvePoints('MADE_JURY', pv),
-      description: 'Sent to the jury',
-    })
+    events.push(awardMilestone(eliminated, 'MADE_JURY', 'Sent to the jury', pv))
   }
 
   return events
 }
 
 function deriveImmunityChallenge(data: ImmunityChallengeData, pv?: Record<EventType, number>): DerivedEvent[] {
+  // Grouped path: merge transition temporary teams
+  if (data.challengeGroups?.length && data.winningGroupIds?.length) {
+    const winningGroupSet = new Set(data.winningGroupIds)
+    const winners = data.challengeGroups
+      .filter((g) => winningGroupSet.has(g.id))
+      .flatMap((g) => g.memberIds)
+    return winners.map((id) => ({
+      type: 'TEAM_CHALLENGE_WIN' as EventType,
+      contestantId: id,
+      points: resolvePoints('TEAM_CHALLENGE_WIN', pv),
+      description: 'Won merge transition team challenge',
+    }))
+  }
+  // Legacy path: tribe-based team challenges
   if (data.isTeamChallenge && data.winners?.length) {
     return data.winners.map((id) => ({
       type: 'TEAM_CHALLENGE_WIN' as EventType,
@@ -267,6 +328,12 @@ function deriveEndgame(data: EndgameData, pv?: Record<EventType, number>): Deriv
   return events
 }
 
+function deriveTribeMerge(data: TribeMergeData, pv?: Record<EventType, number>): DerivedEvent[] {
+  return data.remainingContestants.map((id) =>
+    awardMilestone(id, 'MADE_MERGE', 'Made the merge', pv)
+  )
+}
+
 /**
  * Get a human-readable label for a GameEventType
  */
@@ -279,6 +346,8 @@ export function getGameEventTypeLabel(type: GameEventType): string {
     FIRE_MAKING: 'Fire Making Challenge',
     QUIT_MEDEVAC: 'Quit / Medevac',
     ENDGAME: 'Endgame',
+    TRIBE_MERGE: 'Tribe Merge',
+    TRIBE_SWAP: 'Tribe Swap',
   }
   return labels[type]
 }
@@ -343,6 +412,16 @@ export function getGameEventSummary(
     case 'ENDGAME': {
       const d = data as EndgameData
       return `${name(d.winner)} won! Finalists: ${d.finalists.map(name).join(', ')}`
+    }
+    case 'TRIBE_MERGE': {
+      const d = data as TribeMergeData
+      return `Merge at week ${d.mergeWeek} (${d.remainingContestants.length} contestants)${d.juryStartsThisWeek ? ', jury begins' : ''}`
+    }
+    case 'TRIBE_SWAP': {
+      const d = data as TribeSwapData
+      const moveCount = d.moves.length
+      const suffix = d.dissolvedTribeId ? ' (tribe dissolved)' : ''
+      return `${d.mode.toLowerCase()}: ${moveCount} contestant${moveCount !== 1 ? 's' : ''} moved${suffix}`
     }
     default:
       return ''

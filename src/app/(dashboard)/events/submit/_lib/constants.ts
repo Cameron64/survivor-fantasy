@@ -6,6 +6,8 @@ import {
   Swords,
   LogOut,
   Trophy,
+  Merge,
+  ArrowLeftRight,
 } from 'lucide-react'
 import { GameEventType } from '@prisma/client'
 
@@ -59,6 +61,18 @@ export const EVENT_TYPE_THEMES: Record<GameEventType, EventTypeTheme> = {
     borderColor: 'border-l-yellow-400',
     hoverBorder: 'hover:border-yellow-300',
   },
+  TRIBE_MERGE: {
+    iconBg: 'bg-purple-500/10',
+    iconText: 'text-purple-500',
+    borderColor: 'border-l-purple-500',
+    hoverBorder: 'hover:border-purple-400',
+  },
+  TRIBE_SWAP: {
+    iconBg: 'bg-teal-500/10',
+    iconText: 'text-teal-500',
+    borderColor: 'border-l-teal-500',
+    hoverBorder: 'hover:border-teal-400',
+  },
 }
 
 export const EVENT_TYPE_OPTIONS: {
@@ -109,6 +123,18 @@ export const EVENT_TYPE_OPTIONS: {
     description: 'Finalists and winner',
     icon: Trophy,
   },
+  {
+    type: 'TRIBE_MERGE',
+    label: 'Tribe Merge',
+    description: 'Merge tribes into one',
+    icon: Merge,
+  },
+  {
+    type: 'TRIBE_SWAP',
+    label: 'Tribe Swap',
+    description: 'Swap or dissolve tribes',
+    icon: ArrowLeftRight,
+  },
 ]
 
 export const VALID_EVENT_TYPES = new Set(EVENT_TYPE_OPTIONS.map((o) => o.type))
@@ -122,6 +148,8 @@ const SLUG_TO_TYPE: Record<string, GameEventType> = {
   'fire-making': 'FIRE_MAKING',
   'quit-medevac': 'QUIT_MEDEVAC',
   'endgame': 'ENDGAME',
+  'tribe-merge': 'TRIBE_MERGE',
+  'tribe-swap': 'TRIBE_SWAP',
 }
 
 const TYPE_TO_SLUG: Record<GameEventType, string> = Object.fromEntries(
