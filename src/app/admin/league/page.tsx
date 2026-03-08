@@ -26,14 +26,14 @@ export default async function AdminLeaguePage() {
 
   const scoringOverrides = (league?.scoringConfig as Partial<Record<EventType, number>>) || {}
 
-  // Extract feature flags from league
+  // Extract feature flags from league with fallback to defaults
   const featureFlags: FeatureFlags = league
     ? {
-        enableTribeSwap: league.enableTribeSwap,
-        enableSwapMode: league.enableSwapMode,
-        enableDissolutionMode: league.enableDissolutionMode,
-        enableExpansionMode: league.enableExpansionMode,
-        enableTribeMerge: league.enableTribeMerge,
+        enableTribeSwap: league.enableTribeSwap ?? DEFAULT_FLAGS.enableTribeSwap,
+        enableSwapMode: league.enableSwapMode ?? DEFAULT_FLAGS.enableSwapMode,
+        enableDissolutionMode: league.enableDissolutionMode ?? DEFAULT_FLAGS.enableDissolutionMode,
+        enableExpansionMode: league.enableExpansionMode ?? DEFAULT_FLAGS.enableExpansionMode,
+        enableTribeMerge: league.enableTribeMerge ?? DEFAULT_FLAGS.enableTribeMerge,
       }
     : DEFAULT_FLAGS
 
