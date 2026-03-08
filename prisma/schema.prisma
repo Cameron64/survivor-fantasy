@@ -95,23 +95,27 @@ model Event {
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
+  @@unique([contestantId, type, gameEventId])
   @@index([week, isApproved])
   @@index([gameEventId])
 }
 
 model GameEvent {
-  id            String        @id @default(cuid())
-  type          GameEventType
-  week          Int
-  data          Json // Structured event-specific payload
-  isApproved    Boolean       @default(false)
-  submittedBy   User          @relation("GameEventSubmittedBy", fields: [submittedById], references: [id])
-  submittedById String
-  approvedBy    User?         @relation("GameEventApprovedBy", fields: [approvedById], references: [id])
-  approvedById  String?
-  events        Event[] // Derived scoring events
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                String            @id @default(cuid())
+  type              GameEventType
+  week              Int
+  data              Json // Structured event-specific payload
+  sequenceInEpisode Int               @default(0)
+  isApproved        Boolean           @default(false)
+  submittedBy       User              @relation("GameEventSubmittedBy", fields: [submittedById], references: [id])
+  submittedById     String
+  approvedBy        User?             @relation("GameEventApprovedBy", fields: [approvedById], references: [id])
+  approvedById      String?
+  events            Event[] // Derived scoring events
+  tribeMemberships  TribeMembership[] // Memberships created/closed by this event
+  dissolvedTribes   Tribe[]           @relation("DissolvedByEvent")
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   @@index([week, isApproved])
 }
@@ -124,6 +128,21 @@ enum GameEventType {
   FIRE_MAKING
   QUIT_MEDEVAC
   ENDGAME
+  TRIBE_MERGE
+  TRIBE_SWAP
+}
+
+enum GamePhase {
+  PRE_MERGE
+  MERGE_TRANSITION
+  MERGED
+  FINAL_PHASE
+}
+
+enum PhaseSource {
+  AUTO
+  MANUAL
+  INFERRED
 }
 
 enum EventType {
@@ -154,39 +173,55 @@ enum EventType {
 
   // Neutral
   MEDEVAC // 0
+
+  // Milestones
+  MADE_MERGE // 0 (configurable via League.scoringConfig)
 }
 
 model League {
-  id             String    @id @default(cuid())
-  name           String    @default("Survivor 50 Fantasy League")
-  season         Int       @default(50)
-  draftStartDate DateTime?
-  draftEndDate   DateTime?
-  isActive       Boolean   @default(true)
-  paymentInfo    String? // Admin's preferred payment method
-  slackWebhook   String?
-  isPublic         Boolean @default(false) // Allow unauthenticated viewing
-  allowGuestEvents Boolean @default(false) // Let guests submit events (requires isPublic)
-  allowUserEvents  Boolean @default(true)  // Let registered users submit events
-  scoringConfig  Json? // Partial<Record<EventType, number>> overrides, null = all defaults
-  showLastPlace  Boolean @default(false) // Show a "trophy" for last place on the standings
-  tribes         Tribe[]
-  episodes       Episode[]
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  name             String    @default("Survivor 50 Fantasy League")
+  season           Int       @default(50)
+  draftStartDate   DateTime?
+  draftEndDate     DateTime?
+  isActive         Boolean   @default(true)
+  paymentInfo      String? // Admin's preferred payment method
+  slackWebhook     String?
+  isPublic         Boolean   @default(false) // Allow unauthenticated viewing
+  allowGuestEvents Boolean   @default(false) // Let guests submit events (requires isPublic)
+  allowUserEvents  Boolean   @default(true)  // Let registered users submit events
+  scoringConfig    Json? // Partial<Record<EventType, number>> overrides, null = all defaults
+  showLastPlace    Boolean   @default(false) // Show a "trophy" for last place on the standings
+  mergeWeek        Int?
+  juryStartWeek    Int?
+
+  // Feature flags (default false = disabled)
+  enableTribeSwap       Boolean @default(false) // Enable tribe swap events
+  enableSwapMode        Boolean @default(false) // Enable standard swap mode
+  enableDissolutionMode Boolean @default(false) // Enable dissolution mode
+  enableExpansionMode   Boolean @default(false) // Enable expansion mode
+  enableTribeMerge      Boolean @default(false) // Enable tribe merge events
+
+  tribes           Tribe[]
+  episodes         Episode[]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 model Tribe {
-  id        String            @id @default(cuid())
-  name      String
-  color     String // Hex color, e.g. "#FF6B35"
-  buffImage String? // Path to buff pattern image, e.g. "/buffs/kalo.png"
-  isMerge   Boolean           @default(false)
-  league    League            @relation(fields: [leagueId], references: [id])
-  leagueId  String
-  members   TribeMembership[]
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
+  id                   String            @id @default(cuid())
+  name                 String
+  color                String // Hex color, e.g. "#FF6B35"
+  buffImage            String? // Path to buff pattern image, e.g. "/buffs/kalo.png"
+  isMerge              Boolean           @default(false)
+  dissolvedAtWeek      Int?
+  dissolvedByEvent     GameEvent?        @relation("DissolvedByEvent", fields: [dissolvedByEventId], references: [id])
+  dissolvedByEventId   String?
+  league               League            @relation(fields: [leagueId], references: [id])
+  leagueId             String
+  members              TribeMembership[]
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
   @@unique([leagueId, name])
 }
@@ -199,22 +234,27 @@ model TribeMembership {
   tribeId      String
   fromWeek     Int        @default(1)
   toWeek       Int? // null = currently on this tribe
+  gameEvent    GameEvent? @relation(fields: [gameEventId], references: [id])
+  gameEventId  String?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
   @@index([contestantId])
   @@index([tribeId])
+  @@index([gameEventId])
 }
 
 model Episode {
-  id        String   @id @default(cuid())
-  number    Int
-  title     String?
-  airDate   DateTime
-  league    League   @relation(fields: [leagueId], references: [id])
-  leagueId  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String      @id @default(cuid())
+  number      Int
+  title       String?
+  airDate     DateTime
+  gamePhase   GamePhase   @default(PRE_MERGE)
+  phaseSource PhaseSource @default(INFERRED)
+  league      League      @relation(fields: [leagueId], references: [id])
+  leagueId    String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
   @@unique([leagueId, number])
 }
