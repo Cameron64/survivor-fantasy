@@ -85,7 +85,7 @@ export function FeatureFlagsForm({ initialFlags }: FeatureFlagsFormProps) {
                 Standard Swap
               </Label>
               <p className="text-sm text-muted-foreground">
-                Contestants shuffle between existing tribes (e.g., "Draw buffs and switch tribes")
+                Contestants shuffle between existing tribes (e.g., &ldquo;Draw buffs and switch tribes&rdquo;)
               </p>
             </div>
             <Switch
@@ -119,7 +119,7 @@ export function FeatureFlagsForm({ initialFlags }: FeatureFlagsFormProps) {
                 Tribe Expansion
               </Label>
               <p className="text-sm text-muted-foreground">
-                New tribes are created and contestants are redistributed (e.g., "Drop your buffs, two tribes become three")
+                New tribes are created and contestants are redistributed (e.g., &ldquo;Drop your buffs, two tribes become three&rdquo;)
               </p>
             </div>
             <Switch
