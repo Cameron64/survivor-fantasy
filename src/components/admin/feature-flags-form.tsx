@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { RefreshCw } from 'lucide-react'
 import type { FeatureFlags } from '@/lib/feature-flags'
 
 interface FeatureFlagsFormProps {
@@ -13,6 +14,7 @@ interface FeatureFlagsFormProps {
 export function FeatureFlagsForm({ initialFlags }: FeatureFlagsFormProps) {
   const [flags, setFlags] = useState<FeatureFlags>(initialFlags)
   const [isSaving, setIsSaving] = useState(false)
+  const [hasChanges, setHasChanges] = useState(false)
 
   const updateFlag = async (flagName: keyof FeatureFlags, value: boolean) => {
     setIsSaving(true)
@@ -26,6 +28,7 @@ export function FeatureFlagsForm({ initialFlags }: FeatureFlagsFormProps) {
       if (res.ok) {
         const updated = await res.json()
         setFlags(updated)
+        setHasChanges(true)
       } else {
         console.error('Failed to update feature flag')
         // Revert on error
@@ -49,6 +52,13 @@ export function FeatureFlagsForm({ initialFlags }: FeatureFlagsFormProps) {
 
   return (
     <div className="space-y-6">
+      {hasChanges && (
+        <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-800">
+          <RefreshCw className="h-4 w-4" />
+          <span>Feature flags updated! Refresh the page to see changes in event submission.</span>
+        </div>
+      )}
+
       {/* Main Tribe Swap Toggle */}
       <div className="flex items-center justify-between">
         <div className="space-y-0.5">
