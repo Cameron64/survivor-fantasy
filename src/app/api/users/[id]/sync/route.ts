@@ -67,7 +67,7 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
         emailMatch = clerkAccount.email === user.email
       }
     }
-  } catch (error) {
+  } catch {
     return NextResponse.json({
       status: 'clerk-unreachable',
       dbClerkId: user.clerkId,

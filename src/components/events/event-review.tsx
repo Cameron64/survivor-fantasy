@@ -3,7 +3,6 @@
 import { useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Send } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getEventTypeLabel } from '@/lib/scoring'
@@ -45,6 +44,7 @@ export function EventReview({
   events,
   contestantNames,
   contestants = [],
+  eventType,
   eventTypeLabel,
   eventTypeIcon: Icon,
   eventTypeTheme: theme,
@@ -53,6 +53,9 @@ export function EventReview({
   isSubmitting,
 }: EventReviewProps) {
   const totalPoints = events.reduce((sum, e) => sum + e.points, 0)
+
+  // Structural events don't generate scoring events
+  const isStructuralEvent = events.length === 0 && eventType === 'TRIBE_SWAP'
 
   // Build a map of contestants by id for quick lookup
   const contestantMap = useMemo(() => {
@@ -91,16 +94,22 @@ export function EventReview({
           <Icon className={`h-4.5 w-4.5 ${theme.iconText}`} />
         </div>
         <div>
-          <h3 className="text-lg font-semibold leading-tight">Review Scoring Events</h3>
+          <h3 className="text-lg font-semibold leading-tight">
+            {isStructuralEvent ? 'Review Event' : 'Review Scoring Events'}
+          </h3>
           <p className="text-sm text-muted-foreground">
-            {eventTypeLabel} &middot; {events.length} event{events.length !== 1 ? 's' : ''} pending approval
+            {isStructuralEvent
+              ? `${eventTypeLabel} \u00b7 No points awarded (structural event)`
+              : `${eventTypeLabel} \u00b7 ${events.length} event${events.length !== 1 ? 's' : ''} pending approval`
+            }
           </p>
         </div>
       </div>
 
-      {/* Contestant groups */}
-      <div className="space-y-2">
-        {groups.map((group) => {
+      {/* Contestant groups (only show if there are scoring events) */}
+      {!isStructuralEvent && (
+        <div className="space-y-2">
+          {groups.map((group) => {
           const c = group.contestant
           return (
             <div
@@ -161,23 +170,38 @@ export function EventReview({
             </div>
           )
         })}
-      </div>
+        </div>
+      )}
+
+      {/* Show info card for structural events */}
+      {isStructuralEvent && (
+        <Card className="border-l-4 border-l-blue-500">
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground">
+              This is a structural event that updates tribe memberships but does not award points.
+              Review your selections and submit when ready.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Divider */}
-      <div className="border-t border-border" />
+      {!isStructuralEvent && <div className="border-t border-border" />}
 
-      {/* Total points */}
-      <Card className={`border-l-4 ${totalPoints >= 0 ? 'border-l-green-500' : 'border-l-red-500'}`}>
-        <CardContent className="flex items-center justify-between p-4">
-          <p className="text-sm font-semibold text-muted-foreground">Total Points</p>
-          <p
-            className={`text-2xl font-bold ${totalPoints >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
-          >
-            {totalPoints > 0 ? '+' : ''}
-            {totalPoints}
-          </p>
-        </CardContent>
-      </Card>
+      {/* Total points (only for scoring events) */}
+      {!isStructuralEvent && (
+        <Card className={`border-l-4 ${totalPoints >= 0 ? 'border-l-green-500' : 'border-l-red-500'}`}>
+          <CardContent className="flex items-center justify-between p-4">
+            <p className="text-sm font-semibold text-muted-foreground">Total Points</p>
+            <p
+              className={`text-2xl font-bold ${totalPoints >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
+            >
+              {totalPoints > 0 ? '+' : ''}
+              {totalPoints}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex gap-2 pt-2">
         <Button variant="outline" onClick={onBack} disabled={isSubmitting}>
@@ -190,7 +214,12 @@ export function EventReview({
           disabled={isSubmitting}
         >
           <Send className="h-4 w-4" />
-          {isSubmitting ? 'Submitting...' : `Submit ${events.length} Events`}
+          {isSubmitting
+            ? 'Submitting...'
+            : isStructuralEvent
+            ? `Submit ${eventTypeLabel}`
+            : `Submit ${events.length} Event${events.length !== 1 ? 's' : ''}`
+          }
         </Button>
       </div>
     </div>

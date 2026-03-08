@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/select'
 import { Check } from 'lucide-react'
 import { getDisplayName } from '@/components/shared/contestant-label'
-import type { FormContestant } from '@/components/shared/contestant-label'
 import { ContestantSelectTile } from '@/components/shared/contestant-select-tile'
 import { useSubmitContext } from './submit-context'
 
