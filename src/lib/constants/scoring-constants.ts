@@ -46,6 +46,9 @@ export const EVENT_POINTS = {
 
   // Neutral
   MEDEVAC: 0,
+
+  // Milestones
+  MADE_MERGE: 0,
 } as const
 
 /**
