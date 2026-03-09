@@ -21,20 +21,22 @@ export async function GET() {
     })
 
     if (!league) {
+      console.log('[Feature Flags] No active league found, returning defaults')
       return NextResponse.json(DEFAULT_FLAGS)
     }
 
     const flags: FeatureFlags = {
-      enableTribeSwap: league.enableTribeSwap,
-      enableSwapMode: league.enableSwapMode,
-      enableDissolutionMode: league.enableDissolutionMode,
-      enableExpansionMode: league.enableExpansionMode,
-      enableTribeMerge: league.enableTribeMerge,
+      enableTribeSwap: league.enableTribeSwap ?? DEFAULT_FLAGS.enableTribeSwap,
+      enableSwapMode: league.enableSwapMode ?? DEFAULT_FLAGS.enableSwapMode,
+      enableDissolutionMode: league.enableDissolutionMode ?? DEFAULT_FLAGS.enableDissolutionMode,
+      enableExpansionMode: league.enableExpansionMode ?? DEFAULT_FLAGS.enableExpansionMode,
+      enableTribeMerge: league.enableTribeMerge ?? DEFAULT_FLAGS.enableTribeMerge,
     }
 
+    console.log('[Feature Flags] Fetched from DB:', flags)
     return NextResponse.json(flags)
   } catch (error) {
-    console.error('Failed to fetch feature flags:', error)
+    console.error('[Feature Flags] Error fetching from DB:', error)
     return NextResponse.json(DEFAULT_FLAGS)
   }
 }
