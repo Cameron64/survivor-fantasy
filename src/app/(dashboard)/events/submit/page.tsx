@@ -14,6 +14,11 @@ export default function SelectTypePage() {
   const { setFormData, resetTribalState, setSplitTribal, episodePhase } = useSubmitContext()
   const flags = useFeatureFlags()
 
+  // Debug: log current flags
+  console.log('Feature flags:', flags)
+  console.log('Tribe swap enabled?', isTribeSwapEnabled(flags))
+  console.log('Tribe merge enabled?', isTribeMergeEnabled(flags))
+
   const handleTypeSelect = (type: GameEventType) => {
     setFormData(null)
     resetTribalState()
