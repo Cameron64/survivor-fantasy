@@ -1,12 +1,11 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install --frozen-lockfile"
+buildCommand = "pnpm install --frozen-lockfile && npx prisma generate && pnpm build"
 
 [deploy]
-# Push schema, regenerate client, then build and start
-startCommand = "npx prisma db push --accept-data-loss && npx prisma generate && pnpm build && next start -H 0.0.0.0"
+startCommand = "npx prisma db push --accept-data-loss && next start -H 0.0.0.0"
 healthcheckPath = "/api/health"
-healthcheckTimeout = 600
+healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 
