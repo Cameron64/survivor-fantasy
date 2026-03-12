@@ -11,14 +11,15 @@ import { ensureFeatureFlagColumns } from '@/lib/ensure-feature-flag-columns'
 export async function GET() {
   try {
     await ensureFeatureFlagColumns()
+  } catch (e) {
+    console.error('[Feature Flags] ensureColumns failed:', e)
+  }
 
-    const rows = await db.$queryRaw<FeatureFlags[]>`
-      SELECT "enableTribeSwap", "enableSwapMode", "enableDissolutionMode",
-             "enableExpansionMode", "enableTribeMerge"
-      FROM "League"
-      WHERE "isActive" = true
-      LIMIT 1
-    `
+  try {
+    // Use $queryRawUnsafe (same as PATCH read-back which works)
+    const rows = await db.$queryRawUnsafe<FeatureFlags[]>(
+      'SELECT "enableTribeSwap", "enableSwapMode", "enableDissolutionMode", "enableExpansionMode", "enableTribeMerge" FROM "League" WHERE "isActive" = true LIMIT 1'
+    )
 
     if (!rows.length) {
       return NextResponse.json(DEFAULT_FLAGS)
@@ -35,7 +36,11 @@ export async function GET() {
 
     return NextResponse.json(flags)
   } catch (error) {
-    console.error('[Feature Flags] Error:', error)
-    return NextResponse.json(DEFAULT_FLAGS)
+    // Return the actual error so we can debug, not silent defaults
+    console.error('[Feature Flags] Query failed:', error)
+    return NextResponse.json(
+      { error: String(error), defaults: DEFAULT_FLAGS },
+      { status: 500 }
+    )
   }
 }
