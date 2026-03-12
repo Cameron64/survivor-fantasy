@@ -2,15 +2,16 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import type { FeatureFlags } from '@/lib/feature-flags'
 import { DEFAULT_FLAGS } from '@/lib/feature-flags'
+import { ensureFeatureFlagColumns } from '@/lib/ensure-feature-flag-columns'
 
 /**
  * GET /api/feature-flags
  * Returns the current feature flags from the active league.
- *
- * Uses raw SQL to avoid Prisma Client cache issues with new columns.
  */
 export async function GET() {
   try {
+    await ensureFeatureFlagColumns()
+
     const rows = await db.$queryRaw<FeatureFlags[]>`
       SELECT "enableTribeSwap", "enableSwapMode", "enableDissolutionMode",
              "enableExpansionMode", "enableTribeMerge"
@@ -23,7 +24,6 @@ export async function GET() {
       return NextResponse.json(DEFAULT_FLAGS)
     }
 
-    // Ensure all flags have boolean values (null-safe)
     const row = rows[0]
     const flags: FeatureFlags = {
       enableTribeSwap: row.enableTribeSwap ?? false,

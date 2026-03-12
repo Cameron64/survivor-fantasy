@@ -3,12 +3,11 @@ import { db } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth'
 import { DEFAULT_FLAGS } from '@/lib/feature-flags'
 import type { FeatureFlags } from '@/lib/feature-flags'
+import { ensureFeatureFlagColumns } from '@/lib/ensure-feature-flag-columns'
 
 /**
  * PATCH /api/admin/feature-flags
  * Update feature flags in the active league (admin only)
- *
- * Uses raw SQL to avoid Prisma Client cache issues with new columns.
  */
 export async function PATCH(req: NextRequest) {
   try {
@@ -18,6 +17,8 @@ export async function PATCH(req: NextRequest) {
   }
 
   try {
+    await ensureFeatureFlagColumns()
+
     const body = await req.json()
 
     const league = await db.league.findFirst({
