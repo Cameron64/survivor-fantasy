@@ -50,11 +50,10 @@ export function usePWAUpdate() {
       }
     }
 
-    // Listen for controller change and reload
+    // Listen for controller change — show update prompt instead of auto-reloading
+    // Auto-reload was killing in-flight fetch requests (e.g. feature flag toggles)
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!showReload) {
-        window.location.reload()
-      }
+      setShowReload(true)
     })
 
     registerServiceWorker()
