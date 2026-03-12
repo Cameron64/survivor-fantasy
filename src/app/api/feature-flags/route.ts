@@ -21,7 +21,6 @@ export async function GET() {
     })
 
     if (!league) {
-      console.log('[Feature Flags] No active league found, returning defaults')
       return NextResponse.json(DEFAULT_FLAGS)
     }
 
@@ -33,10 +32,9 @@ export async function GET() {
       enableTribeMerge: league.enableTribeMerge ?? DEFAULT_FLAGS.enableTribeMerge,
     }
 
-    console.log('[Feature Flags] Fetched from DB:', flags)
     return NextResponse.json(flags)
   } catch (error) {
-    console.error('[Feature Flags] Error fetching from DB:', error)
+    console.error('[Feature Flags] Error fetching:', error)
     return NextResponse.json(DEFAULT_FLAGS)
   }
 }
