@@ -21,21 +21,35 @@ async function getLeague() {
   return league
 }
 
+async function getFeatureFlags(): Promise<FeatureFlags> {
+  try {
+    const rows = await db.$queryRaw<FeatureFlags[]>`
+      SELECT "enableTribeSwap", "enableSwapMode", "enableDissolutionMode",
+             "enableExpansionMode", "enableTribeMerge"
+      FROM "League"
+      WHERE "isActive" = true
+      LIMIT 1
+    `
+    if (!rows.length) return DEFAULT_FLAGS
+    const row = rows[0]
+    return {
+      enableTribeSwap: row.enableTribeSwap ?? false,
+      enableSwapMode: row.enableSwapMode ?? false,
+      enableDissolutionMode: row.enableDissolutionMode ?? false,
+      enableExpansionMode: row.enableExpansionMode ?? false,
+      enableTribeMerge: row.enableTribeMerge ?? false,
+    }
+  } catch {
+    return DEFAULT_FLAGS
+  }
+}
+
 export default async function AdminLeaguePage() {
   const league = await getLeague()
 
   const scoringOverrides = (league?.scoringConfig as Partial<Record<EventType, number>>) || {}
 
-  // Extract feature flags from league with fallback to defaults
-  const featureFlags: FeatureFlags = league
-    ? {
-        enableTribeSwap: league.enableTribeSwap ?? DEFAULT_FLAGS.enableTribeSwap,
-        enableSwapMode: league.enableSwapMode ?? DEFAULT_FLAGS.enableSwapMode,
-        enableDissolutionMode: league.enableDissolutionMode ?? DEFAULT_FLAGS.enableDissolutionMode,
-        enableExpansionMode: league.enableExpansionMode ?? DEFAULT_FLAGS.enableExpansionMode,
-        enableTribeMerge: league.enableTribeMerge ?? DEFAULT_FLAGS.enableTribeMerge,
-      }
-    : DEFAULT_FLAGS
+  const featureFlags = await getFeatureFlags()
 
   return (
     <div className="space-y-6">

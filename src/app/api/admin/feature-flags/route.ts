@@ -1,27 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/db'
+import { db } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth'
+import { DEFAULT_FLAGS } from '@/lib/feature-flags'
+import type { FeatureFlags } from '@/lib/feature-flags'
 
 /**
  * PATCH /api/admin/feature-flags
  * Update feature flags in the active league (admin only)
+ *
+ * Uses raw SQL to avoid Prisma Client cache issues with new columns.
  */
 export async function PATCH(req: NextRequest) {
   try {
     await requireAdmin()
+  } catch {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
 
+  try {
     const body = await req.json()
 
-    const {
-      enableTribeSwap,
-      enableSwapMode,
-      enableDissolutionMode,
-      enableExpansionMode,
-      enableTribeMerge,
-    } = body
-
-    const league = await prisma.league.findFirst({
+    const league = await db.league.findFirst({
       where: { isActive: true },
+      select: { id: true },
     })
 
     if (!league) {
@@ -31,32 +32,49 @@ export async function PATCH(req: NextRequest) {
       )
     }
 
-    const updateData = {
-      ...(typeof enableTribeSwap === 'boolean' && { enableTribeSwap }),
-      ...(typeof enableSwapMode === 'boolean' && { enableSwapMode }),
-      ...(typeof enableDissolutionMode === 'boolean' && { enableDissolutionMode }),
-      ...(typeof enableExpansionMode === 'boolean' && { enableExpansionMode }),
-      ...(typeof enableTribeMerge === 'boolean' && { enableTribeMerge }),
+    // Build SET clause from provided boolean flags
+    const flagNames = [
+      'enableTribeSwap',
+      'enableSwapMode',
+      'enableDissolutionMode',
+      'enableExpansionMode',
+      'enableTribeMerge',
+    ] as const
+
+    const setClauses: string[] = []
+    const values: unknown[] = []
+
+    for (const flag of flagNames) {
+      if (typeof body[flag] === 'boolean') {
+        setClauses.push(`"${flag}" = $${values.length + 1}`)
+        values.push(body[flag])
+      }
     }
 
-    const updated = await prisma.league.update({
-      where: { id: league.id },
-      data: updateData,
-      select: {
-        enableTribeSwap: true,
-        enableSwapMode: true,
-        enableDissolutionMode: true,
-        enableExpansionMode: true,
-        enableTribeMerge: true,
-      },
-    })
+    if (setClauses.length === 0) {
+      return NextResponse.json(
+        { error: 'No valid flags provided' },
+        { status: 400 }
+      )
+    }
 
-    return NextResponse.json(updated)
+    // Add league id as last param
+    values.push(league.id)
+
+    await db.$executeRawUnsafe(
+      `UPDATE "League" SET ${setClauses.join(', ')} WHERE "id" = $${values.length}`,
+      ...values
+    )
+
+    // Read back current values
+    const rows = await db.$queryRawUnsafe<FeatureFlags[]>(
+      `SELECT "enableTribeSwap", "enableSwapMode", "enableDissolutionMode", "enableExpansionMode", "enableTribeMerge" FROM "League" WHERE "id" = $1`,
+      league.id
+    )
+
+    const row = rows[0] ?? DEFAULT_FLAGS
+    return NextResponse.json(row)
   } catch (error) {
-    if (error === 'Unauthorized' || error === 'Forbidden') {
-      return NextResponse.json({ error: String(error) }, { status: 403 })
-    }
-
     console.error('Failed to update feature flags:', error)
     return NextResponse.json(
       { error: 'Failed to update feature flags' },
