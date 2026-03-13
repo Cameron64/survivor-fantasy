@@ -293,9 +293,9 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         if (ge.type === 'TRIBE_SWAP') {
           const swapData = data as TribeSwapData
 
-          // Delete memberships created by this event
+          // Delete memberships created by this event (started at swap week)
           await tx.tribeMembership.deleteMany({
-            where: { gameEventId: ge.id, fromWeek: { gte: 1 } },
+            where: { gameEventId: ge.id, fromWeek: swapData.swapWeek },
           })
 
           // Reopen memberships closed by this event
@@ -431,9 +431,11 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
         // Reverse swap effects
         if (existingGameEvent.type === 'TRIBE_SWAP') {
           const swapData = data as TribeSwapData
+          // Delete memberships created by this event (started at swap week)
           await tx.tribeMembership.deleteMany({
-            where: { gameEventId: id, fromWeek: { gte: 1 } },
+            where: { gameEventId: id, fromWeek: swapData.swapWeek },
           })
+          // Reopen memberships closed by this event
           await tx.tribeMembership.updateMany({
             where: { gameEventId: id },
             data: { toWeek: null, gameEventId: null },
