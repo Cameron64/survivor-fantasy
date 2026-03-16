@@ -1,26 +1,133 @@
 import { EventType, GameEventType } from '@prisma/client'
 import { getEventPoints } from './scoring'
+import { type GameSettings, DEFAULT_GAME_SETTINGS } from './game-settings'
 
 /**
  * A derived scoring event ready to be created in the database.
+ * Every event MUST have an explicit voteRound (never undefined).
  */
 export interface DerivedEvent {
   type: EventType
   contestantId: string
   points: number
   description?: string
+  voteRound: number
 }
 
 // --- Data shapes for each GameEventType ---
 
+export interface IdolPlay {
+  playedBy: string       // who played it
+  playedFor: string      // who it protects (can be self)
+  successful: boolean
+}
+
+export interface ShotInTheDark {
+  playedBy: string       // who played it
+  successful: boolean    // true = safe (immunity), false = just lost their vote
+}
+
+export interface VoteRound {
+  votes: Record<string, string>                          // voterId -> votedForId
+  noVote?: string[]                                      // can't vote (lost vote, blocked, SITD)
+  extraVotes?: Array<{ voterId: string; votedForId: string }>  // additional votes
+  shotInTheDark?: ShotInTheDark
+  isRevote?: boolean
+  eligibleVoters?: string[]   // revote: restricted voter pool
+  eligibleTargets?: string[]  // revote: restricted target pool
+}
+
+export type EliminationMethod = 'vote' | 'revote' | 'rock_draw' | 'default' | 'consensus'
+
+/**
+ * Tribal council data as stored in GameEvent.data JSON.
+ * Fields may be in old format (votes, idolPlayed) or new format (voteRounds, idolPlays).
+ * Always call normalizeTribalData() before reading — it returns NormalizedTribalData
+ * with all required fields guaranteed.
+ */
 export interface TribalCouncilData {
-  attendees: string[] // contestant IDs
-  votes: Record<string, string> // voterId -> votedForId
-  eliminated: string // contestant ID
-  isBlindside?: boolean // deprecated, kept for backward compat with existing data
-  blindsideLeader?: string // deprecated
-  idolPlayed?: { by: string; successful: boolean } | null
+  attendees: string[]
+  eliminated: string          // ALWAYS top-level, both old and new format
   sentToJury: boolean
+  // New format fields (present after normalization or from new submissions)
+  voteRounds?: VoteRound[]
+  eliminationMethod?: EliminationMethod
+  idolPlays?: IdolPlay[]
+  // Deprecated - kept for backward compat with existing GameEvent data
+  votes?: Record<string, string>
+  idolPlayed?: { by: string; successful: boolean } | null
+  isBlindside?: boolean
+  blindsideLeader?: string
+}
+
+/**
+ * Fully normalized tribal council data. All fields guaranteed present.
+ * Produced by normalizeTribalData().
+ */
+export interface NormalizedTribalData {
+  attendees: string[]
+  voteRounds: VoteRound[]
+  eliminated: string
+  eliminationMethod: EliminationMethod
+  idolPlays: IdolPlay[]
+  sentToJury: boolean
+}
+
+/**
+ * Normalize tribal council data from any format (old or new) into the canonical shape.
+ * This is the ONLY way to safely access TribalCouncilData fields.
+ * Must be called before reading any field from stored tribal council JSON.
+ */
+export function normalizeTribalData(raw: Record<string, unknown>): NormalizedTribalData {
+  const data = raw as Partial<TribalCouncilData>
+
+  // Determine attendees (always top-level)
+  const attendees = (data.attendees ?? []) as string[]
+  const eliminated = (data.eliminated ?? '') as string
+  const sentToJury = (data.sentToJury ?? false) as boolean
+
+  // Determine eliminationMethod
+  const eliminationMethod = (data.eliminationMethod ?? 'vote') as EliminationMethod
+
+  // Normalize voteRounds
+  let voteRounds: VoteRound[]
+  if (data.voteRounds && Array.isArray(data.voteRounds) && data.voteRounds.length > 0) {
+    // New format — use as-is
+    voteRounds = data.voteRounds
+  } else if (data.votes && typeof data.votes === 'object') {
+    // Old format — wrap single votes object into a VoteRound
+    voteRounds = [{ votes: data.votes as Record<string, string> }]
+  } else if (Array.isArray(data.voteRounds) && data.voteRounds.length === 0) {
+    // Empty array — valid for non-vote eliminations, defensive normalize for 'vote'
+    if (eliminationMethod === 'vote') {
+      voteRounds = [{ votes: {} }]
+    } else {
+      voteRounds = []
+    }
+  } else {
+    // No vote data at all
+    voteRounds = [{ votes: {} }]
+  }
+
+  // Normalize idolPlays
+  let idolPlays: IdolPlay[]
+  if (data.idolPlays && Array.isArray(data.idolPlays)) {
+    idolPlays = data.idolPlays
+  } else if (data.idolPlayed && typeof data.idolPlayed === 'object') {
+    const old = data.idolPlayed as { by: string; successful: boolean }
+    idolPlays = [{ playedBy: old.by, playedFor: old.by, successful: old.successful }]
+  } else {
+    idolPlays = []
+  }
+
+  return {
+    attendees,
+    voteRounds,
+    eliminated,
+    eliminationMethod,
+    idolPlays,
+    sentToJury,
+  }
 }
 
 export interface ChallengeGroup {
@@ -116,6 +223,7 @@ function awardMilestone(
     contestantId,
     points: resolvePoints(type, pv),
     description,
+    voteRound: 0,
   }
 }
 
@@ -131,11 +239,12 @@ function awardMilestone(
 export function deriveEvents(
   type: GameEventType,
   data: GameEventData,
-  pointValues?: Record<EventType, number>
+  pointValues?: Record<EventType, number>,
+  gameSettings?: GameSettings
 ): DerivedEvent[] {
   switch (type) {
     case 'TRIBAL_COUNCIL':
-      return deriveTribalCouncil(data as TribalCouncilData, pointValues)
+      return deriveTribalCouncil(data as TribalCouncilData, pointValues, gameSettings)
     case 'IMMUNITY_CHALLENGE':
       return deriveImmunityChallenge(data as ImmunityChallengeData, pointValues)
     case 'REWARD_CHALLENGE':
@@ -157,69 +266,127 @@ export function deriveEvents(
   }
 }
 
-function deriveTribalCouncil(data: TribalCouncilData, pv?: Record<EventType, number>): DerivedEvent[] {
+function deriveTribalCouncil(
+  rawData: TribalCouncilData,
+  pv?: Record<EventType, number>,
+  gameSettings?: GameSettings
+): DerivedEvent[] {
+  const settings = gameSettings ?? DEFAULT_GAME_SETTINGS
+  // normalizeTribalData accepts Record<string, unknown> — safe cast from stored JSON
+  const data = normalizeTribalData(rawData as unknown as Record<string, unknown>)
   const events: DerivedEvent[] = []
-  const { attendees, votes, eliminated, idolPlayed, sentToJury } =
-    data
+  const { attendees, voteRounds, eliminated, eliminationMethod, idolPlays, sentToJury } = data
 
-  // Count votes received by each attendee
-  const votesReceived: Record<string, number> = {}
-  for (const id of attendees) {
-    votesReceived[id] = 0
-  }
-  for (const votedFor of Object.values(votes)) {
-    if (votesReceived[votedFor] !== undefined) {
-      votesReceived[votedFor]++
+  // Decisive round = last element of voteRounds
+  const decisiveRound = voteRounds.length > 0 ? voteRounds[voteRounds.length - 1] : null
+  const roundIndex = voteRounds.length > 0 ? voteRounds.length - 1 : 0
+
+  if (decisiveRound && eliminationMethod !== 'rock_draw') {
+    // Build vote tallies from decisive round: regular votes + extra votes
+    const votesReceived: Record<string, number> = {}
+    for (const id of attendees) {
+      votesReceived[id] = 0
+    }
+
+    // Count regular votes
+    for (const votedFor of Object.values(decisiveRound.votes)) {
+      if (votesReceived[votedFor] !== undefined) {
+        votesReceived[votedFor]++
+      }
+    }
+
+    // Count extra votes toward tallies
+    if (decisiveRound.extraVotes) {
+      for (const ev of decisiveRound.extraVotes) {
+        if (votesReceived[ev.votedForId] !== undefined) {
+          votesReceived[ev.votedForId]++
+        }
+      }
+    }
+
+    // CORRECT_VOTE: regular voters who voted for the eliminated player
+    for (const [voterId, votedFor] of Object.entries(decisiveRound.votes)) {
+      if (votedFor === eliminated) {
+        events.push({
+          type: 'CORRECT_VOTE',
+          contestantId: voterId,
+          points: resolvePoints('CORRECT_VOTE', pv),
+          description: 'Voted correctly at tribal council',
+          voteRound: roundIndex * 100,
+        })
+      }
+    }
+
+    // CORRECT_VOTE for extra votes (if setting enabled)
+    if (settings.extraVoteAwardsCorrectVote && decisiveRound.extraVotes) {
+      for (let i = 0; i < decisiveRound.extraVotes.length; i++) {
+        const ev = decisiveRound.extraVotes[i]
+        if (ev.votedForId === eliminated) {
+          const subIndex = i + 1
+          if (subIndex >= 100) {
+            throw new Error('voteRound subIndex overflow — max 99 extra votes per round')
+          }
+          events.push({
+            type: 'CORRECT_VOTE',
+            contestantId: ev.voterId,
+            points: resolvePoints('CORRECT_VOTE', pv),
+            description: 'Voted correctly with extra vote at tribal council',
+            voteRound: roundIndex * 100 + subIndex,
+          })
+        }
+      }
+    }
+
+    // Determine which contestants are eligible for ZERO_VOTES_RECEIVED / SURVIVED_WITH_VOTES
+    const eligiblePool = decisiveRound.isRevote && decisiveRound.eligibleTargets
+      ? decisiveRound.eligibleTargets.filter(id => id !== eliminated)
+      : attendees.filter(id => id !== eliminated)
+
+    // ZERO_VOTES_RECEIVED
+    for (const id of eligiblePool) {
+      if (votesReceived[id] === 0) {
+        events.push({
+          type: 'ZERO_VOTES_RECEIVED',
+          contestantId: id,
+          points: resolvePoints('ZERO_VOTES_RECEIVED', pv),
+          description: 'Received zero votes at tribal council',
+          voteRound: roundIndex * 100,
+        })
+      }
+    }
+
+    // SURVIVED_WITH_VOTES
+    for (const id of eligiblePool) {
+      if (votesReceived[id] > 0) {
+        events.push({
+          type: 'SURVIVED_WITH_VOTES',
+          contestantId: id,
+          points: resolvePoints('SURVIVED_WITH_VOTES', pv),
+          description: `Survived tribal council with ${votesReceived[id]} vote(s)`,
+          voteRound: roundIndex * 100,
+        })
+      }
     }
   }
 
-  // CORRECT_VOTE: everyone who voted for the eliminated person
-  for (const [voterId, votedFor] of Object.entries(votes)) {
-    if (votedFor === eliminated) {
+  // IDOL_PLAY_SUCCESS: iterate all idol plays
+  for (let i = 0; i < idolPlays.length; i++) {
+    const idol = idolPlays[i]
+    if (idol.successful) {
+      const desc = idol.playedBy === idol.playedFor
+        ? 'Successfully played a hidden immunity idol'
+        : `Successfully played a hidden immunity idol for another player`
       events.push({
-        type: 'CORRECT_VOTE',
-        contestantId: voterId,
-        points: resolvePoints('CORRECT_VOTE', pv),
-        description: 'Voted correctly at tribal council',
+        type: 'IDOL_PLAY_SUCCESS',
+        contestantId: idol.playedBy,
+        points: resolvePoints('IDOL_PLAY_SUCCESS', pv),
+        description: desc,
+        voteRound: i,
       })
     }
   }
 
-  // ZERO_VOTES_RECEIVED: attendees who got zero votes (excluding the eliminated person)
-  for (const id of attendees) {
-    if (id !== eliminated && votesReceived[id] === 0) {
-      events.push({
-        type: 'ZERO_VOTES_RECEIVED',
-        contestantId: id,
-        points: resolvePoints('ZERO_VOTES_RECEIVED', pv),
-        description: 'Received zero votes at tribal council',
-      })
-    }
-  }
-
-  // SURVIVED_WITH_VOTES: attendees who got votes but weren't eliminated
-  for (const id of attendees) {
-    if (id !== eliminated && votesReceived[id] > 0) {
-      events.push({
-        type: 'SURVIVED_WITH_VOTES',
-        contestantId: id,
-        points: resolvePoints('SURVIVED_WITH_VOTES', pv),
-        description: `Survived tribal council with ${votesReceived[id]} vote(s)`,
-      })
-    }
-  }
-
-  // IDOL_PLAY_SUCCESS
-  if (idolPlayed?.successful) {
-    events.push({
-      type: 'IDOL_PLAY_SUCCESS',
-      contestantId: idolPlayed.by,
-      points: resolvePoints('IDOL_PLAY_SUCCESS', pv),
-      description: 'Successfully played a hidden immunity idol',
-    })
-  }
-
-  // MADE_JURY
+  // MADE_JURY: always emitted when sentToJury is true, regardless of eliminationMethod
   if (sentToJury) {
     events.push(awardMilestone(eliminated, 'MADE_JURY', 'Sent to the jury', pv))
   }
@@ -239,6 +406,7 @@ function deriveImmunityChallenge(data: ImmunityChallengeData, pv?: Record<EventT
       contestantId: id,
       points: resolvePoints('TEAM_CHALLENGE_WIN', pv),
       description: 'Won merge transition team challenge',
+      voteRound: 0,
     }))
   }
   // Legacy path: tribe-based team challenges
@@ -248,6 +416,7 @@ function deriveImmunityChallenge(data: ImmunityChallengeData, pv?: Record<EventT
       contestantId: id,
       points: resolvePoints('TEAM_CHALLENGE_WIN', pv),
       description: 'Won team immunity challenge',
+      voteRound: 0,
     }))
   }
   return [
@@ -256,6 +425,7 @@ function deriveImmunityChallenge(data: ImmunityChallengeData, pv?: Record<EventT
       contestantId: data.winner!,
       points: resolvePoints('INDIVIDUAL_IMMUNITY_WIN', pv),
       description: 'Won individual immunity challenge',
+      voteRound: 0,
     },
   ]
 }
@@ -269,6 +439,7 @@ function deriveRewardChallenge(data: RewardChallengeData, pv?: Record<EventType,
     description: data.isTeamChallenge
       ? 'Won team reward challenge'
       : 'Won reward challenge',
+    voteRound: 0,
   }))
 }
 
@@ -279,6 +450,7 @@ function deriveIdolFound(data: IdolFoundData, pv?: Record<EventType, number>): D
       contestantId: data.finder,
       points: resolvePoints('IDOL_FIND', pv),
       description: 'Found a hidden immunity idol',
+      voteRound: 0,
     },
   ]
 }
@@ -290,6 +462,7 @@ function deriveFireMaking(data: FireMakingData, pv?: Record<EventType, number>):
       contestantId: data.winner,
       points: resolvePoints('FIRE_MAKING_WIN', pv),
       description: 'Won fire making challenge',
+      voteRound: 0,
     },
   ]
 }
@@ -302,6 +475,7 @@ function deriveQuitMedevac(data: QuitMedevacData, pv?: Record<EventType, number>
       contestantId: data.contestant,
       points: resolvePoints(eventType, pv),
       description: data.reason === 'quit' ? 'Quit the game' : 'Medically evacuated',
+      voteRound: 0,
     },
   ]
 }
@@ -315,6 +489,7 @@ function deriveEndgame(data: EndgameData, pv?: Record<EventType, number>): Deriv
       contestantId: id,
       points: resolvePoints('FINALIST', pv),
       description: 'Made it to the final tribal council',
+      voteRound: 0,
     })
   }
 
@@ -323,6 +498,7 @@ function deriveEndgame(data: EndgameData, pv?: Record<EventType, number>): Deriv
     contestantId: data.winner,
     points: resolvePoints('WINNER', pv),
     description: 'Won Survivor!',
+    voteRound: 0,
   })
 
   return events
@@ -379,9 +555,12 @@ export function getGameEventSummary(
 
   switch (type) {
     case 'TRIBAL_COUNCIL': {
-      const d = data as TribalCouncilData
+      const d = normalizeTribalData(data as unknown as Record<string, unknown>)
       const eliminatedName = name(d.eliminated)
-      return `${eliminatedName} voted out${d.sentToJury ? ', sent to jury' : ''}`
+      const methodSuffix = d.eliminationMethod !== 'vote'
+        ? ` (${d.eliminationMethod.replace('_', ' ')})`
+        : ''
+      return `${eliminatedName} voted out${methodSuffix}${d.sentToJury ? ', sent to jury' : ''}`
     }
     case 'IMMUNITY_CHALLENGE': {
       const d = data as ImmunityChallengeData

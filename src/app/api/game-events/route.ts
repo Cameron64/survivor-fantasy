@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { db } from '@/lib/db'
 import { requireUser, requireUserOrPublic } from '@/lib/auth'
-import { deriveEvents } from '@/lib/event-derivation'
+import { deriveEvents, type TribalCouncilData } from '@/lib/event-derivation'
 import { getLeagueSettings } from '@/lib/league-settings'
 import { getLeagueScoringConfig } from '@/lib/scoring'
+import { parseGameSettings } from '@/lib/game-settings'
 import { notifyGameEventSubmitted } from '@/lib/slack'
 import { createGameEventSchema, formatZodError } from '@/lib/validation'
 
@@ -82,15 +84,23 @@ export async function POST(req: NextRequest) {
 
     const { type, week, data } = validationResult.data
 
-    // Read league scoring config for dynamic point values
+    // Read league scoring config and game settings
+    const league = await db.league.findFirst({
+      where: { isActive: true },
+      select: { scoringConfig: true, gameSettings: true },
+    })
     const pointValues = await getLeagueScoringConfig()
+    const gameSettings = parseGameSettings(league?.gameSettings)
 
     // Derive individual scoring events
-    const derivedEvents = deriveEvents(type, data, pointValues)
+    const derivedEvents = deriveEvents(type, data, pointValues, gameSettings)
 
-    // Structural events (TRIBE_SWAP) derive no scoring events — that's valid
+    // Structural events and certain tribal council eliminations derive no scoring events — that's valid
     const structuralEventTypes: string[] = ['TRIBE_SWAP']
-    if (derivedEvents.length === 0 && !structuralEventTypes.includes(type)) {
+    const isZeroEventTribal = type === 'TRIBAL_COUNCIL' &&
+      (data as TribalCouncilData).eliminationMethod &&
+      ['rock_draw', 'default', 'consensus'].includes((data as TribalCouncilData).eliminationMethod!)
+    if (derivedEvents.length === 0 && !structuralEventTypes.includes(type) && !isZeroEventTribal) {
       return NextResponse.json(
         { error: 'No scoring events could be derived from this game event' },
         { status: 400 }
@@ -127,6 +137,7 @@ export async function POST(req: NextRequest) {
           type,
           week,
           data: data as object,
+          settingsSnapshot: gameSettings as object,
           sequenceInEpisode: nextSeq,
           isApproved: false,
           submittedById: user.id,
@@ -142,6 +153,7 @@ export async function POST(req: NextRequest) {
             week,
             description: event.description,
             points: event.points,
+            voteRound: event.voteRound,
             isApproved: false,
             submittedById: user.id,
             gameEventId: ge.id,
@@ -178,6 +190,12 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (error instanceof Error && error.message === 'Unauthorized') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'A conflicting event already exists. This tribal council may have been submitted already.' },
+        { status: 409 }
+      )
     }
     console.error('Error creating game event:', error)
     return NextResponse.json({ error: 'Failed to create game event' }, { status: 500 })

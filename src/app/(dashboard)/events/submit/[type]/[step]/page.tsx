@@ -5,11 +5,14 @@ import { slugToType } from '../../_lib/constants'
 import {
   AttendeesStep,
   VotesStep,
+  TieResolutionStep,
+  RevoteStep,
+  RockDrawStep,
   EliminationStep,
   ExtrasStep,
 } from '../../_lib/tribal-steps'
 
-const TRIBAL_STEPS = new Set(['attendees', 'votes', 'elimination', 'extras'])
+const TRIBAL_STEPS = new Set(['attendees', 'votes', 'tie-resolution', 'revote', 'rock-draw', 'elimination', 'extras'])
 
 export default function SubStepPage() {
   const params = useParams<{ type: string; step: string }>()
@@ -29,6 +32,12 @@ export default function SubStepPage() {
       return <AttendeesStep />
     case 'votes':
       return <VotesStep />
+    case 'tie-resolution':
+      return <TieResolutionStep />
+    case 'revote':
+      return <RevoteStep />
+    case 'rock-draw':
+      return <RockDrawStep />
     case 'elimination':
       return <EliminationStep />
     case 'extras':

@@ -27,13 +27,17 @@ const optionalStringSchema = z.string().optional()
 
 /**
  * Schema for creating a standalone scoring event (direct submission).
+ * Rejects retired event types (CAUSED_BLINDSIDE).
  */
 export const createEventSchema = z.object({
   type: z.nativeEnum(EventType),
   contestantId: idSchema,
   week: weekSchema,
   description: optionalStringSchema,
-})
+}).refine(
+  (data) => data.type !== 'CAUSED_BLINDSIDE',
+  { message: 'CAUSED_BLINDSIDE is retired and cannot be submitted.', path: ['type'] }
+)
 
 export type CreateEventInput = z.infer<typeof createEventSchema>
 
@@ -64,14 +68,47 @@ export type EventQueryInput = z.infer<typeof eventQuerySchema>
 // ============================================================================
 
 /**
- * Tribal Council data structure
+ * Tribal Council data schemas — new format with backward compat
  */
+
+const idolPlaySchema = z.object({
+  playedBy: idSchema,
+  playedFor: idSchema,
+  successful: z.boolean(),
+})
+
+const shotInTheDarkSchema = z.object({
+  playedBy: idSchema,
+  successful: z.boolean(),
+})
+
+const voteRoundSchema = z.object({
+  votes: z.record(z.string(), idSchema),
+  noVote: z.array(idSchema).optional(),
+  extraVotes: z.array(z.object({
+    voterId: idSchema,
+    votedForId: idSchema,
+  })).optional(),
+  shotInTheDark: shotInTheDarkSchema.optional(),
+  isRevote: z.boolean().optional(),
+  eligibleVoters: z.array(idSchema).optional(),
+  eligibleTargets: z.array(idSchema).optional(),
+})
+
+const eliminationMethodSchema = z.enum(['vote', 'revote', 'rock_draw', 'default', 'consensus'])
+
 const tribalCouncilDataSchema = z.object({
   attendees: z.array(idSchema).min(1, 'At least one attendee required'),
-  votes: z.record(z.string(), idSchema),
   eliminated: idSchema,
-  isBlindside: z.boolean().optional(), // deprecated, kept for backward compat
-  blindsideLeader: idSchema.optional(),  // deprecated
+  sentToJury: z.boolean(),
+  // New format fields
+  voteRounds: z.array(voteRoundSchema).optional(),
+  eliminationMethod: eliminationMethodSchema.optional(),
+  idolPlays: z.array(idolPlaySchema).optional(),
+  // Deprecated fields (old format — still accepted for backward compat)
+  votes: z.record(z.string(), idSchema).optional(),
+  isBlindside: z.boolean().optional(),
+  blindsideLeader: idSchema.optional(),
   idolPlayed: z
     .object({
       by: idSchema,
@@ -79,8 +116,22 @@ const tribalCouncilDataSchema = z.object({
     })
     .nullable()
     .optional(),
-  sentToJury: z.boolean(),
-})
+}).refine(
+  (data) => data.attendees.includes(data.eliminated),
+  { message: 'Eliminated contestant must be an attendee', path: ['eliminated'] }
+).refine(
+  (data) => {
+    // Must have either voteRounds (new) or votes (old) — unless non-vote elimination
+    const method = data.eliminationMethod ?? 'vote'
+    if (method === 'vote' || method === 'revote') {
+      const hasNewVotes = data.voteRounds && data.voteRounds.length > 0
+      const hasOldVotes = data.votes && Object.keys(data.votes).length > 0
+      return hasNewVotes || hasOldVotes
+    }
+    return true // rock_draw, default, consensus don't need votes
+  },
+  { message: 'Vote data required for vote/revote elimination method' }
+)
 
 /**
  * Immunity Challenge data structure

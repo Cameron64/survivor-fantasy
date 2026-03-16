@@ -10,9 +10,11 @@ import { EventType } from '@prisma/client'
 import { ScoringConfigForm } from '@/components/admin/scoring-config-form'
 import { PrivacySettingsForm } from '@/components/admin/privacy-settings-form'
 import { FunSettingsForm } from '@/components/admin/fun-settings-form'
+import { GameSettingsForm } from '@/components/admin/game-settings-form'
 import { FeatureFlagsForm } from '@/components/admin/feature-flags-form'
 import type { FeatureFlags } from '@/lib/feature-flags'
 import { DEFAULT_FLAGS } from '@/lib/feature-flags'
+import { parseGameSettings } from '@/lib/game-settings'
 
 async function getLeague() {
   const league = await db.league.findFirst({
@@ -48,6 +50,7 @@ export default async function AdminLeaguePage() {
   const league = await getLeague()
 
   const scoringOverrides = (league?.scoringConfig as Partial<Record<EventType, number>>) || {}
+  const gameSettings = parseGameSettings(league?.gameSettings)
 
   const featureFlags = await getFeatureFlags()
 
@@ -124,6 +127,21 @@ export default async function AdminLeaguePage() {
         </CardHeader>
         <CardContent>
           <FeatureFlagsForm initialFlags={featureFlags} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Gamepad2 className="h-5 w-5" />
+            Game Settings
+          </CardTitle>
+          <CardDescription>
+            Settings that affect how tribal council events are scored
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <GameSettingsForm initialSettings={gameSettings} />
         </CardContent>
       </Card>
 

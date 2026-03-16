@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, useMemo, useCallback, t
 import { getCurrentWeek } from '@/lib/season'
 import { getDisplayName } from '@/components/shared/contestant-label'
 import type { FormContestant } from '@/components/shared/contestant-label'
-import type { GameEventData } from '@/lib/event-derivation'
+import type { GameEventData, IdolPlay, EliminationMethod } from '@/lib/event-derivation'
 import type { EventType, GamePhase } from '@prisma/client'
 
 interface TribeMembership {
@@ -41,21 +41,144 @@ export interface SplitTribalState {
 export interface TribalState {
   selectedAttendees: Set<string>
   votes: Record<string, string>
+  noVote: string[]
+  extraVotes: Array<{ voterId: string; votedForId: string }>
+  shotInTheDark: { playedBy: string; successful: boolean } | null
+  hasRevote: boolean
+  revoteVotes: Record<string, string>
+  revoteExtraVotes: Array<{ voterId: string; votedForId: string }>
+  revoteEligibleVoters: string[]
+  revoteEligibleTargets: string[]
   eliminated: string
-  idolPlayed: boolean
-  idolPlayedBy: string
-  idolSuccessful: boolean
+  eliminationMethod: EliminationMethod
+  idolPlays: IdolPlay[]
   sentToJury: boolean
 }
 
 const INITIAL_TRIBAL_STATE: TribalState = {
   selectedAttendees: new Set(),
   votes: {},
+  noVote: [],
+  extraVotes: [],
+  shotInTheDark: null,
+  hasRevote: false,
+  revoteVotes: {},
+  revoteExtraVotes: [],
+  revoteEligibleVoters: [],
+  revoteEligibleTargets: [],
   eliminated: '',
-  idolPlayed: false,
-  idolPlayedBy: '',
-  idolSuccessful: true,
+  eliminationMethod: 'vote',
+  idolPlays: [],
   sentToJury: false,
+}
+
+/**
+ * Discriminated union for tribal state updates.
+ * Enforces cascade rules — e.g., changing votes automatically clears revote state.
+ */
+export type TribalStateAction =
+  | { kind: 'setAttendees'; attendees: Set<string>; resetVotes?: boolean }
+  | { kind: 'setVotes'; votes: Record<string, string> }
+  | { kind: 'setNoVote'; noVote: string[] }
+  | { kind: 'setExtraVotes'; extraVotes: Array<{ voterId: string; votedForId: string }> }
+  | { kind: 'setShotInTheDark'; shotInTheDark: { playedBy: string; successful: boolean } | null }
+  | { kind: 'setRevote'; hasRevote: boolean; revoteVotes?: Record<string, string>; revoteExtraVotes?: Array<{ voterId: string; votedForId: string }>; revoteEligibleVoters?: string[]; revoteEligibleTargets?: string[] }
+  | { kind: 'setEliminated'; eliminated: string; eliminationMethod?: EliminationMethod }
+  | { kind: 'setIdolPlays'; idolPlays: IdolPlay[] }
+  | { kind: 'setExtras'; sentToJury?: boolean }
+  | { kind: 'patch'; updates: Partial<Omit<TribalState, 'selectedAttendees' | 'votes'>> }
+
+function reduceTribalState(prev: TribalState, action: TribalStateAction): TribalState {
+  switch (action.kind) {
+    case 'setAttendees': {
+      const attendees = action.attendees
+      // Filter downstream state to only include IDs in the new attendee set
+      const filteredVotes = action.resetVotes ? {} : Object.fromEntries(
+        Object.entries(prev.votes).filter(([k, v]) => attendees.has(k) && attendees.has(v))
+      )
+      return {
+        ...prev,
+        selectedAttendees: attendees,
+        votes: filteredVotes,
+        noVote: prev.noVote.filter(id => attendees.has(id)),
+        extraVotes: prev.extraVotes.filter(ev => attendees.has(ev.voterId) && attendees.has(ev.votedForId)),
+        eliminated: attendees.has(prev.eliminated) ? prev.eliminated : '',
+        idolPlays: prev.idolPlays.filter(ip => attendees.has(ip.playedBy) && attendees.has(ip.playedFor)),
+        // Clear revote state on attendee change
+        hasRevote: false,
+        revoteVotes: {},
+        revoteExtraVotes: [],
+        revoteEligibleVoters: [],
+        revoteEligibleTargets: [],
+        eliminationMethod: 'vote',
+      }
+    }
+    case 'setVotes':
+      // Changing votes clears ALL revote state
+      return {
+        ...prev,
+        votes: action.votes,
+        hasRevote: false,
+        revoteVotes: {},
+        revoteExtraVotes: [],
+        revoteEligibleVoters: [],
+        revoteEligibleTargets: [],
+        eliminationMethod: 'vote',
+      }
+    case 'setNoVote':
+      return { ...prev, noVote: action.noVote }
+    case 'setExtraVotes':
+      return { ...prev, extraVotes: action.extraVotes }
+    case 'setShotInTheDark': {
+      const sitd = action.shotInTheDark
+      let nextNoVote = prev.noVote
+      let nextVotes = prev.votes
+
+      // Remove previous SITD player from noVote (if they were auto-added)
+      if (prev.shotInTheDark?.playedBy) {
+        nextNoVote = nextNoVote.filter(id => id !== prev.shotInTheDark!.playedBy)
+      }
+
+      // Auto-add new SITD player to noVote (playing SITD = lose your vote)
+      if (sitd?.playedBy && !nextNoVote.includes(sitd.playedBy)) {
+        nextNoVote = [...nextNoVote, sitd.playedBy]
+        // Clear their vote entry if they had one
+        if (nextVotes[sitd.playedBy]) {
+          const { [sitd.playedBy]: _, ...rest } = nextVotes
+          nextVotes = rest
+        }
+      }
+
+      return { ...prev, shotInTheDark: sitd, noVote: nextNoVote, votes: nextVotes }
+    }
+    case 'setRevote':
+      return {
+        ...prev,
+        hasRevote: action.hasRevote,
+        revoteVotes: action.revoteVotes ?? (action.hasRevote ? prev.revoteVotes : {}),
+        revoteExtraVotes: action.revoteExtraVotes ?? (action.hasRevote ? prev.revoteExtraVotes : []),
+        revoteEligibleVoters: action.revoteEligibleVoters ?? (action.hasRevote ? prev.revoteEligibleVoters : []),
+        revoteEligibleTargets: action.revoteEligibleTargets ?? (action.hasRevote ? prev.revoteEligibleTargets : []),
+        eliminationMethod: action.hasRevote ? 'revote' : 'vote',
+      }
+    case 'setEliminated':
+      return {
+        ...prev,
+        eliminated: action.eliminated,
+        eliminationMethod: action.eliminationMethod ?? prev.eliminationMethod,
+      }
+    case 'setIdolPlays':
+      return { ...prev, idolPlays: action.idolPlays }
+    case 'setExtras':
+      return {
+        ...prev,
+        ...(action.sentToJury !== undefined && { sentToJury: action.sentToJury }),
+      }
+    case 'patch':
+      return { ...prev, ...action.updates }
+    default:
+      return prev
+  }
 }
 
 export interface AllTribe {
@@ -78,6 +201,8 @@ interface SubmitContextValue {
   formData: GameEventData | null
   setFormData: (d: GameEventData | null) => void
   tribalState: TribalState
+  dispatchTribalState: (action: TribalStateAction) => void
+  /** @deprecated Use dispatchTribalState instead. Kept for non-tribal callers. */
   updateTribalState: (updates: Partial<TribalState>) => void
   resetTribalState: () => void
   splitTribal: SplitTribalState | null
@@ -105,6 +230,11 @@ export function SubmitProvider({ children }: { children: ReactNode }) {
   const [splitTribal, setSplitTribal] = useState<SplitTribalState | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  const dispatchTribalState = useCallback((action: TribalStateAction) => {
+    setTribalState((prev) => reduceTribalState(prev, action))
+  }, [])
+
+  // Backward compat: simple partial updates (no cascades)
   const updateTribalState = useCallback((updates: Partial<TribalState>) => {
     setTribalState((prev) => ({ ...prev, ...updates }))
   }, [])
@@ -195,8 +325,8 @@ export function SubmitProvider({ children }: { children: ReactNode }) {
   )
 
   const value = useMemo(
-    () => ({ contestants, tribes, allTribes, contestantNames, pointValues, week, setWeek, episodePhase, formData, setFormData, tribalState, updateTribalState, resetTribalState, splitTribal, setSplitTribal, isLoading }),
-    [contestants, tribes, allTribes, contestantNames, pointValues, week, episodePhase, formData, tribalState, updateTribalState, resetTribalState, splitTribal, isLoading]
+    () => ({ contestants, tribes, allTribes, contestantNames, pointValues, week, setWeek, episodePhase, formData, setFormData, tribalState, dispatchTribalState, updateTribalState, resetTribalState, splitTribal, setSplitTribal, isLoading }),
+    [contestants, tribes, allTribes, contestantNames, pointValues, week, episodePhase, formData, tribalState, dispatchTribalState, updateTribalState, resetTribalState, splitTribal, isLoading]
   )
 
   return <SubmitContext.Provider value={value}>{children}</SubmitContext.Provider>

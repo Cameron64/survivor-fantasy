@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireModerator } from '@/lib/auth'
 import { notifyGameEventApproved } from '@/lib/slack'
-import { TribalCouncilData, QuitMedevacData, TribeMergeData, TribeSwapData, GameEventData } from '@/lib/event-derivation'
+import { normalizeTribalData, QuitMedevacData, TribeMergeData, TribeSwapData, GameEventData } from '@/lib/event-derivation'
 import { checkChronologicalApproval, checkDownstreamDependencies } from '@/lib/approval-guards'
 
 interface RouteParams {
@@ -93,7 +93,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
         // Auto-eliminate contestants from tribal council
         if (ge.type === 'TRIBAL_COUNCIL') {
-          const tribalData = data as TribalCouncilData
+          const tribalData = normalizeTribalData(data as unknown as Record<string, unknown>)
+          if (!tribalData.eliminated) throw new Error('normalized tribal data missing eliminated field')
           await tx.contestant.update({
             where: { id: tribalData.eliminated },
             data: {
@@ -227,14 +228,33 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
 
         // Reverse elimination from tribal council
         if (ge.type === 'TRIBAL_COUNCIL') {
-          const tribalData = data as TribalCouncilData
-          await tx.contestant.update({
-            where: { id: tribalData.eliminated },
-            data: {
-              isEliminated: false,
-              eliminatedWeek: null,
+          const tribalData = normalizeTribalData(data as unknown as Record<string, unknown>)
+          if (!tribalData.eliminated) throw new Error('normalized tribal data missing eliminated field')
+
+          // Safety: check if any OTHER approved elimination targets this contestant
+          const otherElimination = await tx.gameEvent.findFirst({
+            where: {
+              id: { not: ge.id },
+              isApproved: true,
+              type: { in: ['TRIBAL_COUNCIL', 'QUIT_MEDEVAC'] },
             },
           })
+          // Only reverse if no other event also eliminated this contestant
+          const hasOverlap = otherElimination && (
+            (otherElimination.type === 'TRIBAL_COUNCIL' &&
+              (otherElimination.data as Record<string, unknown>)?.eliminated === tribalData.eliminated) ||
+            (otherElimination.type === 'QUIT_MEDEVAC' &&
+              (otherElimination.data as Record<string, unknown>)?.contestant === tribalData.eliminated)
+          )
+          if (!hasOverlap) {
+            await tx.contestant.update({
+              where: { id: tribalData.eliminated },
+              data: {
+                isEliminated: false,
+                eliminatedWeek: null,
+              },
+            })
+          }
         }
 
         // Reverse elimination from quit/medevac
@@ -383,7 +403,8 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
         const data = existingGameEvent.data as unknown as GameEventData
 
         if (existingGameEvent.type === 'TRIBAL_COUNCIL') {
-          const tribalData = data as TribalCouncilData
+          const tribalData = normalizeTribalData(data as unknown as Record<string, unknown>)
+          if (!tribalData.eliminated) throw new Error('normalized tribal data missing eliminated field')
           await tx.contestant.update({
             where: { id: tribalData.eliminated },
             data: {

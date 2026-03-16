@@ -96,7 +96,7 @@ export function getEventTypeLabel(eventType: EventType): string {
     FIRE_MAKING_WIN: 'Fire Making Win',
     ZERO_VOTES_RECEIVED: 'Zero Votes Received',
     SURVIVED_WITH_VOTES: 'Survived with Votes',
-    CAUSED_BLINDSIDE: 'Caused Blindside',
+    CAUSED_BLINDSIDE: 'Caused Blindside (retired)',
     MADE_JURY: 'Made Jury',
     FINALIST: 'Finalist',
     WINNER: 'Winner',

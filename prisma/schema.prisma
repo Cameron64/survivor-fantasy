@@ -90,12 +90,13 @@ model Event {
   submittedById String
   approvedBy    User?      @relation("ApprovedBy", fields: [approvedById], references: [id])
   approvedById  String?
+  voteRound     Int        @default(0) // Encoding: roundIndex * 100 + subIndex (for extra vote dedup)
   gameEvent     GameEvent? @relation(fields: [gameEventId], references: [id], onDelete: Cascade)
   gameEventId   String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
-  @@unique([contestantId, type, gameEventId])
+  @@unique([contestantId, type, gameEventId, voteRound])
   @@index([week, isApproved])
   @@index([gameEventId])
 }
@@ -105,6 +106,7 @@ model GameEvent {
   type              GameEventType
   week              Int
   data              Json // Structured event-specific payload
+  settingsSnapshot  Json? // GameSettings snapshot at submit time (audit trail)
   sequenceInEpisode Int               @default(0)
   isApproved        Boolean           @default(false)
   submittedBy       User              @relation("GameEventSubmittedBy", fields: [submittedById], references: [id])
@@ -191,6 +193,7 @@ model League {
   allowGuestEvents Boolean   @default(false) // Let guests submit events (requires isPublic)
   allowUserEvents  Boolean   @default(true)  // Let registered users submit events
   scoringConfig    Json? // Partial<Record<EventType, number>> overrides, null = all defaults
+  gameSettings     Json? // GameSettings JSON (e.g., extraVoteAwardsCorrectVote). Validated via Zod at read time.
   showLastPlace    Boolean   @default(false) // Show a "trophy" for last place on the standings
   mergeWeek        Int?
   juryStartWeek    Int?
