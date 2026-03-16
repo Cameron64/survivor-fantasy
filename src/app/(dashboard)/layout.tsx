@@ -144,7 +144,7 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Mobile Header */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 lg:hidden">
         <div className="flex h-14 items-center justify-between px-4">
           <Link href="/leaderboard" className="flex items-center">
             <img src="/logo.png" alt="Survivor Fantasy League" className="h-11 w-auto" />
@@ -154,7 +154,7 @@ export default async function DashboardLayout({
               DEV: {user?.name?.split(' ')[0]} ({user?.role})
             </span>
           ) : (
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
           )}
         </div>
       </header>
@@ -163,7 +163,7 @@ export default async function DashboardLayout({
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r bg-background">
           <div className="flex flex-col flex-1 min-h-0 pt-5 pb-4">
-            <div className="flex justify-center flex-shrink-0 px-4">
+            <div className="flex justify-center shrink-0 px-4">
               <img src="/logo.png" alt="Survivor Fantasy League" className="h-24 w-auto" />
             </div>
             <nav className="mt-4 flex-1 px-2 space-y-1">
@@ -194,14 +194,14 @@ export default async function DashboardLayout({
               </SimulationNavGate>
             </nav>
           </div>
-          <div className="flex-shrink-0 flex border-t p-4">
+          <div className="shrink-0 flex border-t p-4">
             <div className="flex items-center gap-3 w-full">
               {devBypass ? (
                 <span className="h-8 w-8 rounded-full bg-amber-500/20 flex items-center justify-center text-xs font-bold text-amber-700">
                   {user?.name?.split(' ').map(w => w[0]).join('') || '?'}
                 </span>
               ) : (
-                <UserButton afterSignOutUrl="/" />
+                <UserButton />
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{user?.name}</p>
@@ -246,7 +246,7 @@ function GuestLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Mobile Header */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 lg:hidden">
+      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 lg:hidden">
         <div className="flex h-14 items-center justify-between px-4">
           <Link href="/leaderboard" className="flex items-center">
             <img src="/logo.png" alt="Survivor Fantasy League" className="h-11 w-auto" />
@@ -264,7 +264,7 @@ function GuestLayout({ children }: { children: React.ReactNode }) {
         {/* Desktop Sidebar */}
         <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r bg-background">
           <div className="flex flex-col flex-1 min-h-0 pt-5 pb-4">
-            <div className="flex justify-center flex-shrink-0 px-4">
+            <div className="flex justify-center shrink-0 px-4">
               <img src="/logo.png" alt="Survivor Fantasy League" className="h-24 w-auto" />
             </div>
             <nav className="mt-4 flex-1 px-2 space-y-1">
@@ -279,7 +279,7 @@ function GuestLayout({ children }: { children: React.ReactNode }) {
               </NavLink>
             </nav>
           </div>
-          <div className="flex-shrink-0 flex border-t p-4">
+          <div className="shrink-0 flex border-t p-4">
             <SignInButton mode="modal">
               <button className="flex items-center gap-3 w-full rounded-lg px-3 py-2 text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
                 <LogIn className="h-5 w-5" />

@@ -1,5 +1,4 @@
 import { EventType, Event } from '@prisma/client'
-import { db } from './db'
 import { EVENT_POINTS } from './constants/scoring-constants'
 
 /**
@@ -24,6 +23,7 @@ export function getEffectivePoints(
  * Read the active league's scoringConfig from the DB and return the effective merged points map.
  */
 export async function getLeagueScoringConfig(): Promise<Record<EventType, number>> {
+  const { db } = await import('./db')
   const league = await db.league.findFirst({
     where: { isActive: true },
     select: { scoringConfig: true },

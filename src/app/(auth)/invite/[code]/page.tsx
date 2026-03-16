@@ -19,7 +19,7 @@ export default async function InvitePage({ params }: InvitePageProps) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-amber-50 to-orange-100">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-b from-amber-50 to-orange-100">
       <div className="mb-6 text-center">
         <h1 className="text-2xl font-bold text-gray-900">
           You&apos;ve been invited by {inviter.name}!

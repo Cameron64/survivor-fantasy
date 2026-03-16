@@ -105,13 +105,13 @@ function StandingRow({
           className={cn(
             'h-full rounded-full animate-bar-fill',
             player.rank === 1
-              ? 'bg-gradient-to-r from-yellow-400 to-yellow-500'
+              ? 'bg-linear-to-r from-yellow-400 to-yellow-500'
               : player.rank === 2
-                ? 'bg-gradient-to-r from-gray-300 to-gray-400'
+                ? 'bg-linear-to-r from-gray-300 to-gray-400'
                 : player.rank === 3
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600'
+                  ? 'bg-linear-to-r from-amber-500 to-amber-600'
                   : isLastPlace
-                    ? 'bg-gradient-to-r from-rose-300 to-rose-400'
+                    ? 'bg-linear-to-r from-rose-300 to-rose-400'
                     : 'bg-primary/70'
           )}
           style={{

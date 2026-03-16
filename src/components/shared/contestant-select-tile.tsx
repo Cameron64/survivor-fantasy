@@ -77,10 +77,10 @@ export function ContestantSelectTile({
         disabled && !isSelected && 'opacity-40 cursor-not-allowed',
       )}
     >
-      <div className="flex h-full min-h-[4.5rem]">
+      <div className="flex h-full min-h-18">
         {/* Photo slice */}
         <div
-          className="relative w-16 sm:w-[4.5rem] shrink-0 bg-muted"
+          className="relative w-16 sm:w-18 shrink-0 bg-muted"
           style={contestant.tribeColor ? { borderBottom: `3px solid ${contestant.tribeColor}` } : undefined}
         >
           {contestant.imageUrl ? (
@@ -99,7 +99,7 @@ export function ContestantSelectTile({
           {isSelected && (
             <div
               className={cn(
-                'absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center shadow-sm',
+                'absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center shadow-xs',
                 style.badge,
               )}
             >

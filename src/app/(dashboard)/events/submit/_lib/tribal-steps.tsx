@@ -18,7 +18,7 @@ import { Check, Plus, Trash2, AlertTriangle } from 'lucide-react'
 import { getDisplayName } from '@/components/shared/contestant-label'
 import { ContestantSelectTile } from '@/components/shared/contestant-select-tile'
 import { useSubmitContext } from './submit-context'
-import type { VoteRound, IdolPlay, EliminationMethod } from '@/lib/event-derivation'
+import type { VoteRound, IdolPlay } from '@/lib/event-derivation'
 
 const BASE = '/events/submit/tribal-council'
 

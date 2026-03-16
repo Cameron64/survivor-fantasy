@@ -21,7 +21,7 @@ export function CategoryCell({ category, breakdown, pointValues }: CategoryCellP
   const hasDetail = eventTypes.some((et) => (breakdown[et] ?? 0) !== 0)
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
   const ref = useRef<HTMLSpanElement>(null)
-  const hideTimeout = useRef<ReturnType<typeof setTimeout>>()
+  const hideTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const show = useCallback(() => {
     clearTimeout(hideTimeout.current)

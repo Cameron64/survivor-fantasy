@@ -119,7 +119,7 @@ export function EventReview({
               <div className="flex">
                 {/* Photo slice */}
                 <div
-                  className="relative w-16 sm:w-[4.5rem] shrink-0 bg-muted min-h-[4.5rem]"
+                  className="relative w-16 sm:w-18 shrink-0 bg-muted min-h-18"
                   style={c?.tribeColor ? { borderBottom: `3px solid ${c.tribeColor}` } : undefined}
                 >
                   {c?.imageUrl ? (
@@ -137,7 +137,7 @@ export function EventReview({
                   {/* Points overlay */}
                   <div
                     className={cn(
-                      'absolute bottom-1 right-1 px-1.5 py-0.5 rounded text-xs font-bold shadow-sm',
+                      'absolute bottom-1 right-1 px-1.5 py-0.5 rounded text-xs font-bold shadow-xs',
                       group.subtotal >= 0
                         ? 'bg-green-500 text-white'
                         : 'bg-red-500 text-white',

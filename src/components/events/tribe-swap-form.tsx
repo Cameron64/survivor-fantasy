@@ -240,9 +240,9 @@ export function TribeSwapForm({ contestants, tribes, week, onSubmit, onBack }: T
                   issue.type === 'info' && "bg-blue-50 border-blue-200"
                 )}
               >
-                {issue.type === 'error' && <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />}
-                {issue.type === 'warning' && <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />}
-                {issue.type === 'info' && <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />}
+                {issue.type === 'error' && <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />}
+                {issue.type === 'warning' && <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />}
+                {issue.type === 'info' && <Info className="h-4 w-4 text-blue-600 mt-0.5 shrink-0" />}
                 <p>{issue.message}</p>
               </div>
             ))}
@@ -300,7 +300,7 @@ export function TribeSwapForm({ contestants, tribes, week, onSubmit, onBack }: T
       {mode === 'EXPANSION' && (
         <div className="bg-orange-50 border border-orange-200 rounded p-4 space-y-3">
           <div className="flex items-start gap-2">
-            <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5 flex-shrink-0" />
+            <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5 shrink-0" />
             <div className="flex-1">
               <p className="font-medium text-orange-900">Expansion Checklist</p>
               <p className="text-sm text-orange-700 mt-1">

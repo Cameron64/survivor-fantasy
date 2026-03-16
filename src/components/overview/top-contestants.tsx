@@ -88,7 +88,7 @@ export function TopContestants({ contestants }: TopContestantsProps) {
                 {/* Rank badge for podium */}
                 {rank <= 3 && (
                   <div className={cn(
-                    'absolute top-1 left-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm',
+                    'absolute top-1 left-1 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shadow-xs',
                     rank === 1 && 'bg-yellow-400 text-yellow-900',
                     rank === 2 && 'bg-gray-300 text-gray-700',
                     rank === 3 && 'bg-amber-600 text-amber-100',

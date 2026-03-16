@@ -20,7 +20,7 @@ export default async function AdminLayout({
   return (
     <div className="min-h-screen bg-amber-50/30 dark:bg-amber-950/10">
       {/* Admin Header */}
-      <header className="sticky top-0 z-50 border-b border-amber-300/50 dark:border-amber-700/50 bg-amber-100/90 dark:bg-amber-950/80 backdrop-blur supports-[backdrop-filter]:bg-amber-100/70 dark:supports-[backdrop-filter]:bg-amber-950/60">
+      <header className="sticky top-0 z-50 border-b border-amber-300/50 dark:border-amber-700/50 bg-amber-100/90 dark:bg-amber-950/80 backdrop-blur-sm supports-backdrop-filter:bg-amber-100/70 dark:supports-backdrop-filter:bg-amber-950/60">
         <div className="flex h-14 items-center gap-4 px-4">
           <Link href="/leaderboard">
             <Button variant="ghost" size="sm" className="hover:bg-amber-200/50 dark:hover:bg-amber-900/50">

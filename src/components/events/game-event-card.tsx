@@ -168,7 +168,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
       )}
       {accentColors.length > 0 && !compactSliver && (
         <div
-          className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg z-[1]"
+          className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg z-1"
           style={{
             background:
               accentColors.length === 1

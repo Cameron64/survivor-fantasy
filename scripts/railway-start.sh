@@ -1,5 +1,8 @@
 #!/bin/sh
 
+echo "==> Generating Prisma client..."
+npx prisma generate 2>&1 || true
+
 echo "==> Pushing database schema..."
 npx prisma db push --accept-data-loss 2>&1 || true
 
