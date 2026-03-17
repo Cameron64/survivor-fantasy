@@ -7,7 +7,7 @@ echo "==> Pushing database schema..."
 npx prisma db push --accept-data-loss 2>&1 || true
 
 echo "==> Ensuring feature flag columns exist..."
-npx prisma db execute --schema prisma/schema.prisma --stdin <<'SQL' || true
+npx prisma db execute --stdin <<'SQL' || true
 ALTER TABLE "League" ADD COLUMN IF NOT EXISTS "enableTribeSwap" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "League" ADD COLUMN IF NOT EXISTS "enableSwapMode" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "League" ADD COLUMN IF NOT EXISTS "enableDissolutionMode" BOOLEAN NOT NULL DEFAULT false;
