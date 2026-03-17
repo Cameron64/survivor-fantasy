@@ -44,6 +44,8 @@ export interface TribalState {
   noVote: string[]
   extraVotes: Array<{ voterId: string; votedForId: string }>
   shotInTheDark: { playedBy: string; successful: boolean } | null
+  /** Tracks the player ID that SITD auto-added to noVote (null if SITD didn't add anyone) */
+  sitdAddedToNoVote: string | null
   hasRevote: boolean
   revoteVotes: Record<string, string>
   revoteExtraVotes: Array<{ voterId: string; votedForId: string }>
@@ -61,6 +63,7 @@ const INITIAL_TRIBAL_STATE: TribalState = {
   noVote: [],
   extraVotes: [],
   shotInTheDark: null,
+  sitdAddedToNoVote: null,
   hasRevote: false,
   revoteVotes: {},
   revoteExtraVotes: [],
@@ -104,6 +107,8 @@ function reduceTribalState(prev: TribalState, action: TribalStateAction): Tribal
         extraVotes: prev.extraVotes.filter(ev => attendees.has(ev.voterId) && attendees.has(ev.votedForId)),
         eliminated: attendees.has(prev.eliminated) ? prev.eliminated : '',
         idolPlays: prev.idolPlays.filter(ip => attendees.has(ip.playedBy) && attendees.has(ip.playedFor)),
+        // Clear SITD tracking if that player was removed
+        sitdAddedToNoVote: prev.sitdAddedToNoVote && attendees.has(prev.sitdAddedToNoVote) ? prev.sitdAddedToNoVote : null,
         // Clear revote state on attendee change
         hasRevote: false,
         revoteVotes: {},
@@ -133,23 +138,29 @@ function reduceTribalState(prev: TribalState, action: TribalStateAction): Tribal
       const sitd = action.shotInTheDark
       let nextNoVote = prev.noVote
       let nextVotes = prev.votes
+      let nextSitdAdded = prev.sitdAddedToNoVote
 
-      // Remove previous SITD player from noVote (if they were auto-added)
-      if (prev.shotInTheDark?.playedBy) {
+      // Remove previous SITD player from noVote only if SITD was the one that added them
+      if (prev.shotInTheDark?.playedBy && prev.sitdAddedToNoVote === prev.shotInTheDark.playedBy) {
         nextNoVote = nextNoVote.filter(id => id !== prev.shotInTheDark!.playedBy)
+        nextSitdAdded = null
       }
 
       // Auto-add new SITD player to noVote (playing SITD = lose your vote)
       if (sitd?.playedBy && !nextNoVote.includes(sitd.playedBy)) {
         nextNoVote = [...nextNoVote, sitd.playedBy]
+        nextSitdAdded = sitd.playedBy
         // Clear their vote entry if they had one
         if (nextVotes[sitd.playedBy]) {
           const { [sitd.playedBy]: _, ...rest } = nextVotes
           nextVotes = rest
         }
+      } else if (sitd?.playedBy && nextNoVote.includes(sitd.playedBy)) {
+        // Player was already in noVote manually — SITD didn't add them
+        nextSitdAdded = null
       }
 
-      return { ...prev, shotInTheDark: sitd, noVote: nextNoVote, votes: nextVotes }
+      return { ...prev, shotInTheDark: sitd, noVote: nextNoVote, votes: nextVotes, sitdAddedToNoVote: nextSitdAdded }
     }
     case 'setRevote':
       return {

@@ -221,14 +221,21 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
           </div>
         ) : (
           <>
-            <button
-              type="button"
+            <div
+              role="button"
+              tabIndex={0}
               onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
+                // Don't toggle if clicking an action button inside
+                if ((e.target as HTMLElement).closest('[data-actions]')) return
                 setExpanded(!expanded)
               }}
-              className="flex items-center gap-3 flex-1 min-w-0 text-left p-3 hover:bg-accent/50 transition-colors rounded-lg"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  setExpanded(!expanded)
+                }
+              }}
+              className="flex items-center gap-3 flex-1 min-w-0 text-left p-3 hover:bg-accent/50 transition-colors rounded-lg cursor-pointer"
             >
               {!compact && !isTribeSwap && (
                 isPending ? (
@@ -277,7 +284,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
                   </span>
                 )}
                 {actions && (
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1" data-actions>
                     {actions}
                   </div>
                 )}
@@ -288,7 +295,7 @@ export function GameEventCard({ gameEvent, contestantNames, contestantAvatars, i
                   )}
                 />
               </div>
-            </button>
+            </div>
           </>
         )}
       </div>

@@ -19,18 +19,6 @@ export function getEffectivePoints(
   return { ...EVENT_POINTS, ...overrides }
 }
 
-/**
- * Read the active league's scoringConfig from the DB and return the effective merged points map.
- */
-export async function getLeagueScoringConfig(): Promise<Record<EventType, number>> {
-  const { db } = await import('./db')
-  const league = await db.league.findFirst({
-    where: { isActive: true },
-    select: { scoringConfig: true },
-  })
-  const overrides = league?.scoringConfig as Partial<Record<EventType, number>> | null
-  return getEffectivePoints(overrides)
-}
 
 /**
  * Calculate total points from a list of approved events

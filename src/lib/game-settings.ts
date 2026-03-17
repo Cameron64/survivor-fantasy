@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { db } from './db'
 
 export const gameSettingsSchema = z.object({
   extraVoteAwardsCorrectVote: z.boolean().default(true),
@@ -22,13 +21,3 @@ export function parseGameSettings(raw: unknown): GameSettings {
   return result.data
 }
 
-/**
- * Read the active league's gameSettings from the DB and return validated settings.
- */
-export async function getLeagueGameSettings(): Promise<GameSettings> {
-  const league = await db.league.findFirst({
-    where: { isActive: true },
-    select: { gameSettings: true },
-  })
-  return parseGameSettings(league?.gameSettings)
-}

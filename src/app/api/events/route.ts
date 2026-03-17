@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireUser, requireUserOrPublic } from '@/lib/auth'
-import { getLeagueScoringConfig } from '@/lib/scoring'
+import { getLeagueScoringConfig } from '@/lib/scoring-server'
 import { getLeagueSettings } from '@/lib/league-settings'
 import { EventType } from '@prisma/client'
 import { notifyEventSubmitted } from '@/lib/slack'
