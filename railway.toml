@@ -13,3 +13,4 @@ restartPolicyMaxRetries = 3
 [build.env]
 NIXPACKS_NO_MUSL = "1"
 NIXPACKS_BUILD_WORKERS = "2"
+NIXPACKS_NODE_VERSION = "22"
