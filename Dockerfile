@@ -1,5 +1,6 @@
 FROM node:22.12-slim AS base
 RUN corepack enable
+ENV COREPACK_INTEGRITY_KEYS=""
 
 FROM base AS deps
 WORKDIR /app
