@@ -1,6 +1,5 @@
 [build]
-builder = "nixpacks"
-buildCommand = "pnpm install && npx prisma generate && pnpm build"
+builder = "dockerfile"
 
 [deploy]
 startCommand = "sh scripts/railway-start.sh"
@@ -8,9 +7,3 @@ healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-
-# Enable build caching for faster deploys
-[build.env]
-NIXPACKS_NO_MUSL = "1"
-NIXPACKS_BUILD_WORKERS = "2"
-NIXPACKS_NODE_VERSION = "22.12"
