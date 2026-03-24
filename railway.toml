@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "pnpm install --frozen-lockfile && npx prisma generate && pnpm build"
+buildCommand = "pnpm install && npx prisma generate && pnpm build"
 
 [deploy]
 startCommand = "sh scripts/railway-start.sh"
