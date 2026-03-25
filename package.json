@@ -19,6 +19,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:test": "tsx prisma/seed-test.ts",
+    "db:seed:staging": "tsx scripts/seed-staging.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "sim:export": "Rscript src/simulation/data/export-survivor-data.R",

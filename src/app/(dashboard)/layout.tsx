@@ -17,6 +17,7 @@ import {
   FlaskConical,
   DatabaseZap,
   LogIn,
+  Plus,
 } from 'lucide-react'
 import { SimulationNavGate } from '@/components/shared/simulation-nav-gate'
 
@@ -182,6 +183,11 @@ export default async function DashboardLayout({
               <NavLink href="/settings" icon={Settings}>
                 Settings
               </NavLink>
+              {isAdmin && (
+                <NavLink href="/leagues/new" icon={Plus}>
+                  Create League
+                </NavLink>
+              )}
               {isModerator && (
                 <NavLink href="/admin" icon={Shield}>
                   Admin
@@ -233,6 +239,9 @@ export default async function DashboardLayout({
             <MobileNavLink href="/simulation" icon={FlaskConical} label="Sim" />
           </SimulationNavGate>
           <MobileNavLink href="/settings" icon={Settings} label="Settings" />
+          {isAdmin && (
+            <MobileNavLink href="/leagues/new" icon={Plus} label="New League" />
+          )}
           {isModerator && (
             <MobileNavLink href="/admin" icon={Shield} label="Admin" />
           )}

@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/invite/(.*)',
+  '/join/(.*)', // League invite landing pages — must be accessible before sign-in
   '/api/webhooks/(.*)',
   '/api/health',
 ])
@@ -21,6 +22,7 @@ const isPageRoute = createRouteMatcher([
   '/settings',
   '/admin(.*)',
   '/simulation(.*)',
+  '/leagues(.*)',
 ])
 
 export const proxy = clerkMiddleware(async (auth, req) => {

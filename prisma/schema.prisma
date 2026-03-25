@@ -9,27 +9,57 @@ datasource db {
   provider = "postgresql"
 }
 
-// Core entities
+// ─── Platform Hierarchy ───────────────────────────────────────────────────────
+// Show → Season → League is the multi-tenant hierarchy.
+// Commissioners create Leagues within a Season.
+
+model Show {
+  id          String   @id
+  slug        String   @unique
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  seasons     Season[]
+}
+
+model Season {
+  id           String       @id
+  showId       String
+  show         Show         @relation(fields: [showId], references: [id])
+  number       Int
+  name         String?
+  premiereDate DateTime?
+  finaleDate   DateTime?
+  isActive     Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  leagues      League[]
+  contestants  Contestant[]
+}
+
+// ─── Users ───────────────────────────────────────────────────────────────────
+
 model User {
-  id                       String      @id @default(cuid())
-  clerkId                  String      @unique
-  email                    String      @unique
-  name                     String
-  role                     Role        @default(USER)
-  isPaid                   Boolean     @default(false)
-  adminNotes               String?
-  tags                     String[]    @default([])
-  inviteCode               String?     @unique
-  invitedBy                User?       @relation("Invites", fields: [invitedById], references: [id])
-  invitedById              String?
-  invitees                 User[]      @relation("Invites")
-  team                     Team?
-  eventSubmissions         Event[]     @relation("SubmittedBy")
-  eventApprovals           Event[]     @relation("ApprovedBy")
-  gameEventSubmissions     GameEvent[] @relation("GameEventSubmittedBy")
-  gameEventApprovals       GameEvent[] @relation("GameEventApprovedBy")
-  createdAt                DateTime    @default(now())
-  updatedAt                DateTime    @updatedAt
+  id                   String             @id @default(cuid())
+  clerkId              String             @unique
+  email                String             @unique
+  name                 String
+  role                 Role               @default(USER)
+  isPaid               Boolean            @default(false)
+  adminNotes           String?
+  tags                 String[]           @default([])
+  inviteCode           String?            @unique
+  invitedBy            User?              @relation("Invites", fields: [invitedById], references: [id])
+  invitedById          String?
+  invitees             User[]             @relation("Invites")
+  team                 Team?
+  memberships          LeagueMembership[]
+  eventSubmissions     Event[]            @relation("SubmittedBy")
+  eventApprovals       Event[]            @relation("ApprovedBy")
+  gameEventSubmissions GameEvent[]        @relation("GameEventSubmittedBy")
+  gameEventApprovals   GameEvent[]        @relation("GameEventApprovedBy")
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 }
 
 enum Role {
@@ -37,6 +67,8 @@ enum Role {
   MODERATOR
   USER
 }
+
+// ─── Contestants & Teams ──────────────────────────────────────────────────────
 
 model Contestant {
   id               String            @id @default(cuid())
@@ -48,6 +80,8 @@ model Contestant {
   originalSeasons  String?           // Comma-separated season numbers, e.g. "13,16,23,34"
   isEliminated     Boolean           @default(false)
   eliminatedWeek   Int?
+  seasonId         String
+  season           Season            @relation(fields: [seasonId], references: [id])
   teams            TeamContestant[]
   events           Event[]
   tribeMemberships TribeMembership[]
@@ -75,6 +109,8 @@ model TeamContestant {
   @@unique([teamId, contestantId])
   @@unique([teamId, draftOrder])
 }
+
+// ─── Events ───────────────────────────────────────────────────────────────────
 
 model Event {
   id            String     @id @default(cuid())
@@ -179,23 +215,46 @@ enum EventType {
   MADE_MERGE // 0 (configurable via League.scoringConfig)
 }
 
+// ─── League ───────────────────────────────────────────────────────────────────
+// Commissioners create and own leagues. Players join via LeagueMembership.
+// slug is the URL-friendly identifier for multi-league routing (/leagues/[slug]).
+
+enum LeagueTier {
+  FREE         // Entry-level, enough to experience the product
+  COMMISSIONER // Paid tier: advanced tools, analytics, multi-league management
+  COMMUNITY    // TBD
+}
+
+enum LeagueRole {
+  COMMISSIONER // Created/owns the league
+  MODERATOR    // Can approve events
+  PLAYER       // Joined to play
+}
+
 model League {
-  id               String    @id @default(cuid())
-  name             String    @default("Survivor 50 Fantasy League")
-  season           Int       @default(50)
+  id               String             @id @default(cuid())
+  name             String             @default("Survivor 50 Fantasy League")
+  season           Int                @default(50)
+  slug             String             @unique
+  tier             LeagueTier         @default(FREE)
+  seasonId         String?
+  seasonData       Season?            @relation(fields: [seasonId], references: [id])
   draftStartDate   DateTime?
   draftEndDate     DateTime?
-  isActive         Boolean   @default(true)
-  paymentInfo      String? // Admin's preferred payment method
+  isActive         Boolean            @default(true)
+  paymentInfo      String?            // Admin's preferred payment method
   slackWebhook     String?
-  isPublic         Boolean   @default(false) // Allow unauthenticated viewing
-  allowGuestEvents Boolean   @default(false) // Let guests submit events (requires isPublic)
-  allowUserEvents  Boolean   @default(true)  // Let registered users submit events
-  scoringConfig    Json? // Partial<Record<EventType, number>> overrides, null = all defaults
-  gameSettings     Json? // GameSettings JSON (e.g., extraVoteAwardsCorrectVote). Validated via Zod at read time.
-  showLastPlace    Boolean   @default(false) // Show a "trophy" for last place on the standings
+  isPublic         Boolean            @default(false) // Allow unauthenticated viewing
+  allowGuestEvents Boolean            @default(false) // Let guests submit events (requires isPublic)
+  allowUserEvents  Boolean            @default(true)  // Let registered users submit events
+  scoringConfig    Json?              // Partial<Record<EventType, number>> overrides, null = all defaults
+  gameSettings     Json?              // GameSettings JSON (e.g., extraVoteAwardsCorrectVote). Validated via Zod at read time.
+  showLastPlace    Boolean            @default(false) // Show a "trophy" for last place on the standings
   mergeWeek        Int?
   juryStartWeek    Int?
+  paidUntil        DateTime?
+  stripeCustomerId String?
+  stripePriceId    String?
 
   // Feature flags (default false = disabled)
   enableTribeSwap       Boolean @default(false) // Enable tribe swap events
@@ -204,26 +263,53 @@ model League {
   enableExpansionMode   Boolean @default(false) // Enable expansion mode
   enableTribeMerge      Boolean @default(false) // Enable tribe merge events
 
-  tribes           Tribe[]
-  episodes         Episode[]
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  tribes      Tribe[]
+  episodes    Episode[]
+  memberships LeagueMembership[]
+  invites     LeagueInvite[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 }
 
+model LeagueMembership {
+  id       String     @id @default(cuid())
+  userId   String
+  leagueId String
+  role     LeagueRole @default(PLAYER)
+  joinedAt DateTime   @default(now())
+  user     User       @relation(fields: [userId], references: [id])
+  league   League     @relation(fields: [leagueId], references: [id])
+
+  @@unique([userId, leagueId])
+}
+
+model LeagueInvite {
+  id        String    @id @default(cuid())
+  leagueId  String
+  code      String    @unique
+  maxUses   Int?
+  usedCount Int       @default(0)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  league    League    @relation(fields: [leagueId], references: [id])
+}
+
+// ─── Season Structure ─────────────────────────────────────────────────────────
+
 model Tribe {
-  id                   String            @id @default(cuid())
-  name                 String
-  color                String // Hex color, e.g. "#FF6B35"
-  buffImage            String? // Path to buff pattern image, e.g. "/buffs/kalo.png"
-  isMerge              Boolean           @default(false)
-  dissolvedAtWeek      Int?
-  dissolvedByEvent     GameEvent?        @relation("DissolvedByEvent", fields: [dissolvedByEventId], references: [id])
-  dissolvedByEventId   String?
-  league               League            @relation(fields: [leagueId], references: [id])
-  leagueId             String
-  members              TribeMembership[]
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
+  id                 String            @id @default(cuid())
+  name               String
+  color              String // Hex color, e.g. "#FF6B35"
+  buffImage          String? // Path to buff pattern image, e.g. "/buffs/kalo.png"
+  isMerge            Boolean           @default(false)
+  dissolvedAtWeek    Int?
+  dissolvedByEvent   GameEvent?        @relation("DissolvedByEvent", fields: [dissolvedByEventId], references: [id])
+  dissolvedByEventId String?
+  league             League            @relation(fields: [leagueId], references: [id])
+  leagueId           String
+  members            TribeMembership[]
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
 
   @@unique([leagueId, name])
 }
