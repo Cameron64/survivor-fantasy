@@ -10,38 +10,7 @@
 import type { NextRequest } from 'next/server'
 import { requireUser } from '@/lib/auth'
 import { fetchDraftState } from '../_lib'
-import type { DraftStatePayload } from '@/lib/draft-types'
-
-// Module-level subscriber registry (lives for the process lifetime)
-const subscribers = new Map<string, ReadableStreamDefaultController<Uint8Array>>()
-const encoder = new TextEncoder()
-
-// Heartbeat every 30s — prevents Railway/nginx from closing idle SSE connections
-setInterval(() => {
-  const heartbeat = encoder.encode(': heartbeat\n\n')
-  for (const controller of subscribers.values()) {
-    try {
-      controller.enqueue(heartbeat)
-    } catch {
-      // Client already disconnected; will be cleaned up on cancel/abort
-    }
-  }
-}, 30_000)
-
-/**
- * Broadcast a draft state update to all connected SSE clients.
- * Called from POST /api/draft after every successful pick or status change.
- */
-export function broadcastDraftUpdate(payload: DraftStatePayload) {
-  const data = encoder.encode(`data: ${JSON.stringify(payload)}\n\n`)
-  for (const controller of subscribers.values()) {
-    try {
-      controller.enqueue(data)
-    } catch {
-      // Client disconnected
-    }
-  }
-}
+import { subscribers, encoder } from '@/lib/draft-broadcast'
 
 export async function GET(req: NextRequest) {
   try {
