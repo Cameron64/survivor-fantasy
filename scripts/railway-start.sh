@@ -4,38 +4,30 @@ echo "==> Generating Prisma client..."
 npx prisma generate 2>&1 || true
 
 echo "==> Patching data for schema migration (idempotent)..."
-npx prisma db execute --stdin <<'SQL' || true
--- Ensure Show/Season exist so Contestant.seasonId FK can be satisfied
+npx prisma db execute --stdin <<'EOSQL' || true
 INSERT INTO "Show" (id, slug, name, "isActive", "createdAt")
   VALUES ('show_survivor', 'survivor', 'Survivor', true, NOW())
   ON CONFLICT (id) DO NOTHING;
-
 INSERT INTO "Season" (id, "showId", number, name, "isActive", "createdAt")
   VALUES ('season_survivor_50', 'show_survivor', 50, 'Survivor: In the Hands of the Fans', false, NOW())
   ON CONFLICT (id) DO NOTHING;
-
--- Add seasonId column to Contestant if it doesn't exist yet (nullable to allow db push)
 ALTER TABLE "Contestant" ADD COLUMN IF NOT EXISTS "seasonId" TEXT;
-
--- Fill missing seasonId so NOT NULL constraint can be applied
 UPDATE "Contestant" SET "seasonId" = 'season_survivor_50' WHERE "seasonId" IS NULL;
-
--- Ensure existing Leagues have a slug
 UPDATE "League" SET "slug" = 'legacy' WHERE "slug" IS NULL OR "slug" = '';
-SQL
+EOSQL
 echo "==> Data patch complete"
 
 echo "==> Pushing database schema..."
 npx prisma db push --accept-data-loss 2>&1 || true
 
 echo "==> Ensuring feature flag columns exist..."
-npx prisma db execute --stdin <<'SQL' || true
+npx prisma db execute --stdin <<'EOSQL' || true
 ALTER TABLE "League" ADD COLUMN IF NOT EXISTS "enableTribeSwap" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "League" ADD COLUMN IF NOT EXISTS "enableSwapMode" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "League" ADD COLUMN IF NOT EXISTS "enableDissolutionMode" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "League" ADD COLUMN IF NOT EXISTS "enableExpansionMode" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "League" ADD COLUMN IF NOT EXISTS "enableTribeMerge" BOOLEAN NOT NULL DEFAULT false;
-SQL
+EOSQL
 echo "==> Column check complete"
 
 echo "==> Starting Next.js server..."
