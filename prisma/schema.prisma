@@ -188,6 +188,7 @@ model League {
   id               String    @id @default(cuid())
   slug             String    @unique // URL slug, e.g. "s50"
   name             String    @default("Survivor 50 Fantasy League")
+  slug             String    @unique
   season           Int       @default(50)
   draftStartDate   DateTime?
   draftEndDate     DateTime?
