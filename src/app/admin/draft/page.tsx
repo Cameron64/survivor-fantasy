@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Trophy, ArrowRight } from 'lucide-react'
 
-interface DraftStatus {
-  status: 'not_started' | 'in_progress' | 'complete'
+type DraftStatus = 'WAITING' | 'ACTIVE' | 'COMPLETE'
+
+interface DraftState {
+  status: DraftStatus
   currentPick?: number
   currentRound?: number
-  currentUserId?: string
+  currentUserId?: string | null
   draftOrder?: Array<{
     userId: string
     name: string
@@ -26,7 +28,7 @@ interface User {
 }
 
 export default function AdminDraftPage() {
-  const [draftStatus, setDraftStatus] = useState<DraftStatus | null>(null)
+  const [draftStatus, setDraftStatus] = useState<DraftState | null>(null)
   const [users, setUsers] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isInitializing, setIsInitializing] = useState(false)
@@ -111,15 +113,15 @@ export default function AdminDraftPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Draft Management</h1>
         <p className="text-muted-foreground">
-          {draftStatus?.status === 'not_started'
+          {draftStatus?.status === 'WAITING'
             ? 'Initialize the draft order'
-            : draftStatus?.status === 'in_progress'
+            : draftStatus?.status === 'ACTIVE'
               ? `Draft in progress - Round ${draftStatus.currentRound}, Pick ${draftStatus.currentPick}`
               : 'Draft is complete'}
         </p>
       </div>
 
-      {draftStatus?.status === 'not_started' && (
+      {draftStatus?.status === 'WAITING' && (
         <Card>
           <CardHeader>
             <CardTitle>Set Draft Order</CardTitle>
@@ -188,7 +190,7 @@ export default function AdminDraftPage() {
         </Card>
       )}
 
-      {(draftStatus?.status === 'in_progress' || draftStatus?.status === 'complete') && (
+      {(draftStatus?.status === 'ACTIVE' || draftStatus?.status === 'COMPLETE') && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

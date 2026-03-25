@@ -70,7 +70,9 @@ model TeamContestant {
   teamId       String
   contestant   Contestant @relation(fields: [contestantId], references: [id])
   contestantId String
-  draftOrder   Int
+  draftOrder       Int
+  globalPickNumber Int?
+  pickedAt         DateTime @default(now())
 
   @@unique([teamId, contestantId])
   @@unique([teamId, draftOrder])
@@ -183,6 +185,7 @@ model League {
   id               String    @id @default(cuid())
   name             String    @default("Survivor 50 Fantasy League")
   season           Int       @default(50)
+  slug             String?   @unique
   draftStartDate   DateTime?
   draftEndDate     DateTime?
   isActive         Boolean   @default(true)
@@ -206,6 +209,7 @@ model League {
 
   tribes           Tribe[]
   episodes         Episode[]
+  draft            Draft?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }
@@ -261,12 +265,25 @@ model Episode {
   @@unique([leagueId, number])
 }
 
+enum DraftStatus {
+  WAITING
+  ACTIVE
+  COMPLETE
+}
+
 model Draft {
-  id           String   @id @default(cuid())
-  currentPick  Int      @default(1)
-  currentRound Int      @default(1)
-  draftOrder   Json // Array of user IDs in snake draft order
-  isComplete   Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String      @id @default(cuid())
+  league          League?     @relation(fields: [leagueId], references: [id])
+  leagueId        String?     @unique
+  status          DraftStatus @default(WAITING)
+  currentPick     Int         @default(1)
+  currentRound    Int         @default(1)
+  draftOrder      Json        // Array of user IDs in snake draft order
+  isComplete      Boolean     @default(false) // kept for backward compat; derived from status
+  picksPerUser    Int         @default(2)
+  pickTimeoutSecs Int?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }

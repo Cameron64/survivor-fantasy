@@ -14,7 +14,7 @@ export async function GET(_req: NextRequest) {
 
     if (!draft) {
       return NextResponse.json({
-        status: 'not_started',
+        status: 'WAITING',
         message: 'Draft has not been initialized',
       })
     }
@@ -59,11 +59,17 @@ export async function GET(_req: NextRequest) {
         ? (draft.currentPick - 1) % draftOrder.length
         : draftOrder.length - 1 - ((draft.currentPick - 1) % draftOrder.length)
 
+    const draftStatus = draft.status === 'WAITING'
+      ? 'WAITING'
+      : draft.isComplete
+        ? 'COMPLETE'
+        : 'ACTIVE'
+
     return NextResponse.json({
-      status: draft.isComplete ? 'complete' : 'in_progress',
+      status: draftStatus,
       currentPick: draft.currentPick,
       currentRound: draft.currentRound,
-      currentUserId: draftOrder[currentUserIndex],
+      currentUserId: draftStatus === 'ACTIVE' ? draftOrder[currentUserIndex] : null,
       draftOrder: orderedUsers,
       isComplete: draft.isComplete,
     })
@@ -106,6 +112,7 @@ export async function POST(req: NextRequest) {
           currentPick: 1,
           currentRound: 1,
           isComplete: false,
+          status: 'WAITING',
         },
       })
 
@@ -122,6 +129,10 @@ export async function POST(req: NextRequest) {
 
       if (!draft) {
         return NextResponse.json({ error: 'Draft has not been initialized' }, { status: 400 })
+      }
+
+      if (draft.status === 'WAITING') {
+        return NextResponse.json({ error: 'Draft has not started yet' }, { status: 400 })
       }
 
       if (draft.isComplete) {
@@ -165,7 +176,8 @@ export async function POST(req: NextRequest) {
         where: { teamId: team.id },
       })
 
-      if (userPicks >= 2) {
+      const picksPerUser = draft.picksPerUser ?? 2
+      if (userPicks >= picksPerUser) {
         return NextResponse.json({ error: 'You have already made your maximum picks' }, { status: 400 })
       }
 
@@ -175,20 +187,24 @@ export async function POST(req: NextRequest) {
           teamId: team.id,
           contestantId,
           draftOrder: userPicks + 1,
+          globalPickNumber: draft.currentPick,
         },
       })
 
       // Update draft state
       const newPick = draft.currentPick + 1
-      const totalPicks = draftOrder.length * 2 // 2 picks per player
+      const totalPicks = draftOrder.length * picksPerUser
       const newRound = Math.ceil(newPick / draftOrder.length)
+      const isNowComplete = newPick > totalPicks
 
       await db.draft.update({
         where: { id: draft.id },
         data: {
           currentPick: newPick,
           currentRound: newRound,
-          isComplete: newPick > totalPicks,
+          isComplete: isNowComplete,
+          status: isNowComplete ? 'COMPLETE' : 'ACTIVE',
+          completedAt: isNowComplete ? new Date() : undefined,
         },
       })
 
