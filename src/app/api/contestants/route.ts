@@ -97,6 +97,14 @@ export async function POST(req: NextRequest) {
 
     const { name, nickname, tribe, imageUrl, originalImageUrl, originalSeasons } = validationResult.data
 
+    const activeLeague = await db.league.findFirst({
+      where: { isActive: true, seasonId: { not: null } },
+      select: { seasonId: true },
+    })
+    if (!activeLeague?.seasonId) {
+      return NextResponse.json({ error: 'No active season found' }, { status: 400 })
+    }
+
     const contestant = await db.contestant.create({
       data: {
         name,
@@ -105,6 +113,7 @@ export async function POST(req: NextRequest) {
         imageUrl,
         originalImageUrl,
         originalSeasons,
+        seasonId: activeLeague.seasonId,
       },
     })
 
