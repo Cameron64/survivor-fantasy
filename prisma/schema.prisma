@@ -11,25 +11,26 @@ datasource db {
 
 // Core entities
 model User {
-  id                       String      @id @default(cuid())
-  clerkId                  String      @unique
-  email                    String      @unique
+  id                       String              @id @default(cuid())
+  clerkId                  String              @unique
+  email                    String              @unique
   name                     String
-  role                     Role        @default(USER)
-  isPaid                   Boolean     @default(false)
+  role                     Role                @default(USER)
+  isPaid                   Boolean             @default(false)
   adminNotes               String?
-  tags                     String[]    @default([])
-  inviteCode               String?     @unique
-  invitedBy                User?       @relation("Invites", fields: [invitedById], references: [id])
+  tags                     String[]            @default([])
+  inviteCode               String?             @unique
+  invitedBy                User?               @relation("Invites", fields: [invitedById], references: [id])
   invitedById              String?
-  invitees                 User[]      @relation("Invites")
+  invitees                 User[]              @relation("Invites")
   team                     Team?
-  eventSubmissions         Event[]     @relation("SubmittedBy")
-  eventApprovals           Event[]     @relation("ApprovedBy")
-  gameEventSubmissions     GameEvent[] @relation("GameEventSubmittedBy")
-  gameEventApprovals       GameEvent[] @relation("GameEventApprovedBy")
-  createdAt                DateTime    @default(now())
-  updatedAt                DateTime    @updatedAt
+  eventSubmissions         Event[]             @relation("SubmittedBy")
+  eventApprovals           Event[]             @relation("ApprovedBy")
+  gameEventSubmissions     GameEvent[]         @relation("GameEventSubmittedBy")
+  gameEventApprovals       GameEvent[]         @relation("GameEventApprovedBy")
+  leagueMemberships        LeagueMembership[]
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
 }
 
 enum Role {
@@ -65,12 +66,14 @@ model Team {
 }
 
 model TeamContestant {
-  id           String     @id @default(cuid())
-  team         Team       @relation(fields: [teamId], references: [id])
-  teamId       String
-  contestant   Contestant @relation(fields: [contestantId], references: [id])
-  contestantId String
-  draftOrder   Int
+  id               String    @id @default(cuid())
+  team             Team      @relation(fields: [teamId], references: [id])
+  teamId           String
+  contestant       Contestant @relation(fields: [contestantId], references: [id])
+  contestantId     String
+  draftOrder       Int
+  globalPickNumber Int?
+  pickedAt         DateTime  @default(now())
 
   @@unique([teamId, contestantId])
   @@unique([teamId, draftOrder])
@@ -112,6 +115,8 @@ model GameEvent {
   submittedById     String
   approvedBy        User?             @relation("GameEventApprovedBy", fields: [approvedById], references: [id])
   approvedById      String?
+  leagueId          String?
+  league            League?           @relation(fields: [leagueId], references: [id])
   events            Event[] // Derived scoring events
   tribeMemberships  TribeMembership[] // Memberships created/closed by this event
   dissolvedTribes   Tribe[]           @relation("DissolvedByEvent")
@@ -181,6 +186,7 @@ enum EventType {
 
 model League {
   id               String    @id @default(cuid())
+  slug             String    @unique // URL slug, e.g. "s50"
   name             String    @default("Survivor 50 Fantasy League")
   season           Int       @default(50)
   draftStartDate   DateTime?
@@ -196,6 +202,7 @@ model League {
   showLastPlace    Boolean   @default(false) // Show a "trophy" for last place on the standings
   mergeWeek        Int?
   juryStartWeek    Int?
+  tier             LeagueTier @default(FREE)
 
   // Feature flags (default false = disabled)
   enableTribeSwap       Boolean @default(false) // Enable tribe swap events
@@ -206,6 +213,10 @@ model League {
 
   tribes           Tribe[]
   episodes         Episode[]
+  memberships      LeagueMembership[]
+  invites          LeagueInvite[]
+  gameEvents       GameEvent[]
+  draft            Draft?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }
@@ -262,11 +273,59 @@ model Episode {
 }
 
 model Draft {
-  id           String   @id @default(cuid())
-  currentPick  Int      @default(1)
-  currentRound Int      @default(1)
-  draftOrder   Json // Array of user IDs in snake draft order
-  isComplete   Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String      @id @default(cuid())
+  leagueId        String      @unique // One draft per league
+  league          League      @relation(fields: [leagueId], references: [id])
+  currentPick     Int         @default(1)
+  currentRound    Int         @default(1)
+  draftOrder      Json // Array of user IDs in snake draft order
+  isComplete      Boolean     @default(false)
+  status          DraftStatus @default(WAITING)
+  picksPerUser    Int         @default(2)
+  pickTimeoutSecs Int? // null = no timeout
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+enum DraftStatus {
+  WAITING   // Initialized, not yet started — waiting room open
+  ACTIVE    // Picks are live
+  COMPLETE  // All picks made, teams locked
+}
+
+enum LeagueTier {
+  FREE
+  COMMISSIONER
+  COMMUNITY
+}
+
+enum LeagueRole {
+  COMMISSIONER
+  MODERATOR
+  PLAYER
+}
+
+model LeagueMembership {
+  id       String     @id @default(cuid())
+  userId   String
+  leagueId String
+  role     LeagueRole @default(PLAYER)
+  joinedAt DateTime   @default(now())
+  user     User       @relation(fields: [userId], references: [id])
+  league   League     @relation(fields: [leagueId], references: [id])
+
+  @@unique([userId, leagueId])
+}
+
+model LeagueInvite {
+  id        String    @id @default(cuid())
+  leagueId  String
+  code      String    @unique
+  maxUses   Int?
+  usedCount Int       @default(0)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  league    League    @relation(fields: [leagueId], references: [id])
 }
