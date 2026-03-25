@@ -29,6 +29,7 @@ Castaway is a multi-tenant Survivor Fantasy SaaS. Commissioners pay to run priva
 | Add a new admin page | .claude/CLAUDE.md → Common Multi-File Changes |
 | Understand commissioner flow (multi-league) | .claude/CLAUDE.md → Commissioner Flow API routes |
 | Understand the user flow (built vs TODO) | [docs/user-flows.mmd](docs/user-flows.mmd) |
+| Understand what pages need to be built | [docs/page-specs.md](docs/page-specs.md) |
 
 ## Agent Update Protocol
 
