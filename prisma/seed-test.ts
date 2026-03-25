@@ -5,14 +5,8 @@
  * Usage: DATABASE_URL=<test-db-url> pnpm db:seed:test
  */
 import { PrismaClient, Role, EventType } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
 
-const connectionString = process.env.DATABASE_URL
-if (!connectionString) throw new Error('DATABASE_URL is required')
-
-const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString }),
-})
+const prisma = new PrismaClient()
 
 // Minimal test contestants (subset for faster tests)
 const testContestants = [
@@ -36,42 +30,18 @@ async function seedTestDatabase() {
   await prisma.teamContestant.deleteMany()
   await prisma.team.deleteMany()
   await prisma.draft.deleteMany()
-  await prisma.leagueMembership.deleteMany()
-  await prisma.leagueInvite.deleteMany()
   await prisma.league.deleteMany()
   await prisma.contestant.deleteMany()
-  await prisma.season.deleteMany()
-  await prisma.show.deleteMany()
   await prisma.user.deleteMany()
 
   console.log('🧹 Cleared existing test data')
-
-  // Create Show and Season (required before League and Contestants)
-  const show = await prisma.show.create({
-    data: {
-      slug: 'survivor',
-      name: 'Survivor',
-      isActive: true,
-    },
-  })
-
-  const season = await prisma.season.create({
-    data: {
-      showId: show.id,
-      number: 99, // Clearly a test season
-      name: 'Test Season 99',
-      isActive: true,
-    },
-  })
 
   // Create test league
   const league = await prisma.league.create({
     data: {
       name: 'E2E Test League',
-      slug: 'test-league',
+      slug: 'e2e-test-league',
       season: 99, // Clearly a test league
-      slug: 'legacy',
-      seasonId: season.id,
       isActive: true,
     },
   })
@@ -84,7 +54,6 @@ async function seedTestDatabase() {
         data: {
           name: c.name,
           originalSeasons: c.originalSeasons,
-          seasonId: season.id,
         },
       })
     )
@@ -179,21 +148,10 @@ async function seedTestDatabase() {
   })
   console.log(`✅ Created 3 test users (admin, mod, user)`)
 
-  // Create LeagueMembership for all users
-  await prisma.leagueMembership.createMany({
-    data: [
-      { userId: adminUser.id, leagueId: league.id, role: 'COMMISSIONER' },
-      { userId: modUser.id, leagueId: league.id, role: 'MODERATOR' },
-      { userId: regularUser.id, leagueId: league.id, role: 'PLAYER' },
-    ],
-  })
-  console.log(`✅ Created 3 league memberships`)
-
   // Create a team for the regular user
   await prisma.team.create({
     data: {
       userId: regularUser.id,
-      leagueId: league.id,
       contestants: {
         create: [
           { contestantId: contestants[0].id, draftOrder: 1 },
@@ -247,7 +205,7 @@ async function seedTestDatabase() {
   return {
     league,
     contestants,
-    tribes: [tribeA, tribeB, mergeTribe],
+    tribes: [tribeA, tribeB],
     users: { admin: adminUser, mod: modUser, user: regularUser },
   }
 }
