@@ -65,11 +65,11 @@ model Team {
 }
 
 model TeamContestant {
-  id               String   @id @default(cuid())
-  team             Team     @relation(fields: [teamId], references: [id])
-  teamId           String
-  contestant       Contestant @relation(fields: [contestantId], references: [id])
-  contestantId     String
+  id           String     @id @default(cuid())
+  team         Team       @relation(fields: [teamId], references: [id])
+  teamId       String
+  contestant   Contestant @relation(fields: [contestantId], references: [id])
+  contestantId String
   draftOrder       Int
   globalPickNumber Int?
   pickedAt         DateTime @default(now())
@@ -273,8 +273,8 @@ enum DraftStatus {
 
 model Draft {
   id              String      @id @default(cuid())
-  league          League      @relation(fields: [leagueId], references: [id])
-  leagueId        String      @unique // one active draft per league
+  league          League?     @relation(fields: [leagueId], references: [id])
+  leagueId        String?     @unique
   status          DraftStatus @default(WAITING)
   currentPick     Int         @default(1)
   currentRound    Int         @default(1)

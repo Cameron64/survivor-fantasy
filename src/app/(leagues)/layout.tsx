@@ -1,14 +1,13 @@
 import { redirect } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
+import { auth } from '@clerk/nextjs/server'
 
 export default async function LeaguesLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const user = await getCurrentUser()
-
-  if (!user) {
+  const { userId } = await auth()
+  if (!userId) {
     redirect('/sign-in')
   }
 
