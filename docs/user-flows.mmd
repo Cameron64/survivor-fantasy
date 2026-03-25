@@ -1,0 +1,51 @@
+flowchart TD
+    START([User arrives]) --> AUTH{Signed in?}
+
+    AUTH -- No --> ENTRY{How did they arrive?}
+    %% TODO: Landing page not built — base URL currently goes to Clerk sign-in
+    ENTRY -- "Base URL" --> LANDING["[TODO] Landing Page\nMarketing, CTA, how it works"]
+    ENTRY -- "/join/code" --> JOIN_PAGE["Join Page\nLeague name, season, join button"]
+
+    LANDING --> CLERK_C[Sign Up via Clerk]
+    %% TODO: /leagues/new is built (UI + API), but season picker not yet wired — slug auto-generated from name
+    CLERK_C --> NEW_LEAGUE["[TODO] /leagues/new\nName, slug, pick a season"]
+    NEW_LEAGUE --> LEAGUE_CREATED["League created\nCaller becomes COMMISSIONER"]
+    %% TODO: Commissioner setup flow not built — no scoring rules or draft order configuration UI yet
+    LEAGUE_CREATED --> LEAGUE_SETUP["[TODO] Commissioner Setup\nScoring rules, draft order, settings"]
+    LEAGUE_SETUP --> INVITE_PAGE["/leagues/slug/invite\nCopy and share invite link"]
+    INVITE_PAGE --> COMM_DASH
+
+    JOIN_PAGE --> JOIN_AUTH{Signed in?}
+    JOIN_AUTH -- No --> CLERK_P[Sign In or Sign Up via Clerk]
+    CLERK_P --> JOIN_PAGE
+    JOIN_AUTH -- Yes --> JOIN_ACTION["Join League\nLeagueMembership created"]
+    JOIN_ACTION --> DRAFT_STATE
+
+    AUTH -- Yes --> MEMBERSHIPS{League memberships?}
+    MEMBERSHIPS -- None --> ROLE{Role?}
+    ROLE -- ADMIN --> NEW_LEAGUE
+    %% TODO: No "find a league" UI — signed-in users with no membership currently see an empty state or error
+    ROLE -- Regular user --> LIMBO["[TODO] Find a League\nSigned in but not in a league\nEnter invite code or browse public leagues"]
+    LIMBO --> JOIN_PAGE
+
+    MEMBERSHIPS -- One league --> DRAFT_STATE
+    %% TODO: Multi-league picker not built — routing exists (/leagues/[slug]/*) but no /leagues index page to choose between leagues
+    MEMBERSHIPS -- Multiple --> PICKER["[TODO] /leagues\nPick a league"]
+    PICKER --> DRAFT_STATE
+
+    DRAFT_STATE{Draft complete?}
+    %% TODO: Draft room UI not built — draft API exists but no live draft room interface
+    DRAFT_STATE -- No --> DRAFT["[TODO] Draft Room\nSnake draft, pick order, live picks"]
+    DRAFT -- Draft done --> LEAGUE_HOME
+    DRAFT_STATE -- Yes --> LEAGUE_HOME
+
+    LEAGUE_HOME["/leagues/slug/leaderboard\nLeague Home"]
+    LEAGUE_HOME --> NAV{Where next?}
+    NAV --> LB[Leaderboard]
+    NAV --> CONTESTANTS[Contestants]
+    NAV --> MY_TEAM[My Team]
+    NAV --> IS_COMM{Is Commissioner?}
+    %% TODO: Commissioner dashboard not built — no UI to see who joined, trigger draft, or manage league settings
+    IS_COMM -- Yes --> COMM_DASH["[TODO] Commissioner Dashboard\nWho joined, trigger draft, manage events"]
+    IS_COMM -- No --> ADMIN_BLOCK[No admin access]
+    COMM_DASH --> ADMIN["/admin\nEvents, users, episodes"]
