@@ -44,7 +44,7 @@ export default function AdminTribesPage() {
 
   const fetchTribes = async () => {
     try {
-      const res = await fetch('/api/tribes')
+      const res = await fetch('/api/legacy/tribes')
       const data = await res.json()
       setTribes(data)
     } catch (error) {
@@ -77,7 +77,7 @@ export default function AdminTribesPage() {
     setIsSubmitting(true)
     try {
       if (editingTribe) {
-        const res = await fetch(`/api/tribes/${editingTribe.id}`, {
+        const res = await fetch(`/api/legacy/tribes/${editingTribe.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, color, buffImage, isMerge }),
@@ -88,7 +88,7 @@ export default function AdminTribesPage() {
           fetchTribes()
         }
       } else {
-        const res = await fetch('/api/tribes', {
+        const res = await fetch('/api/legacy/tribes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, color, buffImage, isMerge }),
@@ -112,7 +112,7 @@ export default function AdminTribesPage() {
     }
 
     try {
-      const res = await fetch(`/api/tribes/${tribeId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/legacy/tribes/${tribeId}`, { method: 'DELETE' })
       if (res.ok) {
         fetchTribes()
       }

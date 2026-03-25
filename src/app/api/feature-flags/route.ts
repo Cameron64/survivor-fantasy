@@ -18,7 +18,7 @@ export async function GET() {
   try {
     // Use $queryRawUnsafe (same as PATCH read-back which works)
     const rows = await db.$queryRawUnsafe<FeatureFlags[]>(
-      'SELECT "enableTribeSwap", "enableSwapMode", "enableDissolutionMode", "enableExpansionMode", "enableTribeMerge" FROM "League" WHERE "isActive" = true LIMIT 1'
+      'SELECT "enableTribeSwap", "enableSwapMode", "enableDissolutionMode", "enableExpansionMode", "enableTribeMerge" FROM "League" WHERE "slug" = \'legacy\' LIMIT 1'
     )
 
     if (!rows.length) {

@@ -77,11 +77,11 @@ export default function EventsPage() {
   const fetchData = async () => {
     try {
       const [eventsRes, gameEventsRes, episodesRes, contestantsRes, tribesRes] = await Promise.all([
-        fetch('/api/events'),
-        fetch('/api/game-events'),
-        fetch('/api/episodes'),
-        fetch('/api/contestants?includeMemberships=true'),
-        fetch('/api/tribes'),
+        fetch('/api/legacy/events'),
+        fetch('/api/legacy/game-events'),
+        fetch('/api/legacy/episodes'),
+        fetch('/api/legacy/contestants?includeMemberships=true'),
+        fetch('/api/legacy/tribes'),
       ])
 
       if (eventsRes.ok) {

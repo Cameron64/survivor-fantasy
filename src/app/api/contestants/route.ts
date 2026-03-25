@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { requireUserOrPublic, requireAdmin } from '@/lib/auth'
 import { getValidImageUrl } from '@/lib/utils'
 import { createContestantSchema, contestantQuerySchema, formatZodError } from '@/lib/validation'
+import { getLegacyLeague } from '@/lib/league-context'
 
 // GET /api/contestants - List all contestants
 export async function GET(req: NextRequest) {
@@ -97,6 +98,11 @@ export async function POST(req: NextRequest) {
 
     const { name, nickname, tribe, imageUrl, originalImageUrl, originalSeasons } = validationResult.data
 
+    const league = await getLegacyLeague()
+    if (!league?.seasonId) {
+      return NextResponse.json({ error: 'No active season found — cannot create contestant' }, { status: 400 })
+    }
+
     const contestant = await db.contestant.create({
       data: {
         name,
@@ -105,6 +111,7 @@ export async function POST(req: NextRequest) {
         imageUrl,
         originalImageUrl,
         originalSeasons,
+        seasonId: league.seasonId,
       },
     })
 

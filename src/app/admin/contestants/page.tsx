@@ -77,7 +77,7 @@ export default function AdminContestantsPage() {
 
   const fetchContestants = async () => {
     try {
-      const res = await fetch('/api/contestants?includeMemberships=true')
+      const res = await fetch('/api/legacy/contestants?includeMemberships=true')
       const data = await res.json()
       if (Array.isArray(data)) {
         setContestants(data)
@@ -95,7 +95,7 @@ export default function AdminContestantsPage() {
 
   const fetchTribes = async () => {
     try {
-      const res = await fetch('/api/tribes')
+      const res = await fetch('/api/legacy/tribes')
       const data = await res.json()
       if (Array.isArray(data)) {
         setTribes(data)
@@ -144,7 +144,7 @@ export default function AdminContestantsPage() {
 
       if (editingContestant) {
         // Update contestant
-        const res = await fetch(`/api/contestants/${editingContestant.id}`, {
+        const res = await fetch(`/api/legacy/contestants/${editingContestant.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -165,7 +165,7 @@ export default function AdminContestantsPage() {
             (m) => m.toWeek === null
           )
           if (currentMembership?.tribe.id !== tribeId) {
-            await fetch('/api/tribe-memberships', {
+            await fetch('/api/legacy/tribe-memberships', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -183,7 +183,7 @@ export default function AdminContestantsPage() {
         }
       } else {
         // Create contestant
-        const res = await fetch('/api/contestants', {
+        const res = await fetch('/api/legacy/contestants', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -199,7 +199,7 @@ export default function AdminContestantsPage() {
           const newContestant = await res.json()
           // Create tribe membership if tribe selected
           if (tribeId) {
-            await fetch('/api/tribe-memberships', {
+            await fetch('/api/legacy/tribe-memberships', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -226,7 +226,7 @@ export default function AdminContestantsPage() {
     }
 
     try {
-      const res = await fetch(`/api/contestants/${contestantId}`, {
+      const res = await fetch(`/api/legacy/contestants/${contestantId}`, {
         method: 'DELETE',
       })
       if (res.ok) {

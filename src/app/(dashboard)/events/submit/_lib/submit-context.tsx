@@ -255,7 +255,7 @@ export function SubmitProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    fetch('/api/league/scoring')
+    fetch('/api/legacy/league/scoring')
       .then((res) => res.json())
       .then((data) => {
         if (data.effective) setPointValues(data.effective)
@@ -267,7 +267,7 @@ export function SubmitProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const weekNum = parseInt(week)
     if (isNaN(weekNum)) return
-    fetch('/api/episodes')
+    fetch('/api/legacy/episodes')
       .then((res) => {
         if (!res.ok) return null
         return res.json()
@@ -282,7 +282,7 @@ export function SubmitProvider({ children }: { children: ReactNode }) {
   }, [week])
 
   useEffect(() => {
-    fetch('/api/tribes')
+    fetch('/api/legacy/tribes')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -295,7 +295,7 @@ export function SubmitProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    fetch('/api/contestants?includeMemberships=true')
+    fetch('/api/legacy/contestants?includeMemberships=true')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {

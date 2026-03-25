@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { db } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { getLegacyLeague } from '@/lib/league-context'
 import { Badge } from '@/components/ui/badge'
 import { Settings, Trophy, Eye, Gamepad2, Flag } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
@@ -17,10 +18,7 @@ import { DEFAULT_FLAGS } from '@/lib/feature-flags'
 import { parseGameSettings } from '@/lib/game-settings'
 
 async function getLeague() {
-  const league = await db.league.findFirst({
-    orderBy: { createdAt: 'desc' },
-  })
-  return league
+  return getLegacyLeague()
 }
 
 async function getFeatureFlags(): Promise<FeatureFlags> {
@@ -29,7 +27,7 @@ async function getFeatureFlags(): Promise<FeatureFlags> {
       SELECT "enableTribeSwap", "enableSwapMode", "enableDissolutionMode",
              "enableExpansionMode", "enableTribeMerge"
       FROM "League"
-      WHERE "isActive" = true
+      WHERE "slug" = 'legacy'
       LIMIT 1
     `
     if (!rows.length) return DEFAULT_FLAGS

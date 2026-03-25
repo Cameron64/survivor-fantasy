@@ -7,6 +7,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    pool: 'forks',
+    maxWorkers: 2,
     env: {
       DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: 'pk_test_1234567890',

@@ -2,14 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireUser, requireAdmin } from '@/lib/auth'
 import { draftActionSchema, formatZodError } from '@/lib/validation'
+import { getLegacyLeague } from '@/lib/league-context'
 
 // GET /api/draft - Get draft status
 export async function GET(_req: NextRequest) {
   try {
     await requireUser()
 
-    const draft = await db.draft.findFirst({
-      orderBy: { createdAt: 'desc' },
+    const legacyLeague = await getLegacyLeague()
+    if (!legacyLeague) {
+      return NextResponse.json({ error: 'No league found' }, { status: 404 })
+    }
+
+    const draft = await db.draft.findUnique({
+      where: { leagueId: legacyLeague.id },
     })
 
     if (!draft) {
@@ -97,8 +103,13 @@ export async function POST(req: NextRequest) {
 
       const { draftOrder: newDraftOrder } = action
 
-      // Delete any existing draft
-      await db.draft.deleteMany()
+      const initLeague = await getLegacyLeague()
+      if (!initLeague) {
+        return NextResponse.json({ error: 'No league found' }, { status: 404 })
+      }
+
+      // Delete any existing draft for this league
+      await db.draft.deleteMany({ where: { leagueId: initLeague.id } })
 
       const draft = await db.draft.create({
         data: {
@@ -106,6 +117,7 @@ export async function POST(req: NextRequest) {
           currentPick: 1,
           currentRound: 1,
           isComplete: false,
+          leagueId: initLeague.id,
         },
       })
 
@@ -116,8 +128,13 @@ export async function POST(req: NextRequest) {
     if (action.action === 'pick') {
       const { contestantId } = action
 
-      const draft = await db.draft.findFirst({
-        orderBy: { createdAt: 'desc' },
+      const pickLeague = await getLegacyLeague()
+      if (!pickLeague) {
+        return NextResponse.json({ error: 'No league found' }, { status: 404 })
+      }
+
+      const draft = await db.draft.findUnique({
+        where: { leagueId: pickLeague.id },
       })
 
       if (!draft) {
@@ -156,7 +173,7 @@ export async function POST(req: NextRequest) {
 
       if (!team) {
         team = await db.team.create({
-          data: { userId: user.id },
+          data: { userId: user.id, leagueId: pickLeague.id },
         })
       }
 

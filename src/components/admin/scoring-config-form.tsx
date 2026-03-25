@@ -53,7 +53,7 @@ export function ScoringConfigForm({ defaults, initialOverrides }: ScoringConfigF
     }
 
     try {
-      const res = await fetch('/api/league/scoring', {
+      const res = await fetch('/api/legacy/league/scoring', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ overrides }),

@@ -1,6 +1,12 @@
 import { PrismaClient, Role, EventType } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
 
-const prisma = new PrismaClient()
+const connectionString = process.env.DATABASE_URL
+if (!connectionString) throw new Error('DATABASE_URL is required')
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString }),
+})
 
 // Survivor 50: In the Hands of the Fans — all 24 returning players
 const contestants = [
@@ -41,17 +47,43 @@ async function main() {
   await prisma.teamContestant.deleteMany()
   await prisma.team.deleteMany()
   await prisma.draft.deleteMany()
+  await prisma.leagueMembership.deleteMany()
+  await prisma.leagueInvite.deleteMany()
   await prisma.league.deleteMany()
   await prisma.contestant.deleteMany()
+  await prisma.season.deleteMany()
+  await prisma.show.deleteMany()
   await prisma.user.deleteMany()
 
   console.log('🧹 Cleared existing data')
+
+  // Create Show and Season (required before League and Contestants)
+  const show = await prisma.show.create({
+    data: {
+      slug: 'survivor',
+      name: 'Survivor',
+      description: 'The original CBS reality competition.',
+      isActive: true,
+    },
+  })
+
+  const season = await prisma.season.create({
+    data: {
+      showId: show.id,
+      number: 50,
+      name: 'Season 50: Back to Basics',
+      isActive: true,
+    },
+  })
+  console.log(`✅ Created show "${show.name}" and season "${season.name}"`)
 
   // Create league
   const league = await prisma.league.create({
     data: {
       name: 'Survivor 50 Fantasy League',
       season: 50,
+      slug: 'legacy',
+      seasonId: season.id,
       isActive: true,
     },
   })
@@ -66,6 +98,7 @@ async function main() {
           nickname: 'nickname' in contestant ? (contestant as { nickname?: string }).nickname : undefined,
           imageUrl: contestant.imageUrl,
           originalSeasons: contestant.originalSeasons,
+          seasonId: season.id,
         },
       })
     )
@@ -122,7 +155,7 @@ async function main() {
     { name: 'Marcus Johnson', email: 'marcus@test.com' },
     { name: 'Lily Patel', email: 'lily@test.com' },
     { name: 'Derek Washington', email: 'derek@test.com' },
-    { name: 'Megan O\'Brien', email: 'megan@test.com' },
+    { name: "Megan O'Brien", email: 'megan@test.com' },
     { name: 'Ryan Kowalski', email: 'ryan@test.com' },
     { name: 'Priya Sharma', email: 'priya@test.com' },
     { name: 'Carlos Reyes', email: 'carlos@test.com' },
@@ -153,12 +186,24 @@ async function main() {
   )
   console.log(`✅ Created ${regularUsers.length} regular users (${regularUsers.length + 2} total)`)
 
+  // Create LeagueMembership for all users
+  const allUsers = [adminUser, modUser, ...regularUsers]
+  await prisma.leagueMembership.createMany({
+    data: allUsers.map((u) => ({
+      userId: u.id,
+      leagueId: league.id,
+      role: u.role === Role.ADMIN ? 'COMMISSIONER' : u.role === Role.MODERATOR ? 'MODERATOR' : 'PLAYER',
+    })),
+  })
+  console.log(`✅ Created ${allUsers.length} league memberships`)
+
   const testUser = regularUsers[0] // Jake Morrison used as the primary test user
 
   // Create a team for the test user
-  const team = await prisma.team.create({
+  await prisma.team.create({
     data: {
       userId: testUser.id,
+      leagueId: league.id,
       contestants: {
         create: [
           { contestantId: createdContestants[0].id, draftOrder: 1 },

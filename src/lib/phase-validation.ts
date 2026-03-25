@@ -57,7 +57,7 @@ export async function validatePhaseTransition(
   }
 
   // Hard check: can't set PRE_MERGE at or after mergeWeek
-  const league = await db.league.findFirst({
+  const league = await db.league.findUnique({
     where: { id: leagueId },
     select: { mergeWeek: true },
   })

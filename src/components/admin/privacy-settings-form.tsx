@@ -23,7 +23,7 @@ export function PrivacySettingsForm({
   const save = async (data: { isPublic?: boolean; allowGuestEvents?: boolean; allowUserEvents?: boolean }) => {
     setIsSaving(true)
     try {
-      const res = await fetch('/api/league', {
+      const res = await fetch('/api/legacy/league', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

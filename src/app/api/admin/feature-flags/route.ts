@@ -4,10 +4,12 @@ import { requireAdmin } from '@/lib/auth'
 import { DEFAULT_FLAGS } from '@/lib/feature-flags'
 import type { FeatureFlags } from '@/lib/feature-flags'
 import { ensureFeatureFlagColumns } from '@/lib/ensure-feature-flag-columns'
+import { getLeagueBySlug, getLegacyLeague } from '@/lib/league-context'
 
 /**
  * PATCH /api/admin/feature-flags
- * Update feature flags in the active league (admin only)
+ * Update feature flags in the active league (admin only).
+ * Accepts optional `leagueSlug` in request body; falls back to legacy league.
  */
 export async function PATCH(req: NextRequest) {
   try {
@@ -21,11 +23,9 @@ export async function PATCH(req: NextRequest) {
 
     const body = await req.json()
 
-    const league = await db.league.findFirst({
-      where: { isActive: true },
-      select: { id: true },
-    })
-
+    const league = body.leagueSlug
+      ? await getLeagueBySlug(body.leagueSlug)
+      : await getLegacyLeague()
     if (!league) {
       return NextResponse.json(
         { error: 'No active league found' },

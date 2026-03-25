@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
+import { getLegacyLeague } from '@/lib/league-context'
 import { calculateTotalPoints } from '@/lib/scoring'
 import { getContestantDisplayName, getValidImageUrl } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/card'
@@ -55,7 +56,7 @@ async function getOverviewData() {
         },
       },
     }),
-    db.league.findFirst({ select: { showLastPlace: true } }),
+    getLegacyLeague(),
     db.tribe.findMany({ select: { id: true, name: true, color: true } }),
   ])
 

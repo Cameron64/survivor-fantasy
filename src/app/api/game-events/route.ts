@@ -8,6 +8,7 @@ import { getLeagueScoringConfig } from '@/lib/scoring-server'
 import { parseGameSettings } from '@/lib/game-settings'
 import { notifyGameEventSubmitted } from '@/lib/slack'
 import { createGameEventSchema, formatZodError } from '@/lib/validation'
+import { getLegacyLeague } from '@/lib/league-context'
 
 // GET /api/game-events - List game events
 export async function GET(req: NextRequest) {
@@ -85,10 +86,7 @@ export async function POST(req: NextRequest) {
     const { type, week, data } = validationResult.data
 
     // Read league scoring config and game settings
-    const league = await db.league.findFirst({
-      where: { isActive: true },
-      select: { scoringConfig: true, gameSettings: true },
-    })
+    const league = await getLegacyLeague()
     const pointValues = await getLeagueScoringConfig()
     const gameSettings = parseGameSettings(league?.gameSettings)
 

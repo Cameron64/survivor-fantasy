@@ -1,5 +1,5 @@
 import { EventType } from '@prisma/client'
-import { db } from './db'
+import { getLegacyLeague } from './league-context'
 import { getEffectivePoints } from './scoring'
 import { type GameSettings, parseGameSettings } from './game-settings'
 
@@ -7,10 +7,7 @@ import { type GameSettings, parseGameSettings } from './game-settings'
  * Read the active league's scoringConfig from the DB and return the effective merged points map.
  */
 export async function getLeagueScoringConfig(): Promise<Record<EventType, number>> {
-  const league = await db.league.findFirst({
-    where: { isActive: true },
-    select: { scoringConfig: true },
-  })
+  const league = await getLegacyLeague()
   const overrides = league?.scoringConfig as Partial<Record<EventType, number>> | null
   return getEffectivePoints(overrides)
 }
@@ -19,9 +16,6 @@ export async function getLeagueScoringConfig(): Promise<Record<EventType, number
  * Read the active league's gameSettings from the DB and return validated settings.
  */
 export async function getLeagueGameSettings(): Promise<GameSettings> {
-  const league = await db.league.findFirst({
-    where: { isActive: true },
-    select: { gameSettings: true },
-  })
+  const league = await getLegacyLeague()
   return parseGameSettings(league?.gameSettings)
 }

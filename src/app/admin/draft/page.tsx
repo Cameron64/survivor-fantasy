@@ -39,7 +39,7 @@ export default function AdminDraftPage() {
 
   const fetchDraftStatus = async () => {
     try {
-      const res = await fetch('/api/draft')
+      const res = await fetch('/api/legacy/draft')
       const data = await res.json()
       setDraftStatus(data)
     } catch (error) {
@@ -77,7 +77,7 @@ export default function AdminDraftPage() {
 
     setIsInitializing(true)
     try {
-      const res = await fetch('/api/draft', {
+      const res = await fetch('/api/legacy/draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

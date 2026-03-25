@@ -44,7 +44,7 @@ export default function ReviewPage() {
 
       console.log('Submitting game event:', JSON.stringify(payload, null, 2))
 
-      const res = await fetch('/api/game-events', {
+      const res = await fetch('/api/legacy/game-events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

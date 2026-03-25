@@ -1,4 +1,5 @@
 import { db } from './db'
+import { getLegacyLeague } from './league-context'
 
 export interface SeasonReadiness {
   isReady: boolean
@@ -17,10 +18,7 @@ export interface SeasonReadiness {
 }
 
 export async function checkSeasonReadiness(): Promise<SeasonReadiness> {
-  const league = await db.league.findFirst({
-    where: { isActive: true },
-    select: { id: true },
-  })
+  const league = await getLegacyLeague()
 
   if (!league) {
     return {

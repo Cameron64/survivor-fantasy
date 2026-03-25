@@ -18,7 +18,7 @@ export function GameSettingsForm({ initialSettings }: GameSettingsFormProps) {
     setSettings(next)
     setIsSaving(true)
     try {
-      const res = await fetch('/api/league/game-settings', {
+      const res = await fetch('/api/legacy/league/game-settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(next),

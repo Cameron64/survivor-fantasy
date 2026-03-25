@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth'
+import { getLegacyLeague } from '@/lib/league-context'
 
 // POST /api/episodes/bulk - Bulk create episodes with weekly intervals
 export async function POST(req: NextRequest) {
   try {
     await requireAdmin()
 
-    const league = await db.league.findFirst({
-      where: { isActive: true },
-      select: { id: true },
-    })
-
+    const league = await getLegacyLeague()
     if (!league) {
       return NextResponse.json({ error: 'No active league' }, { status: 400 })
     }

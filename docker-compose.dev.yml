@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: castaway
+      POSTGRES_PASSWORD: castaway
+      POSTGRES_DB: castaway_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - castaway_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  castaway_postgres_data:

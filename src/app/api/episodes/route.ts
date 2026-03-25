@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireUserOrPublic, requireAdmin } from '@/lib/auth'
+import { getLegacyLeague } from '@/lib/league-context'
 
 // GET /api/episodes - List episodes for active league
 export async function GET() {
   try {
     await requireUserOrPublic()
 
-    const league = await db.league.findFirst({
-      where: { isActive: true },
-      select: { id: true },
-    })
-
+    const league = await getLegacyLeague()
     if (!league) {
       return NextResponse.json([])
     }
@@ -36,11 +33,7 @@ export async function POST(req: NextRequest) {
   try {
     await requireAdmin()
 
-    const league = await db.league.findFirst({
-      where: { isActive: true },
-      select: { id: true },
-    })
-
+    const league = await getLegacyLeague()
     if (!league) {
       return NextResponse.json({ error: 'No active league' }, { status: 400 })
     }

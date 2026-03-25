@@ -16,7 +16,7 @@ export function FunSettingsForm({ initialShowLastPlace }: FunSettingsFormProps) 
     setShowLastPlace(checked)
     setIsSaving(true)
     try {
-      const res = await fetch('/api/league', {
+      const res = await fetch('/api/legacy/league', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ showLastPlace: checked }),

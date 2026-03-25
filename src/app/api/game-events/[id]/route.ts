@@ -150,7 +150,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           }
 
           // Set league merge week
-          const league = await tx.league.findFirst({ where: { isActive: true } })
+          const league = await tx.league.findUnique({ where: { slug: 'legacy' } })
           if (league) {
             await tx.league.update({
               where: { id: league.id },
@@ -285,7 +285,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
           })
 
           // Clear league merge/jury week
-          const league = await tx.league.findFirst({ where: { isActive: true } })
+          const league = await tx.league.findUnique({ where: { slug: 'legacy' } })
           if (league) {
             await tx.league.update({
               where: { id: league.id },
@@ -437,7 +437,7 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
             where: { gameEventId: id },
             data: { toWeek: null, gameEventId: null },
           })
-          const league = await tx.league.findFirst({ where: { isActive: true } })
+          const league = await tx.league.findUnique({ where: { slug: 'legacy' } })
           if (league) {
             await tx.league.update({
               where: { id: league.id },

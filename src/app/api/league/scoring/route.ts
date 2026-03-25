@@ -4,17 +4,14 @@ import { requireUserOrPublic, requireAdmin } from '@/lib/auth'
 import { getEffectivePoints } from '@/lib/scoring'
 import { EVENT_POINTS } from '@/lib/constants/scoring-constants'
 import { EventType, Prisma } from '@prisma/client'
+import { getLegacyLeague } from '@/lib/league-context'
 
 // GET /api/league/scoring - Returns effective point values (merged defaults + overrides)
 export async function GET() {
   try {
     await requireUserOrPublic()
 
-    const league = await db.league.findFirst({
-      where: { isActive: true },
-      select: { scoringConfig: true },
-    })
-
+    const league = await getLegacyLeague()
     const overrides = league?.scoringConfig as Partial<Record<EventType, number>> | null
     const effective = getEffectivePoints(overrides)
 
@@ -68,7 +65,7 @@ export async function PATCH(req: Request) {
     }
 
     // Save to league
-    const league = await db.league.findFirst({ where: { isActive: true } })
+    const league = await getLegacyLeague()
     if (!league) {
       return NextResponse.json({ error: 'No active league found' }, { status: 404 })
     }

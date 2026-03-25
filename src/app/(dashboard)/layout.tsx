@@ -109,8 +109,10 @@ export default async function DashboardLayout({
         const name =
           [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' ') ||
           email.split('@')[0]
-        user = await db.user.create({
-          data: {
+        user = await db.user.upsert({
+          where: { email },
+          update: { clerkId: userId, name },
+          create: {
             clerkId: userId,
             email,
             name,

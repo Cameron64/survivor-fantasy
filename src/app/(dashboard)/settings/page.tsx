@@ -71,7 +71,7 @@ export default function SettingsPage() {
 
   const fetchFeatureFlags = async () => {
     try {
-      const res = await fetch('/api/feature-flags')
+      const res = await fetch('/api/legacy/feature-flags')
       const data = await res.json()
       setEnableTribeSwap(data.enableTribeSwap || false)
       setEnableSwapMode(data.enableSwapMode || false)

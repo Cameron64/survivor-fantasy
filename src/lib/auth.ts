@@ -2,6 +2,7 @@ import { auth } from '@clerk/nextjs/server'
 import { headers } from 'next/headers'
 import { Role } from '@prisma/client'
 import { db } from './db'
+import { getLegacyLeague } from './league-context'
 
 const userInclude = {
   team: {
@@ -117,9 +118,7 @@ export async function requireUserOrPublic() {
   const user = await getCurrentUser()
   if (user) return user
 
-  const league = await db.league.findFirst({
-    select: { isPublic: true },
-  })
+  const league = await getLegacyLeague()
   if (league?.isPublic) return null
 
   throw new Error('Unauthorized')

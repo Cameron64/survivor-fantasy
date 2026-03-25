@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import Link from 'next/link'
-import { Shield, Users, Calendar, Settings, Trophy, ArrowLeft } from 'lucide-react'
+import { Shield, Users, Calendar, Settings, Trophy, ArrowLeft, Tv2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default async function AdminLayout({
@@ -58,6 +58,9 @@ export default async function AdminLayout({
                 <AdminNavLink href="/admin/league" icon={Settings}>
                   League
                 </AdminNavLink>
+                <AdminNavLink href="/admin/shows" icon={Tv2}>
+                  Shows
+                </AdminNavLink>
               </>
             )}
           </nav>
@@ -73,6 +76,7 @@ export default async function AdminLayout({
                 <MobileAdminNavLink href="/admin/users" icon={Users} label="Users" />
                 <MobileAdminNavLink href="/admin/draft" icon={Trophy} label="Draft" />
                 <MobileAdminNavLink href="/admin/league" icon={Settings} label="League" />
+                <MobileAdminNavLink href="/admin/shows" icon={Tv2} label="Shows" />
               </>
             )}
           </div>

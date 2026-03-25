@@ -1,9 +1,7 @@
-import { db } from './db'
+import { getLegacyLeague } from './league-context'
 
 export async function getLeagueSettings() {
-  const league = await db.league.findFirst({
-    select: { isPublic: true, allowGuestEvents: true, allowUserEvents: true },
-  })
+  const league = await getLegacyLeague()
   return {
     isPublic: league?.isPublic ?? false,
     allowGuestEvents: league?.allowGuestEvents ?? false,

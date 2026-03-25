@@ -84,9 +84,9 @@ export default function AdminEventsPage() {
   const fetchAll = async () => {
     try {
       const [eventsRes, gameEventsRes, tribesRes] = await Promise.all([
-        fetch('/api/events'),
-        fetch('/api/game-events'),
-        fetch('/api/tribes'),
+        fetch('/api/legacy/events'),
+        fetch('/api/legacy/game-events'),
+        fetch('/api/legacy/tribes'),
       ])
       if (eventsRes.ok) {
         const data = await eventsRes.json()
@@ -136,7 +136,7 @@ export default function AdminEventsPage() {
   const handleApproveGameEvent = async (id: string) => {
     setProcessingId(id)
     try {
-      const res = await fetch(`/api/game-events/${id}`, {
+      const res = await fetch(`/api/legacy/game-events/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isApproved: true }),
@@ -152,7 +152,7 @@ export default function AdminEventsPage() {
   const handleRejectGameEvent = async (id: string) => {
     setProcessingId(id)
     try {
-      const res = await fetch(`/api/game-events/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/legacy/game-events/${id}`, { method: 'DELETE' })
       if (res.ok) fetchAll()
     } catch (error) {
       console.error('Failed to reject game event:', error)
@@ -164,7 +164,7 @@ export default function AdminEventsPage() {
   const handleApproveEvent = async (id: string) => {
     setProcessingId(id)
     try {
-      const res = await fetch(`/api/events/${id}`, {
+      const res = await fetch(`/api/legacy/events/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isApproved: true }),
@@ -180,7 +180,7 @@ export default function AdminEventsPage() {
   const handleRejectEvent = async (id: string) => {
     setProcessingId(id)
     try {
-      const res = await fetch(`/api/events/${id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/legacy/events/${id}`, { method: 'DELETE' })
       if (res.ok) fetchAll()
     } catch (error) {
       console.error('Failed to reject event:', error)
@@ -255,11 +255,11 @@ export default function AdminEventsPage() {
     try {
       const { type, ids } = deleteConfirm
       if (type === 'event') {
-        await fetch(`/api/events/${ids[0]}`, { method: 'DELETE' })
+        await fetch(`/api/legacy/events/${ids[0]}`, { method: 'DELETE' })
       } else if (type === 'gameEvent') {
-        await fetch(`/api/game-events/${ids[0]}`, { method: 'DELETE' })
+        await fetch(`/api/legacy/game-events/${ids[0]}`, { method: 'DELETE' })
       } else if (type === 'bulkEvents') {
-        await fetch('/api/events/bulk-delete', {
+        await fetch('/api/legacy/events/bulk-delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ids }),
@@ -270,7 +270,7 @@ export default function AdminEventsPage() {
         const promises: Promise<Response>[] = []
         if (geIds.length > 0) {
           promises.push(
-            fetch('/api/game-events/bulk-delete', {
+            fetch('/api/legacy/game-events/bulk-delete', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ ids: geIds }),
@@ -279,7 +279,7 @@ export default function AdminEventsPage() {
         }
         if (evIds.length > 0) {
           promises.push(
-            fetch('/api/events/bulk-delete', {
+            fetch('/api/legacy/events/bulk-delete', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ ids: evIds }),

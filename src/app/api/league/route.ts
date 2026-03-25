@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { getLegacyLeague } from '@/lib/league-context'
 
 export async function PATCH(req: NextRequest) {
   try {
@@ -12,7 +13,7 @@ export async function PATCH(req: NextRequest) {
   const body = await req.json()
   const { isPublic, allowGuestEvents, allowUserEvents, showLastPlace } = body
 
-  const league = await db.league.findFirst()
+  const league = await getLegacyLeague()
   if (!league) {
     return NextResponse.json({ error: 'No league found' }, { status: 404 })
   }

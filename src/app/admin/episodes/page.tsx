@@ -46,7 +46,7 @@ export default function AdminEpisodesPage() {
 
   const fetchEpisodes = async () => {
     try {
-      const res = await fetch('/api/episodes')
+      const res = await fetch('/api/legacy/episodes')
       const data = await res.json()
       setEpisodes(data)
     } catch (error) {
@@ -77,7 +77,7 @@ export default function AdminEpisodesPage() {
     setIsSubmitting(true)
     try {
       if (editingEpisode) {
-        const res = await fetch(`/api/episodes/${editingEpisode.id}`, {
+        const res = await fetch(`/api/legacy/episodes/${editingEpisode.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -92,7 +92,7 @@ export default function AdminEpisodesPage() {
           fetchEpisodes()
         }
       } else {
-        const res = await fetch('/api/episodes', {
+        const res = await fetch('/api/legacy/episodes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -123,7 +123,7 @@ export default function AdminEpisodesPage() {
 
     setIsSubmitting(true)
     try {
-      const res = await fetch('/api/episodes/bulk', {
+      const res = await fetch('/api/legacy/episodes/bulk', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -148,7 +148,7 @@ export default function AdminEpisodesPage() {
     if (!confirm('Delete this episode?')) return
 
     try {
-      const res = await fetch(`/api/episodes/${episodeId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/legacy/episodes/${episodeId}`, { method: 'DELETE' })
       if (res.ok) {
         fetchEpisodes()
       }

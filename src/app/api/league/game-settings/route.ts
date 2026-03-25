@@ -2,17 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth'
 import { gameSettingsSchema, parseGameSettings } from '@/lib/game-settings'
+import { getLegacyLeague } from '@/lib/league-context'
 
 // GET /api/league/game-settings - Get current game settings
 export async function GET() {
   try {
     await requireAdmin()
 
-    const league = await db.league.findFirst({
-      where: { isActive: true },
-      select: { gameSettings: true },
-    })
-
+    const league = await getLegacyLeague()
     return NextResponse.json(parseGameSettings(league?.gameSettings))
   } catch (error) {
     if (error instanceof Error && error.message === 'Unauthorized') {
@@ -40,10 +37,7 @@ export async function PUT(req: NextRequest) {
       )
     }
 
-    const league = await db.league.findFirst({
-      where: { isActive: true },
-    })
-
+    const league = await getLegacyLeague()
     if (!league) {
       return NextResponse.json({ error: 'No active league found' }, { status: 404 })
     }
