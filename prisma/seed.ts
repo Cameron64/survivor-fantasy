@@ -51,6 +51,7 @@ async function main() {
   const league = await prisma.league.create({
     data: {
       name: 'Survivor 50 Fantasy League',
+      slug: 'legacy',
       season: 50,
       isActive: true,
     },
