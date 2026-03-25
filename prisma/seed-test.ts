@@ -40,6 +40,7 @@ async function seedTestDatabase() {
   const league = await prisma.league.create({
     data: {
       name: 'E2E Test League',
+      slug: 'e2e-test-league',
       season: 99, // Clearly a test league
       isActive: true,
     },

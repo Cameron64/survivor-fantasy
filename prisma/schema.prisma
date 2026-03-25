@@ -28,6 +28,7 @@ model User {
   eventApprovals           Event[]     @relation("ApprovedBy")
   gameEventSubmissions     GameEvent[] @relation("GameEventSubmittedBy")
   gameEventApprovals       GameEvent[] @relation("GameEventApprovedBy")
+  leagueMemberships        LeagueMembership[]
   createdAt                DateTime    @default(now())
   updatedAt                DateTime    @updatedAt
 }
@@ -36,6 +37,18 @@ enum Role {
   ADMIN
   MODERATOR
   USER
+}
+
+enum LeagueTier {
+  FREE
+  COMMISSIONER
+  COMMUNITY
+}
+
+enum LeagueRole {
+  COMMISSIONER
+  MODERATOR
+  PLAYER
 }
 
 model Contestant {
@@ -180,9 +193,11 @@ enum EventType {
 }
 
 model League {
-  id               String    @id @default(cuid())
-  name             String    @default("Survivor 50 Fantasy League")
-  season           Int       @default(50)
+  id               String             @id @default(cuid())
+  name             String             @default("Survivor 50 Fantasy League")
+  season           Int                @default(50)
+  slug             String             @unique
+  tier             LeagueTier         @default(FREE)
   draftStartDate   DateTime?
   draftEndDate     DateTime?
   isActive         Boolean   @default(true)
@@ -206,8 +221,33 @@ model League {
 
   tribes           Tribe[]
   episodes         Episode[]
+  memberships      LeagueMembership[]
+  invites          LeagueInvite[]
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+}
+
+model LeagueMembership {
+  id       String     @id @default(cuid())
+  userId   String
+  leagueId String
+  role     LeagueRole @default(PLAYER)
+  joinedAt DateTime   @default(now())
+  user     User       @relation(fields: [userId], references: [id])
+  league   League     @relation(fields: [leagueId], references: [id])
+
+  @@unique([userId, leagueId])
+}
+
+model LeagueInvite {
+  id        String    @id @default(cuid())
+  leagueId  String
+  code      String    @unique
+  maxUses   Int?
+  usedCount Int       @default(0)
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  league    League    @relation(fields: [leagueId], references: [id])
 }
 
 model Tribe {
