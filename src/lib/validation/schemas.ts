@@ -353,9 +353,22 @@ export type ContestantQueryInput = z.infer<typeof contestantQuerySchema>
 export const initializeDraftSchema = z.object({
   action: z.literal('initialize'),
   draftOrder: z.array(idSchema).min(2, 'At least 2 users required for draft'),
+  leagueId: idSchema.optional(),
+  picksPerUser: z.number().int().min(2).max(20).optional(),
+  pickTimeoutSecs: z.number().int().min(30).max(3600).optional(),
 })
 
 export type InitializeDraftInput = z.infer<typeof initializeDraftSchema>
+
+/**
+ * Schema for starting a draft (admin only, transitions WAITING → ACTIVE).
+ */
+export const startDraftSchema = z.object({
+  action: z.literal('start'),
+  leagueId: idSchema.optional(),
+})
+
+export type StartDraftInput = z.infer<typeof startDraftSchema>
 
 /**
  * Schema for making a draft pick.
@@ -363,6 +376,7 @@ export type InitializeDraftInput = z.infer<typeof initializeDraftSchema>
 export const makeDraftPickSchema = z.object({
   action: z.literal('pick'),
   contestantId: idSchema,
+  leagueId: idSchema.optional(),
 })
 
 export type MakeDraftPickInput = z.infer<typeof makeDraftPickSchema>
@@ -372,6 +386,7 @@ export type MakeDraftPickInput = z.infer<typeof makeDraftPickSchema>
  */
 export const draftActionSchema = z.discriminatedUnion('action', [
   initializeDraftSchema,
+  startDraftSchema,
   makeDraftPickSchema,
 ])
 
