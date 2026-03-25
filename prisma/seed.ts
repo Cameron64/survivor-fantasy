@@ -41,11 +41,23 @@ async function main() {
   await prisma.teamContestant.deleteMany()
   await prisma.team.deleteMany()
   await prisma.draft.deleteMany()
+  await prisma.leagueMembership.deleteMany()
+  await prisma.leagueInvite.deleteMany()
   await prisma.league.deleteMany()
   await prisma.contestant.deleteMany()
+  await prisma.season.deleteMany()
+  await prisma.show.deleteMany()
   await prisma.user.deleteMany()
 
   console.log('🧹 Cleared existing data')
+
+  // Create show + season
+  const show = await prisma.show.create({
+    data: { id: 'show_survivor', name: 'Survivor', slug: 'survivor' },
+  })
+  const season = await prisma.season.create({
+    data: { id: 'season_survivor_50', showId: show.id, number: 50, name: 'Survivor: In the Hands of the Fans' },
+  })
 
   // Create league
   const league = await prisma.league.create({
@@ -53,6 +65,7 @@ async function main() {
       name: 'Survivor 50 Fantasy League',
       slug: 'legacy',
       season: 50,
+      seasonId: season.id,
       isActive: true,
     },
   })
@@ -67,6 +80,7 @@ async function main() {
           nickname: 'nickname' in contestant ? (contestant as { nickname?: string }).nickname : undefined,
           imageUrl: contestant.imageUrl,
           originalSeasons: contestant.originalSeasons,
+          seasonId: season.id,
         },
       })
     )

@@ -30,11 +30,23 @@ async function seedTestDatabase() {
   await prisma.teamContestant.deleteMany()
   await prisma.team.deleteMany()
   await prisma.draft.deleteMany()
+  await prisma.leagueMembership.deleteMany()
+  await prisma.leagueInvite.deleteMany()
   await prisma.league.deleteMany()
   await prisma.contestant.deleteMany()
+  await prisma.season.deleteMany()
+  await prisma.show.deleteMany()
   await prisma.user.deleteMany()
 
   console.log('🧹 Cleared existing test data')
+
+  // Create test show + season
+  const show = await prisma.show.create({
+    data: { id: 'show_test', name: 'Test Show', slug: 'test-show' },
+  })
+  const season = await prisma.season.create({
+    data: { id: 'season_test_99', showId: show.id, number: 99, name: 'Test Season 99' },
+  })
 
   // Create test league
   const league = await prisma.league.create({
@@ -42,6 +54,7 @@ async function seedTestDatabase() {
       name: 'E2E Test League',
       slug: 'e2e-test',
       season: 99, // Clearly a test league
+      seasonId: season.id,
       isActive: true,
     },
   })
@@ -54,6 +67,7 @@ async function seedTestDatabase() {
         data: {
           name: c.name,
           originalSeasons: c.originalSeasons,
+          seasonId: season.id,
         },
       })
     )
