@@ -24,6 +24,7 @@ model User {
   invitedById              String?
   invitees                 User[]      @relation("Invites")
   team                     Team?
+  leagueMemberships        LeagueMembership[]
   eventSubmissions         Event[]     @relation("SubmittedBy")
   eventApprovals           Event[]     @relation("ApprovedBy")
   gameEventSubmissions     GameEvent[] @relation("GameEventSubmittedBy")
@@ -38,6 +39,12 @@ enum Role {
   USER
 }
 
+enum LeagueRole {
+  COMMISSIONER
+  MODERATOR
+  PLAYER
+}
+
 model Contestant {
   id               String            @id @default(cuid())
   name             String
@@ -48,6 +55,8 @@ model Contestant {
   originalSeasons  String?           // Comma-separated season numbers, e.g. "13,16,23,34"
   isEliminated     Boolean           @default(false)
   eliminatedWeek   Int?
+  seasonId         String?
+  season           Season?           @relation(fields: [seasonId], references: [id])
   teams            TeamContestant[]
   events           Event[]
   tribeMemberships TribeMembership[]
@@ -59,6 +68,8 @@ model Team {
   id          String           @id @default(cuid())
   user        User             @relation(fields: [userId], references: [id])
   userId      String           @unique
+  leagueId    String?
+  league      League?          @relation(fields: [leagueId], references: [id])
   contestants TeamContestant[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
@@ -199,6 +210,11 @@ model League {
   showLastPlace    Boolean   @default(false) // Show a "trophy" for last place on the standings
   mergeWeek        Int?
   juryStartWeek    Int?
+  tier             String    @default("FREE") // FREE | COMMISSIONER | COMMUNITY
+  paidUntil        DateTime?
+  stripeCustomerId String?
+  seasonId         String?
+  seasonRef        Season?   @relation(fields: [seasonId], references: [id])
 
   // Feature flags (default false = disabled)
   enableTribeSwap       Boolean @default(false) // Enable tribe swap events
@@ -210,6 +226,8 @@ model League {
   tribes           Tribe[]
   episodes         Episode[]
   draft            Draft?
+  memberships      LeagueMembership[]
+  teams            Team[]
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }
@@ -286,4 +304,46 @@ model Draft {
   completedAt     DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+}
+
+model LeagueMembership {
+  id        String      @id @default(cuid())
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  league    League      @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  leagueId  String
+  role      LeagueRole  @default(PLAYER)
+  joinedAt  DateTime    @default(now())
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([userId, leagueId])
+}
+
+model Show {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  isActive    Boolean   @default(true)
+  seasons     Season[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Season {
+  id            String       @id @default(cuid())
+  number        Int
+  name          String?
+  isActive      Boolean      @default(false)
+  premiereDate  DateTime?
+  finaleDate    DateTime?
+  show          Show         @relation(fields: [showId], references: [id])
+  showId        String
+  contestants   Contestant[]
+  leagues       League[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@unique([showId, number])
 }

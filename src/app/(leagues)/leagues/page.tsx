@@ -37,7 +37,7 @@ export default async function LeaguesPage() {
   }
 
   if (memberships.length === 1) {
-    redirect(`/leagues/${memberships[0].league.slug}/leaderboard`)
+    redirect(`/leagues/${memberships[0].league.slug ?? memberships[0].league.id}/leaderboard`)
   }
 
   return (
@@ -65,7 +65,7 @@ export default async function LeaguesPage() {
               <LeaguePickerCard
                 key={league.id}
                 leagueName={league.name}
-                leagueSlug={league.slug}
+                leagueSlug={league.slug ?? league.id}
                 season={league.season}
                 role={role}
                 memberCount={league._count.memberships}

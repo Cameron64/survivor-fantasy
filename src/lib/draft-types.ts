@@ -30,7 +30,7 @@ export type AvailableContestant = {
  * status mirrors DraftStatus enum: 'WAITING' | 'ACTIVE' | 'COMPLETE'.
  */
 export type DraftStatePayload = {
-  leagueId: string
+  leagueId: string | null
   status: 'WAITING' | 'ACTIVE' | 'COMPLETE'
   currentPick: number
   currentRound: number

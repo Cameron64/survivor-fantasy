@@ -8,8 +8,8 @@ export default async function FindLeaguePage() {
   const { userId } = await auth()
   const currentUser = userId ? await getCurrentUser() : null
 
-  const leagues = await db.league.findMany({
-    where: { isPublic: true, isActive: true },
+  const rawLeagues = await db.league.findMany({
+    where: { isPublic: true, isActive: true, slug: { not: null } },
     select: {
       id: true,
       name: true,
@@ -18,6 +18,7 @@ export default async function FindLeaguePage() {
     },
     orderBy: { createdAt: 'desc' },
   })
+  const leagues = rawLeagues.filter((l): l is typeof l & { slug: string } => l.slug !== null)
 
   const hasTeam = !!currentUser?.team
 
