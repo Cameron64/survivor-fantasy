@@ -26,7 +26,7 @@ export async function PATCH(
       }
 
       const episodeNumber = number ?? episode.number
-      const validation = await validatePhaseTransition(episode.leagueId, episodeNumber, gamePhase as GamePhase)
+      const validation = await validatePhaseTransition(episode.leagueId ?? '', episodeNumber, gamePhase as GamePhase)
 
       if (!validation.valid) {
         return NextResponse.json({ error: validation.error, warnings: validation.warnings }, { status: 400 })
