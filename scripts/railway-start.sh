@@ -44,6 +44,21 @@ ALTER TABLE "Draft" ADD COLUMN IF NOT EXISTS "leagueId" TEXT;
 UPDATE "Draft" SET "leagueId" = (SELECT "id" FROM "League" WHERE "slug" = 'legacy' LIMIT 1) WHERE "leagueId" IS NULL;
 SQL
 
+echo "==> Backfilling NOT NULL columns before schema push..."
+npx prisma db execute --stdin <<SQL || true
+UPDATE "Contestant" SET "seasonId" = (
+  SELECT s.id FROM "Season" s
+  JOIN "League" l ON l."seasonId" = s.id
+  LIMIT 1
+) WHERE "seasonId" IS NULL;
+
+UPDATE "League" SET slug = 'legacy' WHERE slug IS NULL;
+
+UPDATE "Team" SET "leagueId" = (
+  SELECT id FROM "League" WHERE slug = 'legacy' LIMIT 1
+) WHERE "leagueId" IS NULL;
+SQL
+
 echo "==> Pushing database schema (second pass to create new tables)..."
 npx prisma db push --accept-data-loss 2>&1 || true
 

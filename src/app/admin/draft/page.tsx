@@ -231,15 +231,4 @@ export default function AdminDraftPage() {
                       )}
                     </div>
                   </div>
-                  {entry.userId === draftStatus.currentUserId && !draftStatus.isComplete && (
-                    <Badge variant="default">On the clock</Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  )
-}
+                  {entry.userId === draftStatus.currentUserId && 
