@@ -41,7 +41,7 @@ export default function AdminDraftPage() {
 
   const fetchDraftStatus = async () => {
     try {
-      const res = await fetch('/api/legacy/draft')
+      const res = await fetch('/api/draft')
       const data = await res.json()
       setDraftStatus(data)
     } catch (error) {
@@ -79,7 +79,7 @@ export default function AdminDraftPage() {
 
     setIsInitializing(true)
     try {
-      const res = await fetch('/api/legacy/draft', {
+      const res = await fetch('/api/draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -231,4 +231,15 @@ export default function AdminDraftPage() {
                       )}
                     </div>
                   </div>
-                  {entry.userId === draftStatus.currentUserId && 
+                  {entry.userId === draftStatus.currentUserId && !draftStatus.isComplete && (
+                    <Badge variant="default">On the clock</Badge>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
