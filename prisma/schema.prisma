@@ -241,8 +241,8 @@ model Tribe {
   dissolvedAtWeek      Int?
   dissolvedByEvent     GameEvent?        @relation("DissolvedByEvent", fields: [dissolvedByEventId], references: [id])
   dissolvedByEventId   String?
-  league               League            @relation(fields: [leagueId], references: [id])
-  leagueId             String
+  league               League?           @relation(fields: [leagueId], references: [id])
+  leagueId             String?
   members              TribeMembership[]
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
@@ -275,8 +275,8 @@ model Episode {
   airDate     DateTime
   gamePhase   GamePhase   @default(PRE_MERGE)
   phaseSource PhaseSource @default(INFERRED)
-  league      League      @relation(fields: [leagueId], references: [id])
-  leagueId    String
+  league      League?     @relation(fields: [leagueId], references: [id])
+  leagueId    String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
