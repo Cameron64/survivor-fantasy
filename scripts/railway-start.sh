@@ -59,6 +59,16 @@ UPDATE "Team" SET "leagueId" = (
 ) WHERE "leagueId" IS NULL;
 SQL
 
+echo "==> Ensuring LeagueMembership/Show/Season timestamps exist (for tables with existing rows)..."
+npx prisma db execute --stdin <<SQL || true
+ALTER TABLE IF EXISTS "LeagueMembership" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT NOW();
+ALTER TABLE IF EXISTS "LeagueMembership" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT NOW();
+ALTER TABLE IF EXISTS "Show" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT NOW();
+ALTER TABLE IF EXISTS "Show" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT NOW();
+ALTER TABLE IF EXISTS "Season" ADD COLUMN IF NOT EXISTS "createdAt" TIMESTAMP(3) NOT NULL DEFAULT NOW();
+ALTER TABLE IF EXISTS "Season" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT NOW();
+SQL
+
 echo "==> Pushing database schema (second pass to create new tables)..."
 npx prisma db push --accept-data-loss 2>&1 || true
 
