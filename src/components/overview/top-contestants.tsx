@@ -55,13 +55,13 @@ export function TopContestants({ contestants }: TopContestantsProps) {
             }}
           >
             {/* Tribe color/buff background on the text area */}
-            {c.tribeBuffImage && !c.tribeIsMerge && (
+            {c.tribeBuffImage && (
               <div
                 className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10]"
                 style={{ backgroundImage: `url(${c.tribeBuffImage})` }}
               />
             )}
-            {c.tribeColor && !c.tribeIsMerge && (
+            {c.tribeColor && (
               <div
                 className="absolute inset-0 z-0 opacity-[0.10]"
                 style={{ backgroundColor: c.tribeColor }}

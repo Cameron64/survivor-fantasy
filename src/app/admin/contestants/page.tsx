@@ -438,13 +438,13 @@ function ContestantCard({
 
   return (
     <Card className={`relative overflow-hidden ${contestant.isEliminated ? 'opacity-60' : ''}`}>
-      {currentTribe?.buffImage && !currentTribe.isMerge && (
+      {currentTribe?.buffImage && (
         <div
           className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10]"
           style={{ backgroundImage: `url(${currentTribe.buffImage})` }}
         />
       )}
-      {currentTribe?.color && !currentTribe.isMerge && (
+      {currentTribe?.color && (
         <div
           className="absolute inset-0 z-0 opacity-[0.10]"
           style={{ backgroundColor: currentTribe.color }}

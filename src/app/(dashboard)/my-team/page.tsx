@@ -144,7 +144,7 @@ export default async function MyTeamPage() {
               <Card key={tc.id} className="relative overflow-hidden">
                 {(() => {
                   const tribe = tc.contestant.tribeMemberships?.[0]?.tribe
-                  if (!tribe || tribe.isMerge) return null
+                  if (!tribe) return null
                   return (
                     <>
                       {tribe.buffImage && (

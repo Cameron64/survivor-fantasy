@@ -79,13 +79,13 @@ export default async function ContestantsPage() {
       {Object.entries(tribes).map(([tribeName, { contestants: tribeContestants, color, buffImage, isMerge }]) => (
         <div key={tribeName} className="space-y-4">
           <div className="relative overflow-hidden rounded-lg px-4 py-3">
-            {buffImage && !isMerge && (
+            {buffImage && (
               <div
                 className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10]"
                 style={{ backgroundImage: `url(${buffImage})` }}
               />
             )}
-            {color && !isMerge && (
+            {color && (
               <div
                 className="absolute inset-0 z-0 opacity-[0.10]"
                 style={{ backgroundColor: color }}
@@ -116,13 +116,13 @@ export default async function ContestantsPage() {
                   contestant.isEliminated && 'opacity-60'
                 )}
               >
-                {buffImage && !isMerge && (
+                {buffImage && (
                   <div
                     className="absolute inset-0 z-0 bg-cover bg-center opacity-[0.12] dark:opacity-[0.10]"
                     style={{ backgroundImage: `url(${buffImage})` }}
                   />
                 )}
-                {color && !isMerge && (
+                {color && (
                   <div
                     className="absolute inset-0 z-0 opacity-[0.10]"
                     style={{ backgroundColor: color }}
